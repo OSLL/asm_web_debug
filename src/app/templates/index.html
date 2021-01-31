@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Web ASM{% endblock %}
+
+{% block content %}
+    <div id='task_info_div'>
+        <p>Some info about task. Probably, it can be condition.</p>
+    </div>
+
+    <div id='main_div'>
+
+        <div id='left_main_div' style="float: left; width: 60%;">
+            
+            <button type="button" class="btn btn-primary">Some Button1</button>
+            <button type="button" class="btn btn-secondary">Some Button2</button>
+            <button type="button" class="btn btn-info">Some Button3</button>
+            
+            <br><br>
+            
+            <textarea id='code' class='code'>Some code here.</textarea>
+
+            <textarea id='build_log' class='build_log' readonly>Some build log error here.</textarea>
+        </div>
+
+        <div id='right_main_div' style="float: right; width: 20%;">
+            <div id='register_table_div'>
+                <b>Регистры</b>
+                <table id='register_table' class="table">
+                    <thead>
+                        <tr>
+                            <td>Register</td>
+                            <td>Value</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>R1</td>
+                            <td>0x0</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id='stack_table_div'>
+                <b>Стек</b>
+                <table id='stack_table' class="table">
+                    <tbody>
+                        <tr>
+                            <td>0x0000</td>
+                            <td>0000</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

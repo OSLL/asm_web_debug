@@ -1,0 +1,44 @@
+.container {
+    width: 100%;
+    padding-right: 10px;
+    padding-left: 10px;
+    margin-right: auto;
+    margin-left: auto;
+    margin: 1%;
+}
+
+.code {
+    height: 500px;
+    width: 100%;
+}
+
+.build_log {
+    height: 100px;
+    width: 100%;
+    resize: none;
+}
+
+#header {
+    margin: 10%;
+    margin-top: 1%;
+    margin-bottom: 1%;
+}
+
+.table {
+	width: 100%;
+	margin-bottom: 20px;
+	border: 1px solid #dddddd;
+	border-collapse: collapse; 
+}
+
+.table th {
+	font-weight: bold;
+	padding: 5px;
+	background: #efefef;
+	border: 1px solid #dddddd;
+}
+
+.table td {
+	border: 1px solid #dddddd;
+	padding: 5px;
+}
