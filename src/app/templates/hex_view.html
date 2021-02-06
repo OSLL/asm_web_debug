@@ -4,28 +4,16 @@
 
 {% block content %}
     <div id='task_info_div'>
-        <p>Some info about task. Probably, it can be condition.</p>
     </div>
 
     <div id='main_div'>
 
         <div id='left_main_div' style="float: left; width: 60%;">
             
-            <a type="button" class="btn btn-primary" href="/run_code">Run</a>
-            <a type="button" class="btn btn-secondary" href="/debug">Debug</a>
-            <button type="button" class="btn btn-info">Continue</button>
-            <button type="button" class="btn btn-primary">Step into</button>
-            <button type="button" class="btn btn-secondary">Step over</button>
-            <button type="button" class="btn btn-info">Step out</button>
-            
             <br><br>
             
             <textarea id='code' class='code' >{{ text }}</textarea>
 
-            <a type="button" class="btn btn-primary" href="/hex_view">Open binary in HEX view</a>
-            <a type="button" class="btn btn-secondary" href="/compile">Compile</a>
-
-            <textarea id='build_log' class='build_log' readonly>Some build log error here.</textarea>
         </div>
 
         <div id='right_main_div' style="float: right; width: 20%;">

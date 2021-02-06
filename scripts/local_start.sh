@@ -1,2 +1,2 @@
 cd src
-python3 run.py
+python run.py
