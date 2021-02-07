@@ -9,6 +9,10 @@ bp = index_bp
 def index():
     return render_template('index.html', text="Button not pressed")
 
+@bp.route('/index/<string:text>')
+def index_deb(text):
+    return render_template('index.html', text = text + ' pressed')
+
 @bp.route('/run_code')
 def run_code():
     return render_template('index.html', text="Button 'Run' pressed")
@@ -24,3 +28,16 @@ def compile():
 @bp.route('/hex_view')
 def hex_view():
     return render_template('hex_view.html', text="Button 'Open binary in HEX view' pressed")
+    
+@bp.route('/check')
+def check():
+    return render_template('index.html', text="Button 'Check' pressed")
+
+@bp.route('/solutions')
+def solutions():
+    return render_template('solutions.html')
+
+@bp.route('/solutions/<int:id>')
+def solution(id):
+    return render_template('solution.html', id=id)
+

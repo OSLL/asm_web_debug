@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}Web ASM{% endblock %}
+
+{% block content %}
+    <div id='task_info_div' style="float: left; width: 60%;">
+        <h3>Your solutions</h3>
+    </div>
+
+    <div id='main_div'>
+
+        <div id='left_main_div' style="float: left; width: 60%;">
+            <div class="alert alert-info">
+                {% for i in range(1, 4) %}
+                    <a type="button" class="btn btn-warning" href="/solutions/{{ i }}">Solution{{ i }}</a>
+                    <br><br>
+                {% endfor%}
+            </div>
+            <br><br>
+        </div>
+    </div>
+{% endblock %}
