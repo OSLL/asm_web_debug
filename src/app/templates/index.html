@@ -6,8 +6,8 @@
     <div id='task_info_div' style="float: left; width: 60%;">
         <p>Some info about task. Probably, it can be condition.</p>
         <div style="display: block; float: right;">
-        	<a type="button" class="btn btn-primary" href="/check">Check</a>
-        	<a type="button" class="btn btn-secondary" href="/solutions">My solutions</a>
+        	<a type="button" class="btn btn-info" href="/check">Check</a>
+        	<a type="button" class="btn btn-success" href="/solutions">My solutions</a>
         </div>
     </div>
 
@@ -16,18 +16,18 @@
         <div id='left_main_div' style="float: left; width: 60%;">
 
         	<hr></hr>
-            <a type="button" class="btn btn-primary" href="/run_code">Run</a>
-            <a type="button" class="btn btn-secondary" href="/debug">Debug</a>
-            <a type="button" class="btn btn-info" href="/index/Continue">Continue</a>
-            <a type="button" class="btn btn-primary" href="/index/Step into">Step into</a>
-            <a type="button" class="btn btn-secondary" href="/index/Step over">Step over</a>
-            <a type="button" class="btn btn-info" href="/index/Step out">Step out</a>
+            <a type="button" class="btn btn-outline-success" href="/run_code">Run</a>
+            <a type="button" class="btn btn-outline-warning" href="/debug">Debug</a>
+            <a type="button" class="btn btn-outline-info" href="/index/Continue">Continue</a>
+            <a type="button" class="btn btn-outline-info" href="/index/Step into">Step into</a>
+            <a type="button" class="btn btn-outline-info" href="/index/Step over">Step over</a>
+            <a type="button" class="btn btn-outline-info" href="/index/Step out">Step out</a>
             <br><br>
             
             <textarea id='code' class='code' >{{ text }}</textarea>
 
-            <a type="button" class="btn btn-primary" href="/hex_view">Open binary in HEX view</a>
-            <a type="button" class="btn btn-secondary" href="/compile">Compile</a>
+            <a type="button" class="btn btn-outline-secondary" href="/hex_view">Open binary in HEX view</a>
+            <a type="button" class="btn btn-outline-secondary" href="/compile">Compile</a>
             <br><br>
 
             <textarea id='build_log' class='build_log' readonly>Some build log error here.</textarea>
