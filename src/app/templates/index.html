@@ -6,8 +6,8 @@
     <div id='task_info_div' style="float: left; width: 60%;">
         <p>Some info about task. Probably, it can be condition.</p>
         <div style="display: block; float: right;">
-        	<a type="button" class="btn btn-info" href="/check">Check</a>
-        	<a type="button" class="btn btn-success" href="/solutions">My solutions</a>
+        	<input type="button" class="btn btn-info" name="Check" value="Check" onclick="buttonClick(this)" />
+        	<input type="button" class="btn btn-success" name="My solutions" value="My solutions" onclick="buttonClick(this)" />
         </div>
     </div>
 
@@ -16,18 +16,18 @@
         <div id='left_main_div' style="float: left; width: 60%;">
 
         	<hr></hr>
-            <a type="button" class="btn btn-outline-success" href="/run_code">Run</a>
-            <a type="button" class="btn btn-outline-warning" href="/debug">Debug</a>
-            <a type="button" class="btn btn-outline-info" href="/index/Continue">Continue</a>
-            <a type="button" class="btn btn-outline-info" href="/index/Step into">Step into</a>
-            <a type="button" class="btn btn-outline-info" href="/index/Step over">Step over</a>
-            <a type="button" class="btn btn-outline-info" href="/index/Step out">Step out</a>
+            <input type="button" class="btn btn-outline-success" name="Run" value="Run" onclick="buttonClick(this)" />
+            <input type="button" class="btn btn-outline-warning" name="Debug" value="Debug" onclick="buttonClick(this)" />
+            <input type="button" class="btn btn-outline-info" name="Continue" value="Continue" onclick="buttonClick(this)" />
+            <input type="button" class="btn btn-outline-info" name="Step into" value="Step into" onclick="buttonClick(this)" />
+            <input type="button" class="btn btn-outline-info" name="Step over" value="Step over" onclick="buttonClick(this)" />
+            <input type="button" class="btn btn-outline-info" name="Step out" value="Step out" onclick="buttonClick(this)" />
             <br><br>
             
-            <textarea id='code' class='code' >{{ text }}</textarea>
+            <textarea id='code' class='code' ></textarea>
 
-            <a type="button" class="btn btn-outline-secondary" href="/hex_view">Open binary in HEX view</a>
-            <a type="button" class="btn btn-outline-secondary" href="/compile">Compile</a>
+            <input type="button" class="btn btn-outline-secondary" name="Open binary in HEX view" value="Open binary in HEX view" onclick="buttonClick(this)" />
+            <input type="button" class="btn btn-outline-secondary" name="Compile" value="Compile" onclick="buttonClick(this)" />
             <br><br>
 
             <textarea id='build_log' class='build_log' readonly>Some build log error here.</textarea>
