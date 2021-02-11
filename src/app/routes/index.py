@@ -8,3 +8,4 @@ bp = index_bp
 @bp.route('/index')
 def index():
     return render_template('index.html')
+
