@@ -42,3 +42,7 @@
 	border: 1px solid #dddddd;
 	padding: 5px;
 }
+
+.CodeMirror {
+    border: 1px solid black;
+}

@@ -23,14 +23,24 @@
             <input type="button" class="btn btn-outline-info" name="Step over" value="Step over" onclick="buttonClick(this)" />
             <input type="button" class="btn btn-outline-info" name="Step out" value="Step out" onclick="buttonClick(this)" />
             <br><br>
-            
-            <textarea id='code' class='code' ></textarea>
+            <link href="static/css/codemirror.min.css" rel="stylesheet" type="text/css" />
+            <link href="static/css/eclipse.css" rel="stylesheet" type="text/css" />
+
+            <script src="static/js/codemirror.min.js"></script>
+            <script src="static/js/gas.min.js"></script>
+            <script src="static/js/shell.min.js"></script>
+                
+            <form><textarea id='code' class='code'>Some code here.</textarea></form>
+
 
             <input type="button" class="btn btn-outline-secondary" name="Open binary in HEX view" value="Open binary in HEX view" onclick="buttonClick(this)" />
             <input type="button" class="btn btn-outline-secondary" name="Compile" value="Compile" onclick="buttonClick(this)" />
             <br><br>
+            
+            <textarea id='build_log' class='build_log' readonly>Some error output.</textarea>
+            <script src="static/js/build_log.js"></script>
+            <script src="static/js/editor.js"></script>
 
-            <textarea id='build_log' class='build_log' readonly>Some build log error here.</textarea>
         </div>
 
         <div id='right_main_div' style="float: right; width: 20%;">
