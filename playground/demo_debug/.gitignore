@@ -1,0 +1,8 @@
+*.out
+*.o
+*.swp
+gdb-10.0.90.20201023
+gdb-10.0.90.20201023/*
+gdb_binaries/*
+qemu_avr
+qemu_avr/*
