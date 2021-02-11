@@ -16,10 +16,20 @@
             <button type="button" class="btn btn-info">Some Button3</button>
             
             <br><br>
-            
-            <textarea id='code' class='code'>Some code here.</textarea>
+            <link href="static/css/codemirror.min.css" rel="stylesheet" type="text/css" />
+            <link href="static/css/eclipse.css" rel="stylesheet" type="text/css" />
 
-            <textarea id='build_log' class='build_log' readonly>Some build log error here.</textarea>
+            <script src="static/js/codemirror.min.js"></script>
+            <script src="static/js/gas.min.js"></script>
+            <script src="static/js/shell.min.js"></script>
+                
+            <form><textarea id='code' class='code'>Some code here.</textarea></form>
+
+            <script src="static/js/editor.js"></script>
+            
+            <textarea id='build_log' class='build_log' readonly>Some error output.</textarea>
+            <script src="static/js/build_log.js"></script>
+
         </div>
 
         <div id='right_main_div' style="float: right; width: 20%;">
