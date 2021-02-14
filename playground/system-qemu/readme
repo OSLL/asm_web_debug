@@ -1,0 +1,20 @@
+
+
+python3 exec_program.py
+
+objcopy --only-keep-debug bin/user-n001 user-n001.debug
+qemu-system-x86_64 -kernel bin/user-n001 -m 10M -s -S
+
+
+$ gdb
+
+target remote localhost:1234
+symbol-file user-n001.debug     <enter>
+break EntryPoint 				<enter>
+cont 							<enter>
+
+////////////////
+x/10i $eip
+stepi
+nexti
+////////////////
