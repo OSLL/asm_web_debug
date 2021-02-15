@@ -16,7 +16,8 @@
         <div id='left_main_div' style="float: left; width: 60%;">
 
         	<hr></hr>
-            <input type="button" class="btn btn-outline-success" name="Run" value="Run" onclick="buttonClick(this)" />
+            <form action='/' method="post" style='display:inline'>
+            <input type="button" id="Run" class="btn btn-outline-success" name="Run" value="Run"/></form> 
             <input type="button" class="btn btn-outline-warning" name="Debug" value="Debug" onclick="buttonClick(this)" />
             <input type="button" class="btn btn-outline-info" name="Continue" value="Continue" onclick="buttonClick(this)" />
             <input type="button" class="btn btn-outline-info" name="Step into" value="Step into" onclick="buttonClick(this)" />
@@ -30,8 +31,7 @@
             <script src="static/js/gas.min.js"></script>
             <script src="static/js/shell.min.js"></script>
                 
-            <form><textarea id='code' class='code'>Some code here.</textarea></form>
-
+            <form><textarea id='code' class='code' method="post">Some code here.</textarea></form>
 
             <input type="button" class="btn btn-outline-secondary" name="Open binary in HEX view" value="Open binary in HEX view" onclick="buttonClick(this)" />
             <input type="button" class="btn btn-outline-secondary" name="Compile" value="Compile" onclick="buttonClick(this)" />
