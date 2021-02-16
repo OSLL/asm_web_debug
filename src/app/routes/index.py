@@ -1,4 +1,4 @@
-from flask import Blueprint, make_response, render_template, jsonify, request
+from flask import Blueprint, make_response, render_template, request
 
 index_bp = Blueprint('index', __name__)
 bp = index_bp
