@@ -25,10 +25,10 @@
 }
 
 .table {
-	width: 100%;
-	margin-bottom: 20px;
-	border: 1px solid #dddddd;
-	border-collapse: collapse; 
+    width: 100%;
+    margin-bottom: 20px;
+    border: 1px solid #dddddd;
+    border-collapse: collapse; 
 }
 
 .table th {
@@ -39,8 +39,8 @@
 }
 
 .table td {
-	border: 1px solid #dddddd;
-	padding: 5px;
+    border: 1px solid #dddddd;
+    padding: 5px;
 }
 
 .CodeMirror {
