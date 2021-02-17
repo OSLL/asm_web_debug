@@ -1,17 +1,41 @@
 
+Каталоги:
 
-python3 exec_program.py
+system-qemu:
+		tmp:
+			loader.asm  	- исходный код загрузчика 
 
-objcopy --only-keep-debug bin/user-n001 user-n001.debug
-qemu-system-x86_64 -kernel bin/user-n001 -m 10M -s -S
+		user-space:
+			bin/	    	- образы приложений которые готовы к запуску, получаются путем линковки файла из obj/*.obj и loader.obj
+			obj/        	- объектные файлы пользовательского кода
+			src/        	- исходный код 
+			debug-symbol/ 	- отладочная информация
+			loader.obj  	- скомпилированный код загрузчика
+		
+		linker.ld       	- сценарий линковки
+		exec_program.py 	- привер "возможной" генерации файлов bin/*.bin и debug-symbol/*.debug
+	
+	
+Порядок запуска:
+
+	python3 exec_program.py
+
+	qemu-system-x86_64 -kernel user-space/bin/user-n001 -m 10M -s -S
 
 
-$ gdb
+Подключение отладчика: (запуск необходимо произвести в каталоге system-qemu/)
+
+gdb
 
 target remote localhost:1234
-symbol-file user-n001.debug     <enter>
-break EntryPoint 				<enter>
-cont 							<enter>
+
+symbol-file user-space/debug-symbol/user-n001.debug    
+
+break EntryPoint 			
+
+continue		
+
+Сейчас мы находимся в исполняемом коде					
 
 ////////////////
 x/10i $eip
