@@ -5,8 +5,10 @@ bp = index_bp
 
 
 @bp.route('/')
-@bp.route('/index', methods = ["POST", "GET"])
+@bp.route('/index')
 def index():
-    if request.method == 'POST':
-        return request.form.to_dict()
     return render_template('index.html')
+
+@bp.route('/compile', methods = ["POST"])
+def compile():
+    return request.form.to_dict()
