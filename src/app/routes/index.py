@@ -1,4 +1,4 @@
-from flask import Blueprint, make_response, render_template
+from flask import Blueprint, make_response, render_template, request
 
 index_bp = Blueprint('index', __name__)
 bp = index_bp
@@ -9,3 +9,6 @@ bp = index_bp
 def index():
     return render_template('index.html')
 
+@bp.route('/compile', methods = ["POST"])
+def compile():
+    return request.form.to_dict()
