@@ -20,13 +20,14 @@ if __name__ != "__main__":
 		def run_and_attach(self, gdb_exec, qemu_inst):
 			self.gdb_ctrl = GdbController([gdb_exec,
 						       "-q", "--interpreter=mi"])
-			self.attach(qemu_inst)
+			return self.attach(qemu_inst)
 		# Method that attaches a GDB process to a specified QEMU process.
 		def attach(self, qemu_inst):
 			resp = self.gdb_ctrl.write("file "
 							+ qemu_inst.cur_exec)
-			resp = self.gdb_ctrl.write("target extended-remote localhost:"
-							+ str(qemu_inst.dbg_port))
+			resp.extend(self.gdb_ctrl.write("target extended-remote localhost:"
+							+ str(qemu_inst.dbg_port)))
+			return resp
 
 		# Method that sends a commands to GDB process via stdin.
 		# Arguments:

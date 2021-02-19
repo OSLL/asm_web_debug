@@ -25,9 +25,7 @@ if __name__ != "__main__":
 
 		# Instance methods:
 
-		# Default constructor that sets flags for QEMU, but doesn't specify architecture.
-		# Arguments:
-		#	arch - target architecture.
+		# Default constructor that sets up class fields.
 		def __init__(self):
 			self.arch = None
 			self.run_flags = ""
