@@ -43,6 +43,13 @@
     padding: 5px;
 }
 
+.table input {
+    padding: 0;
+    margin: 0;
+    border: 0px solid;
+    width: 50px;
+}
+
 .CodeMirror {
     border: 1px solid black;
 }
