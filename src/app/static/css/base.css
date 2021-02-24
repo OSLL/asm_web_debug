@@ -43,9 +43,17 @@
     padding: 5px;
 }
 
+.table div {
+    display: table-cell;
+    text-align: left;
+    border: none;
+    border: 1px solid #ccc;
+    vertical-align: middle;
+}
+
 .table input {
     padding: 0;
-    margin: 0;
+    margin: 0px;
     border: 0px solid;
     width: 50px;
 }

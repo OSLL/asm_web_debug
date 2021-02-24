@@ -18,7 +18,7 @@ $(function() {
 		for(var i=0; i<arr[0].length; i++){
 			var tr = document.createElement('tr');
 			for(var j=0; j<4; j++){
-				var td = document.createElement('td');
+				var td = document.createElement('div');
 				if(j%2){
 					var input = document.createElement('input');
 					input.value = arr[j][i];
@@ -37,7 +37,7 @@ $(function() {
 		for(var i=0; i<alen; i++){
 			var tr = document.createElement('tr');
 			for(var j=0; j<2; j++){
-				var td = document.createElement('td');
+				var td = document.createElement('div');
 				var text = document.createTextNode(arr[j][i]);
 				td.appendChild(text);
 				tr.appendChild(td);
