@@ -20,7 +20,20 @@ if ( status != 0 ):
 	print ("debug-info error")
 	exit()
    
+
+
 """
+
+AVR
+
+avr-as -mmcu=atmega32u4 -g user-n002.avr.asm 
+avr-ld -m avr1 -o res a.out
+
+ARM
+
+arm-as -mcpu=arm926ej-s -g -o user-n003.arm.obj user-n003.arm.asm
+
+
 status = subprocess.call(["qemu-system-x86_64", "-kernel", "bin/" + uc_file, "-m 1G"])
 
 if ( status != 0 ):

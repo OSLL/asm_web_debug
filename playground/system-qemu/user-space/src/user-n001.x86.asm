@@ -6,11 +6,15 @@ EntryPoint:
 	pushl %ebp
 	movl %esp, %ebp
 
-	pushl $8
-		call Fib
-	subl $4, %esp
+	iLp:
+
+		pushl $1000
+			call Fib
+		subl $4, %esp
 
 	# ans in eax
+
+	jmp iLp
 
 	popl %ebp
 ret
