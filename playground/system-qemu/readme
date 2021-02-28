@@ -42,3 +42,16 @@ x/10i $eip
 stepi
 nexti
 ////////////////
+
+
+qemu-system-x86_64
+
+
+
+
+INSTALL:
+	gcc
+
+arm-none-eabi-***
+	sudo apt install gcc-arm-none-eabi
+
