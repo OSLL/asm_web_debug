@@ -51,9 +51,10 @@
     vertical-align: middle;
 }
 
-.table input {
+.register-input {
     padding: 0;
     margin: 0px;
+    text-align: center;
     border: 0px solid;
     width: 100%;
 }

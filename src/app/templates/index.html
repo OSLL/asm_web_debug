@@ -2,6 +2,11 @@
 
 {% block title %}Web ASM{% endblock %}
 
+{% block head %}
+    <link href="static/css/codemirror.min.css" rel="stylesheet" type="text/css" />
+    <link href="static/css/eclipse.css" rel="stylesheet" type="text/css" />
+{% endblock %}
+
 {% block content %}
     <div id='task_info_div' style="float: left; width: 60%;">
         <p>Some info about task. Probably, it can be condition.</p>
@@ -18,18 +23,14 @@
         	<hr></hr>
             <div id='ajax-alert'></div>
             <input type="button" id="Run" class="btn btn-outline-success" name="Run" value="Run"/> 
-            <input type="button" class="btn btn-outline-warning" name="Debug" value="Debug" onclick="buttonClick(this)" />
+            <input type="button" id="Debug" class="btn btn-outline-warning" name="Debug" value="Debug" debug_code="{{config['DEBUG_COMMANDS'].START_DEBUG.value}}"/>
             <input type="button" class="btn btn-outline-info" name="Continue" value="Continue" onclick="buttonClick(this)" />
             <input type="button" class="btn btn-outline-info" name="Step into" value="Step into" onclick="buttonClick(this)" />
             <input type="button" class="btn btn-outline-info" name="Step over" value="Step over" onclick="buttonClick(this)" />
             <input type="button" class="btn btn-outline-info" name="Step out" value="Step out" onclick="buttonClick(this)" />
             <br><br>
-            <link href="static/css/codemirror.min.css" rel="stylesheet" type="text/css" />
-            <link href="static/css/eclipse.css" rel="stylesheet" type="text/css" />
 
-            <script src="static/js/codemirror.min.js"></script>
-            <script src="static/js/gas.min.js"></script>
-            <script src="static/js/shell.min.js"></script>
+           
                 
             <form><textarea id='code' class='code'>Some code here.</textarea></form>
 
@@ -38,8 +39,6 @@
             <br><br>
             
             <textarea id='build_log' class='build_log' readonly>Some error output.</textarea>
-            <script src="static/js/build_log.js"></script>
-            <script src="static/js/editor.js"></script>
 
         </div>
 
@@ -74,4 +73,15 @@
         </div>
 
     </div>
+{% endblock %}
+
+
+{% block script %}
+    <script src="static/js/codemirror.min.js"></script>
+    <script src="static/js/gas.min.js"></script>
+    <script src="static/js/shell.min.js"></script>
+
+    <script src="static/js/index.js"></script>
+    <script src="static/js/build_log.js"></script>
+    <script src="static/js/editor.js"></script>
 {% endblock %}
