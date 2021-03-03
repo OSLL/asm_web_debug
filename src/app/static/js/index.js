@@ -54,7 +54,7 @@ $(function() {
         		var chars = block.replace(/[\x00-\x1F]/g, '.');
         		lines.push(addr + " " + codes + "  " + chars);
     			}
-    	return lines.join("\\n");
+    	return lines.join("\n");
 		};
 
 		// submit form with openning new tab
@@ -64,10 +64,10 @@ $(function() {
 		form.attr('action', "/hexview")
 		form.attr('target', "_blank")
 	
-		var input = $("#hidden_input")
+		var input = $("#hidden_textarea")
 		input.attr('type', "text")
 		input.attr('name', "hexview")
-		input.attr('value', hexdump(code))
+		input.val(hexdump(code))
 		
 		input.appendTo(form)
 		form.appendTo($('body'))
