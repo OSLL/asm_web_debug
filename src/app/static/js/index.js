@@ -54,16 +54,25 @@ $(function() {
         		var chars = block.replace(/[\x00-\x1F]/g, '.');
         		lines.push(addr + " " + codes + "  " + chars);
     			}
-    	return lines.join("\n");
+    	return lines.join("\\n");
 		};
 
-		$.ajax({
-			url: '/hexview',
-			type: 'POST',
-			dataType: 'json',
-			contenType: 'html',
-			data: {'hexview': hexdump(code)},
-			success: function(){
-				window.open('/hexview');  //fails
-				},
-			});}); });
+		// submit form with openning new tab
+		var form = $('#hidden_form')
+		form.trigger("reset")
+		form.attr('method', "POST");
+		form.attr('action', "/hexview")
+		form.attr('target', "_blank")
+	
+		var input = $("#hidden_input")
+		input.attr('type', "text")
+		input.attr('name', "hexview")
+		input.attr('value', hexdump(code))
+		
+		input.appendTo(form)
+		form.appendTo($('body'))
+		
+		form.submit()
+
+	}); 
+});

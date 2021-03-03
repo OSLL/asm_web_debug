@@ -13,6 +13,6 @@ def index():
 def compile():
     return request.form.to_dict()
 
-@bp.route('/hexview', methods = ["POST", "GET"])
+@bp.route('/hexview', methods = ["POST"])
 def hexview():
-	return render_template('hexview.html', result = request.form.to_dict())
+    return render_template('hexview.html', result = request.form.to_dict())

@@ -2,7 +2,7 @@
 
 {% block content %}
 <div id="hexed"  style="font-family: monospace">
-	{% set list = result['hexview'].split('\n') %}
+	{% set list = result['hexview'].split('\\n') %}
 		{% for item in list %}
     		{{ item }}<br/>
 		{% endfor %} 
