@@ -6,3 +6,5 @@ gdb-10.0.90.20201023/*
 gdb_binaries/*
 qemu_avr
 qemu_avr/*
+__pycache__
+__pycache__/*

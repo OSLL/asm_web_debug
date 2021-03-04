@@ -1,0 +1,57 @@
+
+Каталоги:
+
+system-qemu:
+		tmp:
+			loader.asm  	- исходный код загрузчика 
+
+		user-space:
+			bin/	    	- образы приложений которые готовы к запуску, получаются путем линковки файла из obj/*.obj и loader.obj
+			obj/        	- объектные файлы пользовательского кода
+			src/        	- исходный код 
+			debug-symbol/ 	- отладочная информация
+			loader.obj  	- скомпилированный код загрузчика
+		
+		linker.ld       	- сценарий линковки
+		exec_program.py 	- привер "возможной" генерации файлов bin/*.bin и debug-symbol/*.debug
+	
+	
+Порядок запуска:
+
+	python3 exec_program.py
+
+	qemu-system-x86_64 -kernel user-space/bin/user-n001 -m 10M -s -S
+
+
+Подключение отладчика: (запуск необходимо произвести в каталоге system-qemu/)
+
+gdb
+
+target remote localhost:1234
+
+symbol-file user-space/debug-symbol/user-n001.debug    
+
+break EntryPoint 			
+
+continue		
+
+Сейчас мы находимся в исполняемом коде					
+
+////////////////
+x/10i $eip
+stepi
+nexti
+////////////////
+
+
+qemu-system-x86_64
+
+
+
+
+INSTALL:
+	gcc
+
+arm-none-eabi-***
+	sudo apt install gcc-arm-none-eabi
+

@@ -25,10 +25,10 @@
 }
 
 .table {
-	width: 100%;
-	margin-bottom: 20px;
-	border: 1px solid #dddddd;
-	border-collapse: collapse; 
+    width: 100%;
+    margin-bottom: 20px;
+    border: 1px solid #dddddd;
+    border-collapse: collapse; 
 }
 
 .table th {
@@ -39,8 +39,24 @@
 }
 
 .table td {
-	border: 1px solid #dddddd;
-	padding: 5px;
+    border: 1px solid #dddddd;
+    padding: 5px;
+}
+
+.table div {
+    display: table-cell;
+    text-align: center;
+    border: none;
+    border: 1px solid #ccc;
+    vertical-align: middle;
+}
+
+.register-input {
+    padding: 0;
+    margin: 0px;
+    text-align: center;
+    border: 0px solid;
+    width: 100%;
 }
 
 .CodeMirror {
