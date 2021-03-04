@@ -121,7 +121,6 @@ $(function() {
 		form.submit()
 
 	}); 
-	});
 
 	$("#Debug").click(function (e){
 		send_debug_command(e.target)		
