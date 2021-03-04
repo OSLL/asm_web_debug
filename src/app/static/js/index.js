@@ -57,13 +57,22 @@ $(function() {
     	return lines.join("\n");
 		};
 
-		$.ajax({
-			url: '/hexview',
-			type: 'POST',
-			dataType: 'json',
-			contenType: 'html',
-			data: {'hexview': hexdump(code)},
-			success: function(){
-				window.open('/hexview');  //fails
-				},
-			});}); });
+		// submit form with openning new tab
+		var form = $('#hidden_form')
+		form.trigger("reset")
+		form.attr('method', "POST");
+		form.attr('action', "/hexview")
+		form.attr('target', "_blank")
+	
+		var input = $("#hidden_textarea")
+		input.attr('type', "text")
+		input.attr('name', "hexview")
+		input.val(hexdump(code))
+		
+		input.appendTo(form)
+		form.appendTo($('body'))
+		
+		form.submit()
+
+	}); 
+});
