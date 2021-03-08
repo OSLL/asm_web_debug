@@ -85,7 +85,18 @@ $(function() {
 	$("#Debug").click(function (e){
 		send_debug_command(e.target)		
 	});
-
+	$("#Continue").click(function (e){
+		send_debug_command(e.target)		
+	});
+	$("#Step_into").click(function (e){
+		send_debug_command(e.target)		
+	});
+	$("#Step_over").click(function (e){
+		send_debug_command(e.target)		
+	});
+	$("#Step_out").click(function (e){
+		send_debug_command(e.target)		
+	});
 
 	function send_debug_command(button){
 		$.ajax({
