@@ -1,8 +1,11 @@
 from flask import Blueprint, make_response, render_template, request
 
 from app.core.utils.debug_commands import DebugCommands
+from app.core.SourceCodeContainer import SourceCodeContainer
+import random
 
 
+scc = SourceCodeContainer("../playground/src/")
 index_bp = Blueprint('index', __name__)
 bp = index_bp
 
@@ -15,6 +18,13 @@ def index():
 
 @bp.route('/compile', methods = ["POST"])
 def compile():
+    source_code = request.form.to_dict()['code']
+    
+    try:
+        scc.saveSolution(random.randint(1, 100000), source_code)
+    except:
+        pass
+
     return request.form.to_dict()
 
 
