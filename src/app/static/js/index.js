@@ -79,8 +79,31 @@ $(function() {
 			},
 		});
 		e.preventDefault();
-	});
+	}); 
+  
+	$("#HexView").click(function (e){
+		var editor = $('.CodeMirror')[0].CodeMirror;
+		var code = editor.getValue();
 
+		// submit form with openning new tab
+		var form = $('#hidden_form')
+		form.trigger("reset")
+		form.attr('method', "POST");
+		form.attr('action', "/hexview")
+		form.attr('target', "_blank")
+	
+		var input = $("#hidden_textarea")
+		input.attr('type', "text")
+		input.attr('name', "hexview")
+		//input.val(hexdump(code))
+		input.val(code)
+		
+		input.appendTo(form)
+		form.appendTo($('body'))
+		
+		form.submit()
+
+	}); 
 
 	$("#Debug").click(function (e){
 		send_debug_command(e.target)		

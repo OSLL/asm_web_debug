@@ -2,6 +2,8 @@ from flask import Blueprint, make_response, render_template, request
 
 from app.core.utils.debug_commands import DebugCommands
 
+from app.core.utils.hex import hexdump
+
 
 index_bp = Blueprint('index', __name__)
 bp = index_bp
@@ -18,6 +20,11 @@ def compile():
     return request.form.to_dict()
 
 
+@bp.route('/hexview', methods = ["POST"])
+def hexview():
+	return render_template('hexview.html', result=hexdump(request.form.get('hexview', ''))) 
+
+  
 @bp.route('/debug', methods = ["POST"])
 def debug():
     command = request.form.get('debug_command', '')
