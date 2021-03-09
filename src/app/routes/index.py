@@ -22,7 +22,7 @@ def compile():
 
 @bp.route('/hexview', methods = ["POST"])
 def hexview():
-	return render_template('hexview.html', result=hexdump(request.form.to_dict()['hexview'])) 
+	return render_template('hexview.html', result=hexdump(request.form.get('hexview', ''))) 
 
   
 @bp.route('/debug', methods = ["POST"])
