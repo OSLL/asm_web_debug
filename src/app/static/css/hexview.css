@@ -1,0 +1,17 @@
+table td {
+  	font-size: 1.4em;
+  	overflow-y:scroll;
+    padding:0 10px;
+}
+
+tbody>tr>:nth-child(1){
+ background-color: grey;
+}
+
+tbody>tr>:nth-child(2){
+ background-color: #a9a9a9;
+}
+
+tbody>tr>:nth-child(3){
+background-color: #dcdcdc;
+}

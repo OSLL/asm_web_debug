@@ -1,10 +1,23 @@
 {% extends 'base.html' %}
 
+{% block head %}
+    <link href="static/css/hexview.css" rel="stylesheet" type="text/css" />
+{% endblock %}
+
 {% block content %}
-<div id="hexed"  style="font-family: monospace">
-	{% set list = result['hexview'].split('\n') %}
-		{% for item in list %}
-    		{{ item }}<br/>
-		{% endfor %} 
+
+<div id="hexed"  style="font-family: monospace;">
+
+	<table>
+	{% set list = result.split('\n') %}
+	{%- for row in list|batch(3, '&nbsp;') %}
+  	<tr>
+  		{% for column in row %}
+    		<td>{{ column }}</td>
+  		{% endfor %}
+  	</tr>
+	{%- endfor %}	
+	</table> 
+	
 </div>
 {% endblock %}

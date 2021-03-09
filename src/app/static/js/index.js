@@ -85,24 +85,6 @@ $(function() {
 		var editor = $('.CodeMirror')[0].CodeMirror;
 		var code = editor.getValue();
 
-		function hexdump(buffer) {
-    		var lines = [];
-    		for (var b = 0; b < buffer.length; b += 16) {
-
-       			var block = buffer.slice(b, b + 16);
-        		var addr = b.toString(16).padStart(8, '0')
-
-        		var codes = block.split('').map(function (ch) {
-            		var code = ch.charCodeAt(0)
-            		return ' ' + code.toString(16).padStart(2, '0').toUpperCase();
-            		}).join("");
-       			codes += " 00".repeat(16 - block.length);
-        		var chars = block.replace(/[\x00-\x1F]/g, '.');
-        		lines.push(addr + " " + codes + "  " + chars);
-    			}
-    	return lines.join("\n");
-		};
-
 		// submit form with openning new tab
 		var form = $('#hidden_form')
 		form.trigger("reset")
@@ -113,7 +95,8 @@ $(function() {
 		var input = $("#hidden_textarea")
 		input.attr('type', "text")
 		input.attr('name', "hexview")
-		input.val(hexdump(code))
+		//input.val(hexdump(code))
+		input.val(code)
 		
 		input.appendTo(form)
 		form.appendTo($('body'))
@@ -121,7 +104,6 @@ $(function() {
 		form.submit()
 
 	}); 
-	});
 
 	$("#Debug").click(function (e){
 		send_debug_command(e.target)		
