@@ -6,10 +6,13 @@ class SourceCodeContainer:
 	""" source code container """
 
 	def __init__(self, source_dir):
-		self.src_dir_path = source_dir
+		self.src_dir_path = "./"
 
-		if not os.path.isdir(source_dir):
-			raise OSError
+		for eld in source_dir.split("/"):
+			self.src_dir_path = self.src_dir_path + eld + "/"
+			if not os.path.isdir(self.src_dir_path):
+				os.mkdir(self.src_dir_path)
+
 
 
 	def saveSolution(self, uid, code):
@@ -20,6 +23,7 @@ class SourceCodeContainer:
 		try:
 			with open(self.path(uid), "w") as file:
 				file.write(code)
+
 		
 		except OSError:
 			raise OSError
