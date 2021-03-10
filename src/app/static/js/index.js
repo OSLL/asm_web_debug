@@ -3,14 +3,24 @@ function buttonClick(btn){
 }
 
 $(function() {
-	var reg = document.querySelector('#register_body');
-	let registers = [
-		['A1', 'B2', 'C3', 'A6', 'A1', 'B2', 'C3', 'A6', 'A1', 'B2', 'C3', 'A6'],['0xff3', '0x546', '0xaaa', '0x123', '0xff3', '0x546', '0xaaa', '0x123', '0x546', '0xaaa', '0x123', '0xff3']];
-	createTableReg(reg, registers);
 
-	var stack = document.querySelector('#stack_body');
-	let s_elements = [['0xff', '0xaaf', '0x030', '0xccc'],['exmpl', 'exmpl', 'exmpl', 'exmpl']];
-	createTableStack(stack, s_elements);
+	test_table_create()		// test table creation for registers an stacks
+
+	setup_button_handle()	// setup button handling
+
+	capture_hotkey() 	// setup capturing browser hotkyes
+
+
+	function test_table_create(){
+		var reg = document.querySelector('#register_body');
+		let registers = [
+			['A1', 'B2', 'C3', 'A6', 'A1', 'B2', 'C3', 'A6', 'A1', 'B2', 'C3', 'A6'],['0xff3', '0x546', '0xaaa', '0x123', '0xff3', '0x546', '0xaaa', '0x123', '0x546', '0xaaa', '0x123', '0xff3']];
+		createTableReg(reg, registers);
+	
+		var stack = document.querySelector('#stack_body');
+		let s_elements = [['0xff', '0xaaf', '0x030', '0xccc'],['exmpl', 'exmpl', 'exmpl', 'exmpl']];
+		createTableStack(stack, s_elements);
+	}
 
 	function createTableReg(parent, arr){
 		var i = 0;
@@ -48,9 +58,30 @@ $(function() {
 		}
 	}
 
-	$("#Compile").click(function (e){
+	function capture_hotkey(){
+		var block_saving = false
+
+		$(document).bind('keydown', function(e) {
+			// capture Ctrl+S for data saving
+            if(e.ctrlKey && (e.which == 83)) {
+				if (!block_saving){
+					block_saving = true
+					setTimeout(
+						()=>{ block_saving = false}, 5000
+					);
+					success_alert('Код сохранён!');
+				}
+				else
+				{
+					failure_alert('Не сохраняйте код так часто!')
+				}
+				e.preventDefault();	
+			}
+        });
+	}
+
+	function get_code_and_breakpoints(){
 		var editor = $('.CodeMirror')[0].CodeMirror;
-		var code = editor.getValue();
 		var breakpoints = [];
 		var lines = editor.lineCount();
 		
@@ -59,67 +90,79 @@ $(function() {
 			if (info.gutterMarkers)
 				breakpoints.push(i+1);
 		};
+		return [editor.getValue(), breakpoints]
+	}
 
-		$.ajax({
-			url: '/compile',
-			type:'POST',
-			dataType: 'json',
-			contenType: 'application/json',
-			data: {'code': code, 'breakpoints': JSON.stringify(breakpoints)},
-			success: function(){
-				console.log(code + "\n", breakpoints);
-				$("#ajax-alert").addClass('alert alert-success').text('Код успешно отправлен');
-				$("#ajax-alert").show();
-				$("#ajax-alert").delay(2000).fadeOut();
-			},
-			error: function(){
-				$("#ajax-alert").addClass('alert alert-danger').text('Код не был отправлен');
-				$("#ajax-alert").show();
-				$("#ajax-alert").delay(2000).fadeOut();
-			},
-		});
-		e.preventDefault();
-	}); 
-  
-	$("#HexView").click(function (e){
-		var editor = $('.CodeMirror')[0].CodeMirror;
-		var code = editor.getValue();
+	function setup_button_handle(){
+		// compile button
+		$("#Compile").click(function (e){
+			var code_info = get_code_and_breakpoints()
+			var code = code_info[0]
+			var breakpoints = code_info[1]
+			
+			$.ajax({
+				url: '/compile',
+				type:'POST',
+				dataType: 'json',
+				contenType: 'application/json',
+				data: {'code': code, 'breakpoints': JSON.stringify(breakpoints)},
+				success: function(resp){
+					console.log(resp)
+					success_alert('Код успешно отправлен')
+				},
+				error: function(resp){
+					failure_alert('Код не был отправлен. ' + resp.responseText)
+				},
+			});
+			e.preventDefault();
+		}); 
 
-		// submit form with openning new tab
-		var form = $('#hidden_form')
-		form.trigger("reset")
-		form.attr('method', "POST");
-		form.attr('action', "/hexview")
-		form.attr('target', "_blank")
+		// debug-button
+		setup_debug_button_handle()
+
+		// hexview button
+		$("#HexView").click(function (e){
+			var editor = $('.CodeMirror')[0].CodeMirror;
+			var code = editor.getValue();
 	
-		var input = $("#hidden_textarea")
-		input.attr('type', "text")
-		input.attr('name', "hexview")
-		//input.val(hexdump(code))
-		input.val(code)
+			// submit form with openning new tab
+			var form = $('#hidden_form')
+			form.trigger("reset")
+			form.attr('method', "POST");
+			form.attr('action', "/hexview")
+			form.attr('target', "_blank")
 		
-		input.appendTo(form)
-		form.appendTo($('body'))
-		
-		form.submit()
+			var input = $("#hidden_textarea")
+			input.attr('type', "text")
+			input.attr('name', "hexview")
+			input.val(code)
+			
+			input.appendTo(form)
+			form.appendTo($('body'))
+			
+			form.submit()
+	
+		}); 
+	}
 
-	}); 
+	function setup_debug_button_handle(){
+		$("#Debug").click(function (e){
+			send_debug_command(e.target)		
+		});
+		$("#Continue").click(function (e){
+			send_debug_command(e.target)		
+		});
+		$("#Step_into").click(function (e){
+			send_debug_command(e.target)		
+		});
+		$("#Step_over").click(function (e){
+			send_debug_command(e.target)		
+		});
+		$("#Step_out").click(function (e){
+			send_debug_command(e.target)		
+		});
+	}
 
-	$("#Debug").click(function (e){
-		send_debug_command(e.target)		
-	});
-	$("#Continue").click(function (e){
-		send_debug_command(e.target)		
-	});
-	$("#Step_into").click(function (e){
-		send_debug_command(e.target)		
-	});
-	$("#Step_over").click(function (e){
-		send_debug_command(e.target)		
-	});
-	$("#Step_out").click(function (e){
-		send_debug_command(e.target)		
-	});
 
 	function send_debug_command(button){
 		$.ajax({
@@ -134,5 +177,24 @@ $(function() {
 				console.log(response);
 			},
 		});
+	}
+
+	function success_alert(text, delay=2000){
+		$("#ajax-alert").removeClass()
+		$("#ajax-alert").addClass('alert alert-success')
+		_show_alert(text, delay)
+	}
+
+	function failure_alert(text, delay=2000){
+		$("#ajax-alert").removeClass()
+		$("#ajax-alert").addClass('alert alert-danger')
+		_show_alert(text, delay)
+	}
+
+	function _show_alert(text, delay=2000)
+	{
+		$("#ajax-alert").text(text);
+		$("#ajax-alert").show();
+		$("#ajax-alert").delay(delay).fadeOut();
 	}
 });
