@@ -22,6 +22,11 @@
 
         	<hr></hr>
             <div id='ajax-alert'></div>
+            <select id='arch_select' name='arch'>
+                {% for arch in config['ARCHS'] %}
+                    <option value={{arch}}>{{arch}}</option>
+                {% endfor %}
+            </select>
             <input type="button" id="Run" class="btn btn-outline-success" name="Run" value="Run"/> 
             <input type="button" id="Debug" class="btn btn-outline-warning" name="Debug" value="Debug" debug_code="{{config['DEBUG_COMMANDS'].START_DEBUG.value}}"/>
             <input type="button" id="Continue" class="btn btn-outline-info" name="Continue" value="Continue" debug_code="{{config['DEBUG_COMMANDS'].CONTINUE.value}}" />
