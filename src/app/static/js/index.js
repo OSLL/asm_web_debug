@@ -3,6 +3,7 @@ function buttonClick(btn){
 }
 
 $(function() {
+	var hash_saved_code = ''
 
 	test_table_create()		// test table creation for registers an stacks
 
@@ -64,18 +65,18 @@ $(function() {
 		$(document).bind('keydown', function(e) {
 			// capture Ctrl+S for data saving
             if(e.ctrlKey && (e.which == 83)) {
-				if (!block_saving){
-					block_saving = true
-					setTimeout(
-						()=>{ block_saving = false}, 5000
-					);
-					success_alert('Код сохранён!');
+				e.preventDefault();	
+				var [is_equal, hash] = check_hash_code(hash_saved_code)
+				if (is_equal)
+				{
+					warning_alert('Вы уже сохраняли этот код!')
+					return
 				}
 				else
-				{
-					failure_alert('Не сохраняйте код так часто!')
-				}
-				e.preventDefault();	
+					hash_saved_code = hash
+				
+				// TODO: save code 
+				success_alert('Код сохранён!');
 			}
         });
 	}
@@ -96,9 +97,7 @@ $(function() {
 	function setup_button_handle(){
 		// compile button
 		$("#Compile").click(function (e){
-			var code_info = get_code_and_breakpoints()
-			var code = code_info[0]
-			var breakpoints = code_info[1]
+			var [code, breakpoints] = get_code_and_breakpoints()
 			
 			$.ajax({
 				url: '/compile',
@@ -179,6 +178,19 @@ $(function() {
 		});
 	}
 
+
+	function calc_hash_code(){
+		return $.MD5(JSON.stringify(get_code_and_breakpoints()))
+	}
+
+	function check_hash_code(hash){
+		var new_hash = calc_hash_code()
+		if (hash != new_hash)
+			return [false, new_hash]
+		else
+			return [true, new_hash] 
+	}
+	
 	function success_alert(text, delay=2000){
 		$("#ajax-alert").removeClass()
 		$("#ajax-alert").addClass('alert alert-success')
@@ -188,6 +200,12 @@ $(function() {
 	function failure_alert(text, delay=2000){
 		$("#ajax-alert").removeClass()
 		$("#ajax-alert").addClass('alert alert-danger')
+		_show_alert(text, delay)
+	}
+
+	function warning_alert(text, delay=2000){
+		$("#ajax-alert").removeClass()
+		$("#ajax-alert").addClass('alert alert-warning')
 		_show_alert(text, delay)
 	}
 
