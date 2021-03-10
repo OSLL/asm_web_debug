@@ -1,11 +1,11 @@
-from flask import Blueprint, make_response, render_template, request
+from flask import Blueprint, make_response, render_template, request, current_app, app
 
 from app.core.utils.debug_commands import DebugCommands
 from app.core.SourceCodeContainer import SourceCodeContainer
 import random
 
 
-scc = SourceCodeContainer("../playground/src/")
+scc = SourceCodeContainer('../solutions/')
 index_bp = Blueprint('index', __name__)
 bp = index_bp
 
@@ -18,12 +18,12 @@ def index():
 
 @bp.route('/compile', methods = ["POST"])
 def compile():
-    source_code = request.form.to_dict()['code']
+    source_code = request.form.get('code', '')
     
     try:
-        scc.saveSolution(random.randint(1, 100000), source_code)
-    except:
-        pass
+        scc.save_solution(random.randint(1, 100000), source_code)
+    except (OSError, FileExistsError) as e:
+        print(e)
 
     return request.form.to_dict()
 

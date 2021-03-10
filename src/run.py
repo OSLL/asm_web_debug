@@ -6,8 +6,9 @@ from app.core.utils.debug_commands import DebugCommands
 app = Flask(__name__, template_folder='app/templates', static_folder='app/static')
 app.register_blueprint(index_bp)
 
-app.config['DEBUG_COMMANDS'] = DebugCommands
 
+app.config['DEBUG_COMMANDS'] = DebugCommands
+app.config['SOLUTIONS_DIT'] = '../solutions/'
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0')

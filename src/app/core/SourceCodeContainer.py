@@ -1,43 +1,43 @@
-
 import os
-import random
 
 class SourceCodeContainer:
 	""" source code container """
 
 	def __init__(self, source_dir):
-		self.src_dir_path = "./"
+		self.def_user_src_name = "main.S"
 
-		for eld in source_dir.split("/"):
-			self.src_dir_path = self.src_dir_path + eld + "/"
-			if not os.path.isdir(self.src_dir_path):
-				os.mkdir(self.src_dir_path)
+		self.src_dir_path = self.mkdir(source_dir)
 
 
+	def save_solution(self, uid, code):
+		if self.is_solution_exists(uid):
+			raise FileExistsError("Source file with uid " + str(uid) + " already exists")
 
-	def saveSolution(self, uid, code):
-
-		if self.isSolutionExists(uid):
-			raise FileExistsError
+		self.mkdir(self.src_dir_path  + str(uid))
 		
 		try:
-			with open(self.path(uid), "w") as file:
+			with open(self.full_path(uid) + self.def_user_src_name, "w") as file:
 				file.write(code)
 
-		
 		except OSError:
-			raise OSError
-		except:
-			pass
+			raise OSError("SourceCodeContainer.save_solution write file exception")
 
 
-	def isSolutionExists(self, uid):
-		return os.path.exists(self.path(uid))
+	def is_solution_exists(self, uid):
+		return os.path.exists(self.src_dir_path + str(uid))
+
+
+	def full_path(self, uid):
+		return os.path.abspath(self.src_dir_path + str(uid)) + "/"
 
 	
-	def path(self, uid):
-		return self.src_dir_path + str(uid) + ".S"
+	def mkdir(self, name):
+		path = "./"
 
+		for eld in name.split("/"):
+			path = path + eld + "/"
 
-	def fullPath(self, uid):
-		return os.path.abspath(self.path(uid))
+			if not os.path.isdir(path):
+				os.mkdir(path)
+
+		return path
