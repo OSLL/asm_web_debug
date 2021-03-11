@@ -1,4 +1,6 @@
 import os
+import random
+
 
 class SourceCodeContainer:
 	""" source code container """
@@ -10,10 +12,7 @@ class SourceCodeContainer:
 
 
 	def save_solution(self, uid, code):
-		if self.is_solution_exists(uid):
-			raise FileExistsError("Source file with uid " + str(uid) + " already exists")
-
-		self.mkdir(self.src_dir_path  + str(uid))
+		self.mkdir(self.src_dir_path + str(uid))
 		
 		try:
 			with open(self.full_path(uid) + self.def_user_src_name, "w") as file:
@@ -28,7 +27,11 @@ class SourceCodeContainer:
 
 
 	def full_path(self, uid):
-		return os.path.abspath(self.src_dir_path + str(uid)) + "/"
+		ans = os.path.abspath(self.src_dir_path + str(uid)) + "/"
+		if not os.path.isdir(ans):
+			raise OSError("the solution with the specified id does not exist")
+		else:
+			return ans
 
 	
 	def mkdir(self, name):
@@ -41,3 +44,16 @@ class SourceCodeContainer:
 				os.mkdir(path)
 
 		return path
+
+	
+	def gen_free_uid(self):
+		uid = 0
+
+		while True:
+			uid = random.randint(100000000, 999999999)
+
+			if not self.is_solution_exists(uid):
+				yield uid
+
+
+
