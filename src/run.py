@@ -8,7 +8,7 @@ app.register_blueprint(index_bp)
 
 
 app.config['DEBUG_COMMANDS'] = DebugCommands
-app.config['SOLUTIONS_DIT'] = '../solutions/'
+app.config['CODES_DIR'] = '../codes/'
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0')

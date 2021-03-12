@@ -17,7 +17,7 @@ def index():
 
 @bp.route('/compile', methods = ["POST"])
 def compile():
-    scc = SourceCodeContainer(current_app.config['SOLUTIONS_DIT'])
+    scc = SourceManager(current_app.config['CODES_DIR'])
 
     source_code = request.form.get('code', '')
     
