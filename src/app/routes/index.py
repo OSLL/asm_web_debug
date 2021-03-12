@@ -2,7 +2,7 @@ from flask import Blueprint, make_response, render_template, request, current_ap
 from uuid import uuid4
 
 from app.core.utils.debug_commands import DebugCommands
-from app.core.SourceCodeContainer import SourceCodeContainer
+from app.core.source_manager import SourceManager
 
 
 index_bp = Blueprint('index', __name__)
