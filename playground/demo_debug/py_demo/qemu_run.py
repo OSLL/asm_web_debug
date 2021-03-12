@@ -1,5 +1,5 @@
 import asyncio
-import socket_util
+from playground.demo_debug.py_demo import socket_util
 
 class qemu_runner:
 
