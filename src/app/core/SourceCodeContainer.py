@@ -7,22 +7,29 @@ class SourceCodeContainer:
 
 	def __init__(self, source_dir):
 		self.def_user_src_name = "main.S"
+		self.src_dir_path = source_dir
 
-		self.src_dir_path = self.mkdir(source_dir)
+		if len(source_dir) == 0:
+			raise Exception('arg zero length exception')
+
+		if self.src_dir_path[-1] != '/':
+			self.src_dir_path = self.src_dir_path  + '/'
+
+		self.mkdir(self.src_dir_path)
 
 
-	def save_solution(self, uid, code):
+	def save_code(self, uid, code):
 		self.mkdir(self.src_dir_path + str(uid))
 		
 		try:
-			with open(self.full_path(uid) + self.def_user_src_name, "w") as file:
+			with open(self.full_path(uid) + self.def_user_src_name, "w", encoding="utf-8") as file:
 				file.write(code)
 
 		except OSError:
-			raise OSError("SourceCodeContainer.save_solution write file exception")
+			raise OSError("write file exception")
 
 
-	def is_solution_exists(self, uid):
+	def is_code_exists(self, uid):
 		return os.path.exists(self.src_dir_path + str(uid))
 
 
@@ -35,25 +42,9 @@ class SourceCodeContainer:
 
 	
 	def mkdir(self, name):
-		path = "./"
+		if not os.path.exists(name):
+			os.makedirs(name)
 
-		for eld in name.split("/"):
-			path = path + eld + "/"
-
-			if not os.path.isdir(path):
-				os.mkdir(path)
-
-		return path
-
-	
-	def gen_free_uid(self):
-		uid = 0
-
-		while True:
-			uid = random.randint(100000000, 999999999)
-
-			if not self.is_solution_exists(uid):
-				yield uid
 
 
 

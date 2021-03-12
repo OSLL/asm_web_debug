@@ -1,4 +1,5 @@
 from flask import Blueprint, make_response, render_template, request, current_app
+from uuid import uuid4
 
 from app.core.utils.debug_commands import DebugCommands
 from app.core.SourceCodeContainer import SourceCodeContainer
@@ -17,12 +18,11 @@ def index():
 @bp.route('/compile', methods = ["POST"])
 def compile():
     scc = SourceCodeContainer(current_app.config['SOLUTIONS_DIT'])
-    next(scc.gen_free_uid())
 
     source_code = request.form.get('code', '')
     
     try:
-        scc.save_solution(next(scc.gen_free_uid()), source_code)
+        scc.save_code(str(uuid4()), source_code)
     except OSError as e:
         print(e)
 
