@@ -8,6 +8,7 @@ app.register_blueprint(index_bp)
 
 app.config['DEBUG_COMMANDS'] = DebugCommands
 app.config['ARCHS'] = ['x86', 'arm','avr']
+app.config['CODES_DIR'] = '../codes/'
 
 
 if __name__ == "__main__":
