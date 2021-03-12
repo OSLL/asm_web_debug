@@ -1,8 +1,7 @@
 import os
-import random
 
 
-class SourceCodeContainer:
+class SourceManager:
 	""" source code container """
 
 	def __init__(self, source_dir):
@@ -22,7 +21,7 @@ class SourceCodeContainer:
 		self.mkdir(self.src_dir_path + str(uid))
 		
 		try:
-			with open(self.full_path(uid) + self.def_user_src_name, "w", encoding="utf-8") as file:
+			with open(f'{self.full_path(uid)}{self.def_user_src_name}', "w", encoding="utf-8") as file:
 				file.write(code)
 
 		except OSError:
