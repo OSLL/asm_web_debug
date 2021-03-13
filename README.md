@@ -5,9 +5,9 @@
 ```
 ./scripts/local_start.sh
 ```
-Will run in Default mode when no arguments are provided, to run in Deploy use:
+Will run in default mode when no arguments are provided, to run in deploy use:
 ```
-./scripts/local_start.sh DeployConfig
+./scripts/local_start.sh deploy
 ```
 - Docker
 ```

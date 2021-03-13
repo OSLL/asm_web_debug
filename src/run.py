@@ -1,17 +1,18 @@
-from flask import Flask
+from flask import Flask, current_app
 
 from app.routes.index import index_bp
-import config
+from config import config
 
 import os
 
-runmode = os.environ['runmode']
-
-app = Flask(__name__, template_folder='app/templates', static_folder='app/static')
+runmode = os.environ.get('runmode', 'default')
+app = Flask(__name__) 
 app.register_blueprint(index_bp)
 
-app.config.from_object("{}.{}".format('config', runmode))
-app.config['ARCHS'] = ['x86', 'arm','avr']
+app.config.from_object(config.get(runmode))
+
+app.template_folder = app.config['TEMPLATE_FOLDER']
+app.static_folder = app.config['STATIC_FOLDER']
 
 
 if __name__ == "__main__":
