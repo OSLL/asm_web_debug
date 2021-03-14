@@ -27,24 +27,22 @@ def index():
 
 @bp.route('/compile', methods = ["POST"])
 def compile():
-    # Writing code string to a temporary file
-    if not os.path.exists(tmp_dir):
-         os.mkdir(tmp_dir)
-    tmpfd = open(tmp_dir + tmp_name + ".s", "w")
-    if tmpfd == None:
-        return request.form.to_dict()
-    tmpfd.write(request.form["code"])
-    tmpfd.close()
+    scc = SourceManager(current_app.config['CODES_DIR'])
 
-    # Compiling code from temporary file into temporary file with same name (see as_manager.compile())
-    arch = "x86_64"
-    as_flag, as_logs_stderr, as_logs_stdout = as_manager.compile(tmp_dir + tmp_name + ".s", arch)
+    source_code = request.form.get('code', '')
+    arch =  request.form.get('arch', 'x86_64')
+    code_id = str(uuid4())
+
+    try:
+        scc.save_code(code_id, source_code)
+    except OSError as e:
+        print(e)
+
+    # Compiling code from file into file with same name (see as_manager.compile())
+    as_flag, as_logs_stderr, as_logs_stdout = as_manager.compile(scc.get_code_file_path(code_id), arch)
     as_logs = as_logs_stderr + as_logs_stdout
 
-    # Cleaning up
-    os.unlink(tmp_dir + tmp_name + ".s")
-
-    return { "success_build": as_flag, "build_logs": as_logs }
+    return { "success_build": as_flag, "build_logs": as_logs.decode("utf-8") }
 
 
 @bp.route('/hexview', methods = ["POST"])

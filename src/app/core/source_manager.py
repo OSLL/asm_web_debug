@@ -39,6 +39,10 @@ class SourceManager:
 		else:
 			return ans
 
+
+	def get_code_file_path(self, uid):
+		return f'{self.full_path(uid)}/{self.def_user_src_name}'
+
 	
 	def mkdir(self, name):
 		if not os.path.exists(name):

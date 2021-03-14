@@ -98,7 +98,8 @@ $(function() {
 		// compile button
 		$("#Compile").click(function (e){
 			var [code, breakpoints] = get_code_and_breakpoints()
-			
+			success_alert("<span class='spinner-border spinner-border-sm'></span> Компиляция...", 30000)
+
 			$.ajax({
 				url: '/compile',
 				type:'POST',
@@ -110,11 +111,16 @@ $(function() {
 					'arch': $("#arch_select").val()
 				},
 				success: function(resp){
+					var editor = $('.CodeMirror')[1].CodeMirror;
+					editor.getDoc().setValue(resp['build_logs']);
 					console.log(resp)
-					success_alert('Код успешно отправлен')
+					if (resp['success_build'])
+						success_alert('Компиляция прошла успешно')
+					else
+						failure_alert('Компиляция провалилась. Проверьте логи компиляции.', 5000)
 				},
 				error: function(resp){
-					failure_alert('Код не был отправлен. ' + resp.responseText)
+					failure_alert('Код не был отправлен. Попробуйте снова')
 				},
 			});
 			e.preventDefault();
@@ -215,7 +221,7 @@ $(function() {
 
 	function _show_alert(text, delay=2000)
 	{
-		$("#ajax-alert").text(text);
+		$("#ajax-alert").html(text);
 		$("#ajax-alert").show();
 		$("#ajax-alert").delay(delay).fadeOut();
 	}
