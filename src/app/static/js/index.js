@@ -104,7 +104,11 @@ $(function() {
 				type:'POST',
 				dataType: 'json',
 				contenType: 'application/json',
-				data: {'code': code, 'breakpoints': JSON.stringify(breakpoints)},
+				data: {
+					'code': code,
+					'breakpoints': JSON.stringify(breakpoints),
+					'arch': $("#arch_select").val()
+				},
 				success: function(resp){
 					console.log(resp)
 					success_alert('Код успешно отправлен')
