@@ -5,7 +5,7 @@ from config import config
 
 import os
 
-runmode = os.environ.get('RUNMODE', 'default')
+runmode = os.environ.get('RUNMODE') #'default' doesn't appear necessary when there is default value in sh
 app = Flask(__name__) 
 app.register_blueprint(index_bp)
 
