@@ -1,11 +1,11 @@
-from flask import Flask, current_app
+from flask import Flask
 
 from app.routes.index import index_bp
 from config import config
 
 import os
 
-runmode = os.environ.get('RUNMODE') #'default' doesn't appear necessary when there is default value in sh
+runmode = os.environ.get('RUNMODE')
 app = Flask(__name__) 
 app.register_blueprint(index_bp)
 
