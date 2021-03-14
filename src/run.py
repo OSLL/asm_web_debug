@@ -1,21 +1,31 @@
 from flask import Flask
+import os
 
 from app.routes.index import index_bp
 from config import config
 
-import os
 
-runmode = os.environ.get('RUNMODE')
-app = Flask(__name__) 
-app.register_blueprint(index_bp)
+def create_app():
+    app = Flask(__name__)
+
+    # register blueprints
+    app.register_blueprint(index_bp)
+
+    # load config
+    runmode = os.environ.get('RUNMODE')
+    app.config.from_object(config.get(runmode))
+
+    # setup app folders
+    app.template_folder = app.config['TEMPLATE_FOLDER']
+    app.static_folder = app.config['STATIC_FOLDER']
+
+    return app
 
 
-app.config.from_object(config.get(runmode))
-
-app.template_folder = app.config['TEMPLATE_FOLDER']
-app.static_folder = app.config['STATIC_FOLDER']
-app.config['CODES_DIR'] = '../codes/'
+def run_app(app):
+    app.run(host=app.config['HOST'], port=app.config['PORT'])
 
 
 if __name__ == "__main__":
-    app.run()
+    app = create_app()
+    run_app(app)
