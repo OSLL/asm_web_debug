@@ -19,7 +19,18 @@ class DefaultConfig(Config):
     DEBUG = True
 
 
-config = {
-	'default': DefaultConfig,
-	'deploy': DeployConfig,
-}
+class ConfigManager:
+        
+    config = {
+        'default': DefaultConfig,
+        'deploy': DeployConfig,
+    }
+
+    @classmethod
+    def get_config(cls, config_type):
+        if config_type in cls.config:
+            print(f"Using {config_type} config")
+            return cls.config[config_type]
+        else:
+            print(f"No such config: '{config_type}'. Using default config")
+            return cls.config['default']

@@ -2,7 +2,7 @@ from flask import Flask
 import os
 
 from app.routes.index import index_bp
-from config import config
+from config import ConfigManager
 
 
 def create_app():
@@ -13,7 +13,7 @@ def create_app():
 
     # load config
     runmode = os.environ.get('RUNMODE')
-    app.config.from_object(config.get(runmode))
+    app.config.from_object(ConfigManager.get_config(runmode))
 
     # setup app folders
     app.template_folder = app.config['TEMPLATE_FOLDER']
