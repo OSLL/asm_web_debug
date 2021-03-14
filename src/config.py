@@ -6,10 +6,10 @@ class Config(object):
     PORT = "5000"
     TEMPLATE_FOLDER ='app/templates'
     STATIC_FOLDER = 'app/static'
-    SERVER_NAME = "{}:{}".format(HOST, PORT)
+    CODES_FOLDER = '../codes/'
     DEBUG_COMMANDS = DebugCommands
     ARCHS = ['x86', 'arm','avr']
-
+    
 
 class DeployConfig(Config):
     DEBUG = False
