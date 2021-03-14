@@ -5,7 +5,7 @@ from config import config
 
 import os
 
-runmode = os.environ.get('runmode', 'default')
+runmode = os.environ.get('RUNMODE', 'default')
 app = Flask(__name__) 
 app.register_blueprint(index_bp)
 

@@ -1,8 +1,5 @@
 from app.core.utils.debug_commands import DebugCommands
-import os
-from os import environ, path
 
-basedir = path.abspath(path.dirname(__file__))
 
 class Config(object):
     HOST = '0.0.0.0'
