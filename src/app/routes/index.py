@@ -1,4 +1,4 @@
-from flask import Blueprint, make_response, render_template, request, current_app
+from flask import Blueprint, make_response, render_template, request, current_app, redirect
 from uuid import uuid4
 
 from app.core.utils.debug_commands import DebugCommands
@@ -14,7 +14,12 @@ bp = index_bp
 @bp.route('/')
 @bp.route('/index')
 def index():
-    return render_template('index.html')
+    return redirect(f"/{uuid4()}")
+
+
+@bp.route('/<uuid:code_id>')
+def index_id(code_id):
+    return render_template('index.html', txt_code=code_id)
 
 
 @bp.route('/compile', methods = ["POST"])
