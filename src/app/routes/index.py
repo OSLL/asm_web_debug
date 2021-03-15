@@ -1,4 +1,4 @@
-from flask import Blueprint, make_response, render_template, request, current_app
+from flask import Blueprint, make_response, render_template, request, current_app, redirect
 from uuid import uuid4
 
 from app.core.utils.debug_commands import DebugCommands
@@ -14,8 +14,16 @@ bp = index_bp
 @bp.route('/')
 @bp.route('/index')
 def index():
-    return render_template('index.html')
+    id = 1
+    return redirect('/' + str(id))
 
+@bp.route('/<int:id>')
+def index_id(id):
+    txt_code = "strcpy(MASS2[number_of_zn].Name, mass2[0]);\nstrcpy(MASS2[number_of_zn].ZOD, mass2[1]);\n"
+    if(len(txt_code)):
+        return render_template('index.html', txt_code=txt_code)
+    else: 
+        return render_template('index.html', txt_code='Some code here.')
 
 @bp.route('/compile', methods = ["POST"])
 def compile():
