@@ -14,16 +14,13 @@ bp = index_bp
 @bp.route('/')
 @bp.route('/index')
 def index():
-    id = 1
-    return redirect('/' + str(id))
+    return redirect(f"/{uuid4()}")
 
-@bp.route('/<int:id>')
-def index_id(id):
-    txt_code = "strcpy(MASS2[number_of_zn].Name, mass2[0]);\nstrcpy(MASS2[number_of_zn].ZOD, mass2[1]);\n"
-    if(len(txt_code)):
-        return render_template('index.html', txt_code=txt_code)
-    else: 
-        return render_template('index.html', txt_code='Some code here.')
+
+@bp.route('/<uuid:code_id>')
+def index_id(code_id):
+    return render_template('index.html', txt_code=code_id)
+
 
 @bp.route('/compile', methods = ["POST"])
 def compile():
