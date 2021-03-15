@@ -1,2 +1,2 @@
 cd src
-python3.8 run.py
+RUNMODE=${1:-default} python3.8 run.py
