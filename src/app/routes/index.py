@@ -22,29 +22,29 @@ def index_id(code_id):
     return render_template('index.html', txt_code=code_id)
 
 
-@bp.route('/compile', methods = ["POST"])
-def compile():
+@bp.route('/compile/<uuid:code_id>', methods = ["POST"])
+def compile(code_id):
     scc = SourceManager(current_app.config['CODES_FOLDER'])
 
     source_code = request.form.get('code', '')
     
     try:
-        scc.save_code(str(uuid4()), source_code)
+        scc.save_code(code_id, source_code)
     except OSError as e:
         print(e)
 
     return request.form.to_dict()
 
 
-@bp.route('/hexview', methods = ["POST"])
-def hexview():
+@bp.route('/hexview/<uuid:code_id>', methods = ["POST"])
+def hexview(code_id):
 	return render_template('hexview.html', result=hexdump(request.form.get('hexview', ''))) 
 
   
-@bp.route('/debug', methods = ["POST"])
-def debug():
+@bp.route('/debug/<uuid:code_id>', methods = ["POST"])
+def debug(code_id):
     command = request.form.get('debug_command', '')
     for e in DebugCommands:
         if command == e.value:
-            return e.name
+            return e.name + ' ' + str(code_id)
     return f'No debug such debug command: {command}', 404
