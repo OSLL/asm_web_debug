@@ -8,7 +8,7 @@ from app.core.source_manager import SourceManager
 
 from app.core.utils.hex import hexdump
 
-from app.core.as_manager import as_manager
+from app.core.asmanager import ASManager
 
 # Constants
 tmp_dir = "./tmp/"
@@ -43,8 +43,8 @@ def compile(code_id):
     except OSError as e:
         print(e)
 
-    # Compiling code from file into file with same name (see as_manager.compile())
-    as_flag, as_logs_stderr, as_logs_stdout = as_manager.compile(scc.get_code_file_path(code_id), arch)
+    # Compiling code from file into file with same name (see ASManager.compile())
+    as_flag, as_logs_stderr, as_logs_stdout = ASManager.compile(scc.get_code_file_path(code_id), arch)
     as_logs = as_logs_stderr + as_logs_stdout
 
     return { "success_build": as_flag, "build_logs": as_logs.decode("utf-8") }
