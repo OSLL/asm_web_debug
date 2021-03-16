@@ -4,6 +4,7 @@ function buttonClick(btn){
 
 $(function() {
 	var hash_saved_code = ''
+	var code_id = get_code_id()
 
 	test_table_create()		// test table creation for registers an stacks
 
@@ -101,7 +102,7 @@ $(function() {
 			success_alert("<span class='spinner-border spinner-border-sm'></span> Компиляция...", 30000)
 
 			$.ajax({
-				url: '/compile',
+				url: '/compile/' + code_id,
 				type:'POST',
 				dataType: 'json',
 				contenType: 'application/json',
@@ -138,7 +139,7 @@ $(function() {
 			var form = $('#hidden_form')
 			form.trigger("reset")
 			form.attr('method', "POST");
-			form.attr('action', "/hexview")
+			form.attr('action', "/hexview/" + code_id)
 			form.attr('target', "_blank")
 		
 			var input = $("#hidden_textarea")
@@ -175,7 +176,7 @@ $(function() {
 
 	function send_debug_command(button){
 		$.ajax({
-			url: '/debug',
+			url: '/debug/' + code_id,
 			type:'POST',
 			contenType: 'application/json',
 			data: {'debug_command': button.getAttribute('debug_code')},
@@ -225,4 +226,9 @@ $(function() {
 		$("#ajax-alert").show();
 		$("#ajax-alert").delay(delay).fadeOut();
 	}
+
+	function get_code_id(){
+		return location.pathname.slice(1).split('/')[0]
+	}
+	
 });
