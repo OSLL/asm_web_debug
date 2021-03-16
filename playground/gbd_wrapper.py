@@ -30,7 +30,7 @@ class gdb_wrapper:
         return self.__parse_log(log)
 
     def step_out(self):
-        log = self.gdb_ctrl.write("finish")
+        log = self.gdb_ctrl.write("-exec-finish")
         return self.__parse_log(log)
 
 
@@ -38,16 +38,25 @@ class gdb_wrapper:
         log = self.gdb_ctrl.write("info stack")
         return self.__parse_log(log)
 
-    # probably this method should return a register-value dictionary
-
     def get_registers(self):
-        log = self.gdb_ctrl.write("info reg")
-        return self.__parse_log(log)
+        # надо проверить что процесс запущен
+        result = []
+        log = self.gdb_ctrl.write("-data-list-register-names")
+        result.append(log[0]['payload']['register-names'])
+        index_of_eflags = result[0].index('eflags')
+        log = self.gdb_ctrl.write("-data-list-register-values r")
+        if log[0]['message'] == 'error':
+            return []
+        result.append([reg_value['value'] for reg_value in log[0]['payload']['register-values']])
+        log = self.gdb_ctrl.write("print $eflags")
+        _, _, values = log[1]['payload'].partition(' = ')
+        result[1][index_of_eflags] = values.removesuffix('\\n').strip('][').split()
+        return result
 
 
     def write(self, command):
         if command.strip() == "q":
-            self.quit()
+            self.gdb_ctrl.exit()
             return ""
         log = self.gdb_ctrl.write(command)
         return self.__parse_log(log)
@@ -94,7 +103,7 @@ if __name__ == '__main__':
         elif gcmd == 'info stack':
             print(gdbrun.get_stack())
         elif gcmd == 'n':
-            print(gdbrun.next())
+            print(gdbrun.step_over())
         else:
             resp = gdbrun.write(gcmd)
             print(resp, end='')
