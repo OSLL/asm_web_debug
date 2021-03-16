@@ -60,5 +60,6 @@
 }
 
 .CodeMirror {
-    border: 1px solid black;
+    border: 1px solid #eee;
+    word-wrap:break-word;
 }
