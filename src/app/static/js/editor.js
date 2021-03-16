@@ -25,5 +25,4 @@ codemirrorEditor.getGutterElement().style['width'] = '45px';
 codemirrorEditor.getGutterElement().style['text-align'] = 'right';
 codemirrorEditor.setSize('100%', 'auto');
 codemirrorEditor.getScrollerElement().style.minHeight = '400px';
-//codemirrorEditor.getScrollerElement().style.maxHeight = '1000px'; looks ok
 codemirrorEditor.refresh();

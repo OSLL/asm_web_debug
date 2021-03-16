@@ -15,7 +15,7 @@
 .build_log {
     height: 100px;
     width: 100%;
-    resize: none;
+    resize: vertical
 }
 
 #header {
@@ -61,5 +61,5 @@
 
 .CodeMirror {
     border: 1px solid #eee;
-    word-wrap:break-word;
+    word-wrap: break-word;
 }
