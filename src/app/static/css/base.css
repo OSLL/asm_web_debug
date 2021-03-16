@@ -7,17 +7,6 @@
     margin: 1%;
 }
 
-.code {
-    height: 500px;
-    width: 100%;
-}
-
-.build_log {
-    height: 100px;
-    width: 100%;
-    resize: vertical
-}
-
 #header {
     margin: 10%;
     margin-top: 1%;
