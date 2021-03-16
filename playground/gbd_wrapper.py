@@ -44,6 +44,7 @@ class gdb_wrapper:
         log = self.gdb_ctrl.write("-data-list-register-names")
         result.append(log[0]['payload']['register-names'])
         index_of_eflags = result[0].index('eflags')
+        result[0] = list(filter(lambda s: s != '', result[0]))
         log = self.gdb_ctrl.write("-data-list-register-values r")
         if log[0]['message'] == 'error':
             return []
