@@ -3,6 +3,7 @@ var codemirrorEditor = CodeMirror.fromTextArea(document.getElementById('build_lo
                                     gutters: ["CodeMirror-linenumbers"],
                                     theme: 'eclipse',
                                     readOnly: 'nocursor',
+                                    lineWrapping: true,
                                     }); 
         
 codemirrorEditor.setSize('100%', 'auto');
