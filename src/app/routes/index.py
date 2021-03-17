@@ -10,10 +10,6 @@ from app.core.utils.hex import hexdump
 
 from app.core.asmanager import ASManager
 
-# Constants
-tmp_dir = "./tmp/"
-tmp_name = "as_tmp"
-
 
 index_bp = Blueprint('index', __name__)
 bp = index_bp
@@ -36,7 +32,6 @@ def compile(code_id):
 
     source_code = request.form.get('code', '')
     arch =  request.form.get('arch', 'x86_64')
-    code_id = str(uuid4())
 
     try:
         scc.save_code(code_id, source_code)
