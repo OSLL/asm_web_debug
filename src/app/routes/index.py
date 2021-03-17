@@ -1,13 +1,10 @@
 from flask import Blueprint, make_response, render_template, request, current_app, redirect
 from uuid import uuid4
 
-import os
-
 from app.core.utils.debug_commands import DebugCommands
-from app.core.source_manager import SourceManager
-
 from app.core.utils.hex import hexdump
 
+from app.core.source_manager import SourceManager
 from app.core.asmanager import ASManager
 
 
