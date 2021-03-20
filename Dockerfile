@@ -10,6 +10,9 @@ RUN apt install -y python3-pip python3.8-dev
 # install as
 RUN apt install -y gcc-arm-linux-gnueabi binutils-avr
 
+# install gdb
+RUN apt install -y gdb-multiarch gdb-avr
+
 # install requirements for tests
 RUN apt install -y xvfb firefox wget
 
