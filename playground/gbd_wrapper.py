@@ -5,7 +5,11 @@ from demo_debug.py_demo.gdb_logger import get_payload_str
 class gdb_wrapper:
     def __init__(self, arch, port=None, file=None):
         self.arch = arch
-        self.gdb_ctrl = GdbController(["gdb-multiarch", "-q", "--interpreter=mi"])
+        if arch == "avr":
+            self.gdb_ctrl = GdbController(["avr-gdb", "-q", "--interpreter=mi"])
+        else:
+            self.gdb_ctrl = GdbController(["gdb-multiarch", "-q", "--interpreter=mi"])
+            self.gdb_ctrl.write("set architecture auto")
         self.pid = self.gdb_ctrl.gdb_process.pid
         if port is not None:
             self.connect_to_port(port)
@@ -21,6 +25,7 @@ class gdb_wrapper:
         return log
 
     def set_architecture(self, architecture):
+        self.arch = architecture
         log = self.gdb_ctrl.write("set architecture" + str(architecture))
         return self.__parse_log(log)
 
