@@ -27,6 +27,22 @@ class SourceManager:
 		except OSError:
 			raise OSError("write file exception")
 
+	
+	def get_code(self, uid):
+		source_code = ''
+		source_file_name = f'{self.full_path(uid)}{self.def_user_src_name}'
+
+		if not self.is_code_exists(uid):
+			raise OSError("Subdir with uid " + str(uid) + " doesn't exist")
+
+		if not os.path.isfile(source_file_name):
+			raise OSError("Source file [" + source_file_name + "] in subdir " + str(uid) + " not found")
+
+		with open(source_file_name, "r", encoding="utf-8") as file:
+			source_code = file.read()
+
+		return source_code
+
 
 	def is_code_exists(self, uid):
 		return os.path.exists(self.src_dir_path + str(uid))

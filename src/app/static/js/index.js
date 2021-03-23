@@ -76,8 +76,28 @@ $(function() {
 				else
 					hash_saved_code = hash
 				
-				// TODO: save code 
-				success_alert('Код сохранён!');
+				var [code, breakpoints] = get_code_and_breakpoints()
+
+				$.ajax({
+					url: '/save/' + code_id,
+					type:'POST',
+					dataType: 'json',
+					contenType: 'application/json',
+					data: {
+						'code': code,
+						'arch': $("#arch_select").val()
+					},
+					success: function(resp){
+						if (resp['success_save'])
+							success_alert('Код сохранён!');
+						else 
+							ailure_alert('Код не был отправлен.')
+					},
+					error: function(resp){
+						failure_alert('Код не был отправлен.')
+					},
+				});
+
 			}
         });
 	}
