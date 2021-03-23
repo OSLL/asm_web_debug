@@ -5,7 +5,7 @@ from demo_debug.py_demo.gdb_logger import get_payload_str
 class gdb_wrapper:
     def __init__(self, arch, port=None, file=None):
         self.arch = arch
-        self.gdb_ctrl = GdbController(["demo_debug/gdb_binaries/gdb_" + arch, "-q", "--interpreter=mi"])
+        self.gdb_ctrl = GdbController(["gdb-multiarch", "-q", "--interpreter=mi"])
         self.pid = self.gdb_ctrl.gdb_process.pid
         if port is not None:
             self.connect_to_port(port)
@@ -20,6 +20,9 @@ class gdb_wrapper:
         log = self.gdb_ctrl.write("target extended-remote localhost:" + str(port))
         return log
 
+    def set_architecture(self, architecture):
+        log = self.gdb_ctrl.write("set architecture" + str(architecture))
+        return self.__parse_log(log)
 
     def step_over(self, number=1):
         log = self.gdb_ctrl.write("next " + str(number))
@@ -35,8 +38,10 @@ class gdb_wrapper:
 
 
     def get_stack(self):
-        log = self.gdb_ctrl.write("info stack")
-        return self.__parse_log(log)
+        log = self.gdb_ctrl.write("-stack-list-frames")
+        if log[0]['message'] == 'error':
+            return {}
+        return log[0]['payload']
 
     def get_registers(self):
         # надо проверить что процесс запущен
