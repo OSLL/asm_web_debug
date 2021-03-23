@@ -5,7 +5,7 @@ from app.core.utils.debug_commands import DebugCommands
 from app.core.source_manager import SourceManager
 
 from app.core.utils.hex import hexdump
-
+from app.core.db.manager import DBManager
 
 index_bp = Blueprint('index', __name__)
 bp = index_bp
@@ -27,7 +27,9 @@ def compile(code_id):
     scc = SourceManager(current_app.config['CODES_FOLDER'])
 
     source_code = request.form.get('code', '')
-    
+    #testing saving to db - to be deleted later 
+    DBManager.create_codes(code_id = code_id, source_code = source_code, breakpoints = request.form.get('breakpoints'))
+
     try:
         scc.save_code(code_id, source_code)
     except OSError as e:

@@ -1,5 +1,5 @@
 from app.core.utils.debug_commands import DebugCommands
-
+from mongoengine import connect
 
 class Config(object):
     HOST = '0.0.0.0'
@@ -10,6 +10,7 @@ class Config(object):
     DEBUG_COMMANDS = DebugCommands
     ARCHS = ['x86', 'arm','avr']
     MONGO_URL = 'mongodb://mongo:27017/database'
+    DEFAULT_CONNECTION_NAME = connect('test')   #has to be fixed
     
 
 class DeployConfig(Config):
