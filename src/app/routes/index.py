@@ -69,6 +69,15 @@ def compile(code_id):
     return { "success_build": as_flag, "build_logs": as_logs.decode("utf-8") }
 
 
+@bp.route('/run/<uuid:code_id>', methods = ["POST"])
+def run(code_id):
+    scc = SourceManager(current_app.config['CODES_FOLDER'])
+    source_code = request.form.get('code', '')
+    arch =  request.form.get('arch', 'x86_64')
+
+    return { "success_run": True, "run_logs": f"Hello world, {arch}!" }
+
+
 @bp.route('/hexview/<uuid:code_id>', methods = ["POST"])
 def hexview(code_id):
 	return render_template('hexview.html', result=hexdump(request.form.get('hexview', ''))) 
