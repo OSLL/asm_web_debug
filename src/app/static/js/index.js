@@ -91,10 +91,10 @@ $(function() {
 						if (resp['success_save'])
 							success_alert('Код сохранён!');
 						else 
-							ailure_alert('Код не был отправлен.')
+							failure_alert('Код не был сохранён из-за ошибки на сервере.')
 					},
 					error: function(resp){
-						failure_alert('Код не был отправлен.')
+						failure_alert('Код не был отправлен на сохранение. Попробуйте снова')
 					},
 				});
 
