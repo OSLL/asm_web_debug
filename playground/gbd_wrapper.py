@@ -78,7 +78,7 @@ class gdb_wrapper:
 # basic test to be improved and should be output in a separate file
 
 if __name__ == '__main__':
-    from playground.demo_debug.py_demo.as_run import as_runner
+    from demo_debug.py_demo.as_run import as_runner
     from demo_debug.py_demo.ld_run import ld_runner
     from demo_debug.py_demo.qemu_run import qemu_runner
 
