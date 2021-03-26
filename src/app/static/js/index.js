@@ -147,6 +147,42 @@ $(function() {
 			e.preventDefault();
 		}); 
 
+		// run-button
+		$('#Run').click(function (e){
+			var [code, breakpoints] = get_code_and_breakpoints()
+			success_alert("<span class='spinner-border spinner-border-sm'></span> Запуск...", 30000)
+
+			$.ajax({
+				url: '/run/' + code_id,
+				type:'POST',
+				dataType: 'json',
+				contenType: 'application/json',
+				data: {
+					'code': code,
+					'breakpoints': JSON.stringify(breakpoints),
+					'arch': $("#arch_select").val()
+				},
+				success: function(resp){
+					var editor = $('.CodeMirror')[1].CodeMirror;
+					editor.getDoc().setValue(resp['run_logs']);
+					console.log(resp)
+					var msg = ''
+					if (resp['success_run']){
+						success_alert('Программа выполнена')	
+					}
+					else
+					{
+						failure_alert('Запуск программы провалился. Проверьте логи.', 5000)
+						return
+					}
+				},
+				error: function(resp){
+					failure_alert('Программа не была запущена. Попробуйте снова', 5000)
+				},
+			});
+			e.preventDefault();
+		}); 
+
 		// debug-button
 		setup_debug_button_handle()
 
