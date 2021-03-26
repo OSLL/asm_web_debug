@@ -56,6 +56,7 @@ class gdb_wrapper:
         index_of_eflags = result[0].index('eflags')
         result[0] = list(filter(lambda s: s != '', result[0]))
         log = self.gdb_ctrl.write("-data-list-register-values r")
+        print(log)
         if log[0]['message'] == 'error':
             return []
         result.append([reg_value['value'] for reg_value in log[0]['payload']['register-values']])
@@ -96,6 +97,7 @@ if __name__ == '__main__':
     print(str(resp.stderr)[2:-1])
     if resp.returncode != 0:
         exit(resp.returncode)
+
     ldrun = ld_runner(arg_arch)
     resp = ldrun.run(o_path, out_path)
     print(str(resp.stdout)[2:-1])
@@ -107,6 +109,7 @@ if __name__ == '__main__':
     qmrun.run(out_path)
 
     gdbrun = gdb_wrapper(arg_arch, qmrun.dbg_port, qmrun.cur_exec)
+    print('go')
     while True:
         gcmd = input()
         if gcmd == 'info reg':
