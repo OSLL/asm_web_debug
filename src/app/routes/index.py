@@ -36,13 +36,23 @@ def compile():
 
     # Compiling code from temporary file into temporary file with same name (see as_manager.compile())
     arch = "x86_64"
-    as_flag, as_logs_stderr, as_logs_stdout = as_manager.compile(tmp_dir + tmp_name + ".s", arch)
-    as_logs = as_logs_stderr + as_logs_stdout
+
+    as_flag, as_logs_stderr, as_logs_stdout = as_manager.compile(tmp_dir + tmp_name + ".s",
+								 tmp_dir + tmp_name + ".o",
+								 arch)
+    logs_as = as_logs_stderr + as_logs_stdout
+
+    ld_flag, ld_logs_stderr, ld_logs_stdout = as_manager.link(as_manager.object_filename,
+							      tmp_dir + tmp_name + ".out",
+							      arch)
+    logs_ld = ld_logs_stderr + ld_logs_stdout
+
+    logs = logs_as + logs_ld
 
     # Cleaning up
     os.unlink(tmp_dir + tmp_name + ".s")
 
-    return { "success_build": as_flag, "build_logs": as_logs }
+    return { "success_build": as_flag and ld_flag, "build_logs": logs }
 
 
 @bp.route('/hexview', methods = ["POST"])
