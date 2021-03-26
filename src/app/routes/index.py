@@ -20,13 +20,40 @@ def index():
 
 @bp.route('/<uuid:code_id>')
 def index_id(code_id):
-    return render_template('index.html', txt_code=code_id)
+    source_code = ''
+    scc = SourceManager(current_app.config['CODES_FOLDER'])
+
+    if not scc.is_code_exists(code_id):
+        return render_template('index.html', txt_code='default code and new user id')
+
+    try:
+        source_code = scc.get_code(code_id)
+    except OSError as e:
+        print(e)
+        return render_template('index.html', txt_code='default code and new user id')
+    
+    return render_template('index.html', txt_code=source_code)
+
+
+@bp.route('/save/<uuid:code_id>', methods = ["POST"])
+def save_code(code_id):
+    scc = SourceManager(current_app.config['CODES_FOLDER'])
+
+    source_code = request.form.get('code', '')
+    arch =  request.form.get('arch', 'x86_64')
+
+    try:
+        scc.save_code(code_id, source_code)
+    except OSError as e:
+        print(e)
+        return { "success_save" : False }
+
+    return { "success_save" : True }
 
 
 @bp.route('/compile/<uuid:code_id>', methods = ["POST"])
 def compile(code_id):
     scc = SourceManager(current_app.config['CODES_FOLDER'])
-
     source_code = request.form.get('code', '')
     arch =  request.form.get('arch', 'x86_64')
 
