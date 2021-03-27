@@ -23,56 +23,30 @@ class ASManager:
 	#	arch - architecture name string
 	# Return values:
 	#	1) [bool] if compiling was successful
-<<<<<<< HEAD:src/app/core/as_manager.py
 	#	2) [str] as logs (stderr)
 	#	3) [str] as logs (stdout)
 	def compile(filename, out_filename, arch):
 
 		# Setting up run flags
-		as_manager.compile_flags = ["-g"]
-		if arch in as_manager.as_run_flags:
-			as_manager.compile_flags.extend(as_manager.as_run_flags[arch])
+		ASManager.compile_flags = ["-g"]
+		if arch in ASManager.as_run_flags:
+			ASManager.compile_flags.extend(ASManager.as_run_flags[arch])
 
 		# Setting up executable path
-		if arch in as_manager.as_exec_path:
-			as_manager.exec_path = as_manager.as_exec_path[arch]
-=======
-	#	2) [str] as logs
-	@classmethod
-	def compile(cls, filename, arch):
-
-		# Setting up run flags
-		cls.run_flags = ["-g"]
-		if arch in cls.arch_run_flags:
-			cls.run_flags.extend(cls.arch_run_flags[arch])
-
-		# Setting up executable path
-		if arch in cls.arch_exec_path:
-			cls.exec_path = cls.arch_exec_path[arch]
->>>>>>> b1c48650c7a328e0295e47e5c84098f422b2973f:src/app/core/asmanager.py
+		if arch in ASManager.as_exec_path:
+			ASManager.exec_path = ASManager.as_exec_path[arch]
 		else:
 			cls.exec_path = "as" # default assemler for system
 
 		# Remembering information about compiled file
-<<<<<<< HEAD:src/app/core/as_manager.py
-		as_manager.arch = arch
-		as_manager.source_filename = filename
-		as_manager.object_filename = out_filename
+		ASManager.arch = arch
+		ASManager.source_filename = filename
+		ASManager.object_filename = out_filename
 
 		# Forming arguments to as process
-		args = [as_manager.exec_path]
-		args.extend(as_manager.compile_flags)
-		args.extend([as_manager.source_filename, "-o", as_manager.object_filename])
-=======
-		cls.arch = arch
-		cls.filename = filename
-		cls.output_filename = filename + ".o"
-
-		# Forming arguments to as process
-		args = [cls.exec_path]
-		args.extend(cls.run_flags)
-		args.extend([cls.filename, "-o", cls.output_filename])
->>>>>>> b1c48650c7a328e0295e47e5c84098f422b2973f:src/app/core/asmanager.py
+		args = [ASManager.exec_path]
+		args.extend(ASManager.compile_flags)
+		args.extend([ASManager.source_filename, "-o", ASManager.object_filename])
 
 		# Returning response from as
 		as_resp = subprocess.run(args, capture_output = True)
@@ -91,24 +65,24 @@ class ASManager:
 	def link(filename, out_filename, arch):
 
 		# Setting up run flags
-		as_manager.compile_flags = []
-		if arch in as_manager.ld_run_flags:
-			as_manager.compile_flags.extend(as_manager.ld_run_flags[arch])
+		ASManager.compile_flags = []
+		if arch in ASManager.ld_run_flags:
+			ASManager.compile_flags.extend(ASManager.ld_run_flags[arch])
 
 		# Setting up executable path
-		if arch in as_manager.ld_exec_path:
-			as_manager.exec_path = as_manager.ld_exec_path[arch]
+		if arch in ASManager.ld_exec_path:
+			ASManager.exec_path = ASManager.ld_exec_path[arch]
 		else:
-			as_manager.exec_path = "ld" # default linker for system
+			ASManager.exec_path = "ld" # default linker for system
 
 		# Remembering information about compiled file
-		as_manager.arch = arch
-		as_manager.object_filename = filename
-		as_manager.exec_filename = out_filename
+		ASManager.arch = arch
+		ASManager.object_filename = filename
+		ASManager.exec_filename = out_filename
 
 		# Forming arguments to ld process
-		args = [as_manager.exec_path]
-		args.extend(as_manager.compile_flags)
+		args = [ASManager.exec_path]
+		args.extend(ASManager.compile_flags)
 		args.extend([filename, "-o", out_filename])
 
 		# Returning response from ld

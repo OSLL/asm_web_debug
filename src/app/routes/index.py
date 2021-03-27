@@ -17,31 +17,32 @@ bp = index_bp
 def index():
     return redirect(f"/{uuid4()}")
 
-@bp.route('/compile', methods = ["POST"])
-def compile():
-    # Writing code string to a temporary file
-    if not os.path.exists(tmp_dir):
-         os.mkdir(tmp_dir)
-    tmpfd = open(tmp_dir + tmp_name + ".s", "w")
-    if tmpfd == None:
-        return request.form.to_dict()
-    tmpfd.write(request.form["code"])
-    tmpfd.close()
+@bp.route('/compile/<uuid:code_id>', methods = ["POST"])
+def compile(code_id):
+    scc = SourceManager(current_app.config['CODES_FOLDER'])
+    source_code = request.form.get('code', '')
+    arch =  request.form.get('arch', 'x86_64')
 
-    # Compiling code from temporary file into temporary file with same name (see as_manager.compile())
+    try:
+        scc.save_code(code_id, source_code)
+    except OSError as e:
+        print(e)
+
+    # Compiling code from temporary file into temporary file with same name (see ASManager.compile())
     arch = "x86_64"
 
-    as_flag, as_logs_stderr, as_logs_stdout = as_manager.compile(tmp_dir + tmp_name + ".s",
-								 tmp_dir + tmp_name + ".o",
+    as_flag, as_logs_stderr, as_logs_stdout = ASManager.compile(scc.get_code_file_path(code_id),
+								 scc.get_code_file_path(code_id) + ".o",
 								 arch)
     logs_as = as_logs_stderr + as_logs_stdout
-
-    ld_flag, ld_logs_stderr, ld_logs_stdout = as_manager.link(as_manager.object_filename,
-							      tmp_dir + tmp_name + ".out",
+    ld_flag, ld_logs_stderr, ld_logs_stdout = ASManager.link(ASManager.object_filename,
+							      scc.get_code_file_path(code_id) + ".out",
 							      arch)
     logs_ld = ld_logs_stderr + ld_logs_stdout
 
     logs = logs_as + logs_ld
+
+    return { "success_build": as_flag and ld_flag, "build_logs": logs.decode("utf-8") }
 
 
 @bp.route('/<uuid:code_id>')
@@ -77,29 +78,11 @@ def save_code(code_id):
     return { "success_save" : True }
 
 
-@bp.route('/compile/<uuid:code_id>', methods = ["POST"])
-def compile(code_id):
-    scc = SourceManager(current_app.config['CODES_FOLDER'])
-    source_code = request.form.get('code', '')
-    arch =  request.form.get('arch', 'x86_64')
-
-    try:
-        scc.save_code(code_id, source_code)
-    except OSError as e:
-        print(e)
-
-    # Compiling code from file into file with same name (see ASManager.compile())
-    as_flag, as_logs_stderr, as_logs_stdout = ASManager.compile(scc.get_code_file_path(code_id), arch)
-    as_logs = as_logs_stderr + as_logs_stdout
-
-    return { "success_build": as_flag and ld_flag, "build_logs": logs.decode("utf-8") }
-
-
 @bp.route('/run/<uuid:code_id>', methods = ["POST"])
 def run(code_id):
     scc = SourceManager(current_app.config['CODES_FOLDER'])
     source_code = request.form.get('code', '')
-    arch =  request.form.get('arch', 'x86_64')
+    arch = request.form.get('arch', 'x86_64')
 
     return { "success_run": True, "run_logs": f"Hello world, {arch}!" }
 
