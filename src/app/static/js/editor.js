@@ -1,8 +1,10 @@
 var codemirrorEditor = CodeMirror.fromTextArea(document.getElementById('code'), {
                                     lineNumbers: true,
                                     mode: 'gas',
+                                    viewportMargin: Infinity,
                                     gutters: ["CodeMirror-linenumbers", "breakpoints"],
                                     theme:'eclipse',
+                                    lineWrapping: true,
                                     });
 
 codemirrorEditor.on("gutterClick", function(cm, n) {
@@ -21,4 +23,6 @@ function makeMarker() {
 
 codemirrorEditor.getGutterElement().style['width'] = '45px';
 codemirrorEditor.getGutterElement().style['text-align'] = 'right';
+codemirrorEditor.setSize('100%', 'auto');
+codemirrorEditor.getScrollerElement().style.minHeight = '400px';
 codemirrorEditor.refresh();

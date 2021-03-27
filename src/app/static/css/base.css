@@ -7,17 +7,6 @@
     margin: 1%;
 }
 
-.code {
-    height: 500px;
-    width: 100%;
-}
-
-.build_log {
-    height: 100px;
-    width: 100%;
-    resize: none;
-}
-
 #header {
     margin: 10%;
     margin-top: 1%;
@@ -60,5 +49,6 @@
 }
 
 .CodeMirror {
-    border: 1px solid black;
+    border: 1px solid #eee;
+    word-wrap: break-word;
 }
