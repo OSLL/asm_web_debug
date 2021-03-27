@@ -36,7 +36,7 @@ class ASManager:
 		if arch in ASManager.as_exec_path:
 			ASManager.exec_path = ASManager.as_exec_path[arch]
 		else:
-			cls.exec_path = "as" # default assemler for system
+			ASManager.exec_path = "as" # default assemler for system
 
 		# Remembering information about compiled file
 		ASManager.arch = arch

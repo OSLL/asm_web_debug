@@ -1,6 +1,8 @@
 from flask import Blueprint, make_response, render_template, request, current_app, redirect
 from uuid import uuid4
 
+import subprocess
+
 from app.core.utils.debug_commands import DebugCommands
 from app.core.utils.hex import hexdump
 
@@ -21,7 +23,7 @@ def index():
 def compile(code_id):
     scc = SourceManager(current_app.config['CODES_FOLDER'])
     source_code = request.form.get('code', '')
-    arch =  request.form.get('arch', 'x86_64')
+    arch = request.form.get('arch', 'x86_64')
 
     try:
         scc.save_code(code_id, source_code)
@@ -29,7 +31,6 @@ def compile(code_id):
         print(e)
 
     # Compiling code from temporary file into temporary file with same name (see ASManager.compile())
-    arch = "x86_64"
 
     as_flag, as_logs_stderr, as_logs_stdout = ASManager.compile(scc.get_code_file_path(code_id),
 								 scc.get_code_file_path(code_id) + ".o",
@@ -67,7 +68,7 @@ def save_code(code_id):
     scc = SourceManager(current_app.config['CODES_FOLDER'])
 
     source_code = request.form.get('code', '')
-    arch =  request.form.get('arch', 'x86_64')
+    arch = request.form.get('arch', 'x86_64')
 
     try:
         scc.save_code(code_id, source_code)
@@ -84,7 +85,11 @@ def run(code_id):
     source_code = request.form.get('code', '')
     arch = request.form.get('arch', 'x86_64')
 
-    return { "success_run": True, "run_logs": f"Hello world, {arch}!" }
+    run_resp = subprocess.run([scc.get_code_file_path(code_id) + ".out"], capture_output = True)
+    run_success = not run_resp.returncode
+    run_logs = run_resp.stderr + run_resp.stdout
+
+    return { "success_run": run_success, "run_logs": run_logs }
 
 
 @bp.route('/hexview/<uuid:code_id>', methods = ["POST"])
