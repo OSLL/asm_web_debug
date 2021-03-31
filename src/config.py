@@ -9,9 +9,11 @@ class Config(object):
     CODES_FOLDER = '../codes/'
     DEBUG_COMMANDS = DebugCommands
     ARCHS = ['x86', 'arm','avr']
-    MONGO_URL = 'mongodb://mongo:27017/database'
-    DEFAULT_CONNECTION_NAME = connect('test')   #has to be fixed
-    
+    MONGODB_SETTINGS = {
+    'db': 'database',
+    'host': '127.0.0.1',  #?
+    'port': 27017
+    }
 
 class DeployConfig(Config):
     DEBUG = False

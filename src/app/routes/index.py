@@ -27,9 +27,10 @@ def compile(code_id):
     scc = SourceManager(current_app.config['CODES_FOLDER'])
 
     source_code = request.form.get('code', '')
-    #testing saving to db - to be deleted later 
+    #?testing saving to db 
     DBManager.create_codes(code_id = code_id, source_code = source_code, breakpoints = request.form.get('breakpoints'))
-
+    print(DBManager.get_codes('some_id_that_exists'))
+    print(DBManager.get_codes_older_than(2))
     try:
         scc.save_code(code_id, source_code)
     except OSError as e:

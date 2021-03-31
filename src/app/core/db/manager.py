@@ -1,27 +1,33 @@
 from flask_mongoengine import MongoEngine
 
-from app.core.db.desc import Codes
+from app.core.db.desc import Codes 
 from mongoengine import connect
+import datetime 
+#from flask import jsonify
 import json
+from config import ConfigManager
 
 class DBManager:
+
     @classmethod
     def get_codes(cls, id):
         try:
-            return Codes.objects.get(_id=id).to_json()  #dates lose iso
-        except:
+            cd = Codes.objects.get(_id=id)
+            return cd.to_json()  #?dates lose iso, format during return/better way 
+        except Codes.DoesNotExist:
             return None
+        #? not exhaustive, get_or_404 - ?
      
     @classmethod
     def create_codes(cls, code_id, source_code, breakpoints):
-    	#breakpoints accepted as request.form.get('breakpoints')
+    	#breakpoints accepted as request.form.get('breakpoints') 
         b_p = json.loads(breakpoints)
-        return Codes(_id = str(code_id), code = source_code, breakpoints = b_p).save()
-
-    def get_codes_older_than():
-    	#? since created is undefined
-	    pass
-
-    def __init__(self):
-        db = connect('test', host= '127.0.0.1:27017', alias='default') #for testing exclusively 
-        #'mongo' isn't a host, probably better to use flask_mongoengine to connect from init
+        try:
+            Codes.objects.insert(Codes(_id = str(code_id), created = datetime.datetime.now, code = source_code, breakpoints = b_p ))
+        except:
+            Codes.objects(_id=str(code_id)).update_one(last_update = datetime.datetime.now, code = source_code, breakpoints = b_p)
+    
+    @classmethod
+    def get_codes_older_than(cls, days):
+    	return Codes.objects(created__lte = (datetime.datetime.now() - datetime.timedelta(days=days))).to_json()
+	    
