@@ -1,11 +1,8 @@
 from flask_mongoengine import MongoEngine
 
 from app.core.db.desc import Codes 
-from mongoengine import connect
 import datetime 
-#from flask import jsonify
 import json
-from config import ConfigManager
 
 class DBManager:
 

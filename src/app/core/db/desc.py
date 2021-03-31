@@ -1,7 +1,7 @@
 from flask_mongoengine import MongoEngine
 from mongoengine import Document
 
-db = MongoEngine() #?
+db = MongoEngine() 
 
 import datetime 
 

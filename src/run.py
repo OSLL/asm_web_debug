@@ -3,7 +3,6 @@ import os
 
 from app.routes.index import index_bp
 from config import ConfigManager
-from app.core.db.desc import db #?
 
 from flask_mongoengine import MongoEngine
 
