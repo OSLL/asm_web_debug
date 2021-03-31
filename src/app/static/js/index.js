@@ -76,8 +76,28 @@ $(function() {
 				else
 					hash_saved_code = hash
 				
-				// TODO: save code 
-				success_alert('Код сохранён!');
+				var [code, breakpoints] = get_code_and_breakpoints()
+
+				$.ajax({
+					url: '/save/' + code_id,
+					type:'POST',
+					dataType: 'json',
+					contenType: 'application/json',
+					data: {
+						'code': code,
+						'arch': $("#arch_select").val()
+					},
+					success: function(resp){
+						if (resp['success_save'])
+							success_alert('Код сохранён!');
+						else 
+							failure_alert('Код не был сохранён из-за ошибки на сервере.')
+					},
+					error: function(resp){
+						failure_alert('Код не был отправлен на сохранение. Попробуйте снова')
+					},
+				});
+
 			}
         });
 	}
@@ -99,7 +119,8 @@ $(function() {
 		// compile button
 		$("#Compile").click(function (e){
 			var [code, breakpoints] = get_code_and_breakpoints()
-			
+			success_alert("<span class='spinner-border spinner-border-sm'></span> Компиляция...", 30000)
+
 			$.ajax({
 				url: '/compile/' + code_id,
 				type:'POST',
@@ -111,11 +132,52 @@ $(function() {
 					'arch': $("#arch_select").val()
 				},
 				success: function(resp){
+					var editor = $('.CodeMirror')[1].CodeMirror;
+					editor.getDoc().setValue(resp['build_logs']);
 					console.log(resp)
-					success_alert('Код успешно отправлен')
+					if (resp['success_build'])
+						success_alert('Компиляция прошла успешно')
+					else
+						failure_alert('Компиляция провалилась. Проверьте логи компиляции.', 5000)
 				},
 				error: function(resp){
-					failure_alert('Код не был отправлен. ' + resp.responseText)
+					failure_alert('Код не был отправлен. Попробуйте снова')
+				},
+			});
+			e.preventDefault();
+		}); 
+
+		// run-button
+		$('#Run').click(function (e){
+			var [code, breakpoints] = get_code_and_breakpoints()
+			success_alert("<span class='spinner-border spinner-border-sm'></span> Запуск...", 30000)
+
+			$.ajax({
+				url: '/run/' + code_id,
+				type:'POST',
+				dataType: 'json',
+				contenType: 'application/json',
+				data: {
+					'code': code,
+					'breakpoints': JSON.stringify(breakpoints),
+					'arch': $("#arch_select").val()
+				},
+				success: function(resp){
+					var editor = $('.CodeMirror')[1].CodeMirror;
+					editor.getDoc().setValue(resp['run_logs']);
+					console.log(resp)
+					var msg = ''
+					if (resp['success_run']){
+						success_alert('Программа выполнена')	
+					}
+					else
+					{
+						failure_alert('Запуск программы провалился. Проверьте логи.', 5000)
+						return
+					}
+				},
+				error: function(resp){
+					failure_alert('Программа не была запущена. Попробуйте снова', 5000)
 				},
 			});
 			e.preventDefault();
@@ -216,7 +278,7 @@ $(function() {
 
 	function _show_alert(text, delay=2000)
 	{
-		$("#ajax-alert").text(text);
+		$("#ajax-alert").html(text);
 		$("#ajax-alert").show();
 		$("#ajax-alert").delay(delay).fadeOut();
 	}
