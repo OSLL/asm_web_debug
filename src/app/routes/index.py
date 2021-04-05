@@ -20,51 +20,35 @@ def index():
     return redirect(f"/{uuid4()}")
 
 
-@bp.route('/<uuid:code_id>')
+@bp.route('/<code_id>')
 def index_id(code_id):
-    source_code = ''
-    scc = SourceManager(current_app.config['CODES_FOLDER'])
-
-    if not scc.is_code_exists(code_id):
-        return render_template('index.html', txt_code='default code and new user id')
-
-    try:
-        source_code = scc.get_code(code_id)
-    except OSError as e:
-        print(e)
-        return render_template('index.html', txt_code='default code and new user id')
-    
-    return render_template('index.html', txt_code=source_code)
+    code = DBManager.get_code(code_id=code_id)
+    if code:
+        return render_template('index.html', txt_code=code.code)
+    else:
+        return render_template('index.html', txt_code='; Put your code here.')
 
 
-@bp.route('/save/<uuid:code_id>', methods = ["POST"])
+@bp.route('/save/<code_id>', methods = ["POST"])
 def save_code(code_id):
-    scc = SourceManager(current_app.config['CODES_FOLDER'])
-
     source_code = request.form.get('code', '')
+    breakpoints = request.form.get('breakpoints', '[]')
     arch =  request.form.get('arch', 'x86_64')
 
-    try:
-        scc.save_code(code_id, source_code)
-    except OSError as e:
-        print(e)
-        return { "success_save" : False }
-
+    DBManager.create_code(code_id=code_id, source_code=source_code, breakpoints=breakpoints, arch=arch)
+    
     return { "success_save" : True }
 
 
-@bp.route('/compile/<uuid:code_id>', methods = ["POST"])
+@bp.route('/compile/<code_id>', methods = ["POST"])
 def compile(code_id):
     scc = SourceManager(current_app.config['CODES_FOLDER'])
+
     source_code = request.form.get('code', '')
-
-    #?testing saving to db 
-    DBManager.create_codes(code_id = code_id, source_code = source_code, breakpoints = request.form.get('breakpoints'))
-    print(DBManager.get_codes('some_id_that_exists'))
-    print(DBManager.get_codes_older_than(2))
-
+    breakpoints = request.form.get('breakpoints', '[]')
     arch =  request.form.get('arch', 'x86_64')
 
+    DBManager.create_code(code_id=code_id, source_code=source_code, breakpoints=breakpoints, arch=arch)
 
     try:
         scc.save_code(code_id, source_code)
@@ -78,7 +62,7 @@ def compile(code_id):
     return { "success_build": as_flag, "build_logs": as_logs.decode("utf-8") }
 
 
-@bp.route('/run/<uuid:code_id>', methods = ["POST"])
+@bp.route('/run/<code_id>', methods = ["POST"])
 def run(code_id):
     scc = SourceManager(current_app.config['CODES_FOLDER'])
     source_code = request.form.get('code', '')
@@ -87,12 +71,12 @@ def run(code_id):
     return { "success_run": True, "run_logs": f"Hello world, {arch}!" }
 
 
-@bp.route('/hexview/<uuid:code_id>', methods = ["POST"])
+@bp.route('/hexview/<code_id>', methods = ["POST"])
 def hexview(code_id):
 	return render_template('hexview.html', result=hexdump(request.form.get('hexview', ''))) 
 
   
-@bp.route('/debug/<uuid:code_id>', methods = ["POST"])
+@bp.route('/debug/<code_id>', methods = ["POST"])
 def debug(code_id):
     command = request.form.get('debug_command', '')
     for e in DebugCommands:
