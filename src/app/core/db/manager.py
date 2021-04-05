@@ -4,9 +4,6 @@ import json
 
 from app.core.db.desc import Codes 
 
-from logging import getLogger
-
-logger = getLogger('root')
 
 class DBManager:
 
