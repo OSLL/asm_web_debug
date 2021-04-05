@@ -1,3 +1,3 @@
 flask==1.1.2
-flask-mongoengine
+flask-mongoengine==1.0.0
 selenium==3.141.0
