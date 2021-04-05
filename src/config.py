@@ -8,11 +8,10 @@ class Config(object):
     CODES_FOLDER = '../codes/'
     DEBUG_COMMANDS = DebugCommands
     ARCHS = ['x86', 'arm','avr']
-    MONGO_URL = 'mongodb://mongo:27017/database'
     MONGODB_SETTINGS = {
-    'db': 'database',
-    'host': '127.0.0.1',  #? should be set to mongo
-    'port': 27017
+        'db': 'database',
+        'host': 'mongo',
+        'port': 27017
     }
 
 class DeployConfig(Config):
