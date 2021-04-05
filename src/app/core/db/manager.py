@@ -26,7 +26,7 @@ class DBManager:
             code_obj.arch = arch
             code_obj.save()
         else:
-            code_obj = Codes(_id=code_id, code=source_code, breakpoints=b_p)
+            code_obj = Codes(_id=code_id, code=source_code, breakpoints=b_p, arch=arch)
             code_obj.save()
 
     @staticmethod
