@@ -4,6 +4,7 @@ import os
 from app.routes.index import index_bp
 from config import ConfigManager
 
+from flask_mongoengine import MongoEngine
 
 def create_app():
     app = Flask(__name__)
@@ -28,4 +29,5 @@ def run_app(app):
 
 if __name__ == "__main__":
     app = create_app()
+    db = MongoEngine(app)
     run_app(app)

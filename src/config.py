@@ -1,6 +1,5 @@
 from app.core.utils.debug_commands import DebugCommands
 
-
 class Config(object):
     HOST = '0.0.0.0'
     PORT = '5000'
@@ -9,8 +8,11 @@ class Config(object):
     CODES_FOLDER = '../codes/'
     DEBUG_COMMANDS = DebugCommands
     ARCHS = ['x86', 'arm','avr']
-    MONGO_URL = 'mongodb://mongo:27017/database'
-    
+    MONGODB_SETTINGS = {
+        'db': 'database',
+        'host': 'mongo',
+        'port': 27017
+    }
 
 class DeployConfig(Config):
     DEBUG = False

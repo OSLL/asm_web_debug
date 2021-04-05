@@ -61,8 +61,6 @@ $(function() {
 	}
 
 	function capture_hotkey(){
-		var block_saving = false
-
 		$(document).bind('keydown', function(e) {
 			// capture Ctrl+S for data saving
             if(e.ctrlKey && (e.which == 83)) {
@@ -85,6 +83,7 @@ $(function() {
 					contenType: 'application/json',
 					data: {
 						'code': code,
+						'breakpoints': JSON.stringify(breakpoints),
 						'arch': $("#arch_select").val()
 					},
 					success: function(resp){
