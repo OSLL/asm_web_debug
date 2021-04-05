@@ -1,14 +1,12 @@
-from flask_mongoengine import MongoEngine
-from mongoengine import Document
-
-db = MongoEngine() 
-
+import mongoengine as me
 import datetime 
 
-class Codes(db.Document):
-    _id = db.StringField()
-    created = db.DateTimeField()
-    last_update = db.DateTimeField(default=datetime.datetime.now)     
-    code = db.StringField()                  
-    breakpoints = db.ListField(db.IntField())   
-    lti_user = db.ReferenceField('LTI_sessions', dbref = True)
+
+class Codes(me.Document):
+    _id = me.StringField()
+    created = me.DateTimeField(default=datetime.datetime.now)
+    last_update = me.DateTimeField(default=datetime.datetime.now)     
+    code = me.StringField()                  
+    breakpoints = me.ListField(me.IntField())
+    arch = me.StringField()
+    lti_user = me.ReferenceField('LTI_sessions', dbref=True)
