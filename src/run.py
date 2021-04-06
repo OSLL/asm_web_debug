@@ -2,6 +2,8 @@ from flask import Flask
 import os
 
 from app.routes.index import index_bp
+from app.core.source_manager import SourceManager
+
 from config import ConfigManager
 
 from flask_mongoengine import MongoEngine
@@ -24,6 +26,10 @@ def create_app():
 
 
 def run_app(app):
+    # init SourceManager 
+    SourceManager.init(app.config['CODES_FOLDER'])
+
+    # run app
     app.run(host=app.config['HOST'], port=app.config['PORT'])
 
 
