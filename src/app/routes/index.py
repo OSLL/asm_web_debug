@@ -6,7 +6,7 @@ from app.core.utils.hex import hexdump
 
 from app.core.db.manager import DBManager
 
-from app.core.source_manager import SourceManager
+from app.core.source_manager import SourceManager as sm
 from app.core.asmanager import ASManager
 
 
@@ -42,8 +42,6 @@ def save_code(code_id):
 
 @bp.route('/compile/<code_id>', methods = ["POST"])
 def compile(code_id):
-    scc = SourceManager(current_app.config['CODES_FOLDER'])
-
     source_code = request.form.get('code', '')
     breakpoints = request.form.get('breakpoints', '[]')
     arch =  request.form.get('arch', 'x86_64')
@@ -51,12 +49,12 @@ def compile(code_id):
     DBManager.create_code(code_id=code_id, source_code=source_code, breakpoints=breakpoints, arch=arch)
 
     try:
-        scc.save_code(code_id, source_code)
+        sm.save_code(code_id, source_code)
     except OSError as e:
         print(e)
 
     # Compiling code from file into file with same name (see ASManager.compile())
-    as_flag, as_logs_stderr, as_logs_stdout = ASManager.compile(scc.get_code_file_path(code_id), arch)
+    as_flag, as_logs_stderr, as_logs_stdout = ASManager.compile(sm.get_code_file_path(code_id), arch)
     as_logs = as_logs_stderr + as_logs_stdout
 
     return { "success_build": as_flag, "build_logs": as_logs.decode("utf-8") }
@@ -64,11 +62,11 @@ def compile(code_id):
 
 @bp.route('/run/<code_id>', methods = ["POST"])
 def run(code_id):
-    scc = SourceManager(current_app.config['CODES_FOLDER'])
+    code = sm.get_code(code_id)
     source_code = request.form.get('code', '')
     arch =  request.form.get('arch', 'x86_64')
 
-    return { "success_run": True, "run_logs": f"Hello world, {arch}!" }
+    return { "success_run": True, "run_logs": f"Hello world, {arch}!\n\n {code}" }
 
 
 @bp.route('/hexview/<code_id>', methods = ["POST"])
