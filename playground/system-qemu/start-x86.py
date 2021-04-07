@@ -1,7 +1,13 @@
 """
 
-	qemu-system-x86_64 -kernel user-space/bin/user-n001 -m 10M -s -S
 
+	ld -Ttext=0x101000 -Tdata=0x100000 -melf_i386 mboot.o -o kernel.elf
+
+	qemu-system-x86_64 -kernel user-space/bin/user-n001 -m 10M -s -S
+	qemu-system-x86_64 -kernel a.out -m 10M  -no-reboot 
+	ld -melf_i386 -T linker.ld  main.S.o
+
+-qemu-system-i386 -fda disk.img
 
 Подключение отладчика: (запуск необходимо произвести в каталоге system-qemu/)
 
@@ -22,9 +28,6 @@ x/10i $eip
 stepi
 nexti
 ////////////////
-
-
-
 
 
 

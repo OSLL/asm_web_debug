@@ -1,18 +1,29 @@
-.global EntryPoint
+.set MAGIC, 0x1badb002
+.set FLAGS, (1<<0 | 1<<1)
+.set CHECKSUM, -(MAGIC + FLAGS)
 
+.section .multiboot
+    .long MAGIC
+    .long FLAGS
+    .long CHECKSUM
 
-EntryPoint:
+.section .text
+
+.global _start
+
+_start:
+	mov $kernel_stack, %esp
+    
 	pushl %ebp
 	movl %esp, %ebp
 
-	pushl $7
+	pushl $11
 	call Fib
 	addl $4, %esp
 
-	# ans in eax
-
 	popl %ebp
-ret
+	cli
+    hlt
 
 
 Fib:
@@ -49,3 +60,8 @@ Fib:
 	movl var_a(%esp), %eax
 
 ret
+
+.section .bss
+.space 2*1024*1024 
+
+kernel_stack:

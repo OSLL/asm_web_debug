@@ -1,17 +1,14 @@
-.global EntryPoint
+pushl %ebp
+movl %esp, %ebp
 
-
-EntryPoint:
-	pushl %ebp
-	movl %esp, %ebp
-
-	pushl $7
+pushl $7
 	call Fib
-	addl $4, %esp
+addl $4, %esp
 
-	# ans in eax
+# ans in eax
 
-	popl %ebp
+popl %ebp
+
 ret
 
 

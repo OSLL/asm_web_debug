@@ -1,12 +1,24 @@
 import subprocess
+from flask import current_app
+
+class CompileError(Exception):
+	pass
+
+"""
+x86
+qemu-system-x86_64 -kernel a.out -m 10M  -no-reboot 
+	ld -melf_i386 -T linker.ld  main.S.o
+"""
 
 class ASManager:
 
         # Constants:
-	arch_exec_path = {"x86_64" : "x86_64-linux-gnu-as",\
+	arch_exec_path = {"x86" : "x86_64-linux-gnu-as",\
                           "arm"    : "arm-linux-gnueabi-as",\
                           "avr"    : "avr-as"}
-	arch_run_flags = {"avr" : ["-g", "-mmcu=avr6"]}
+	arch_run_flags = {"avr" : ["-g", "-mmcu=avr6"],\
+					  "x86" : ["-32"],\
+					  "arm" : ["-march=armv7-a", "-mcpu=cortex-a5"]}
 
         # Static methods:
 
@@ -20,6 +32,9 @@ class ASManager:
 	#	2) [str] as logs
 	@classmethod
 	def compile(cls, filename, arch):
+
+		if not arch in current_app.config["ARCHS"]:
+			raise CompileError('unknown arch')
 
 		# Setting up run flags
 		cls.run_flags = ["-g"]
