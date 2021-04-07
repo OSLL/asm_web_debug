@@ -71,16 +71,18 @@ def run(code_id):
 
 @bp.route('/hexview/<code_id>', methods = ["GET", "POST"])
 def hexview(code_id):
+    error_msg = '<No code for hexview!>'
     if request.method == "POST":
-        source_code = request.form.get('code', '')
-        breakpoints = request.form.get('breakpoints', '[]')
-        arch =  request.form.get('arch', 'x86_64')
-        DBManager.create_code(code_id=code_id, source_code=source_code, breakpoints=breakpoints, arch=arch)
-        return render_template('hexview.html', result=hexdump(request.form.get('hexview', '')))
+        source_code = request.form.get('hexview', '')
+        code = DBManager.get_code(code_id=code_id)
+        if code:
+            code.code = source_code
+            code.save()
+        return render_template('hexview.html', result=hexdump(source_code or error_msg))
     else:
         code = DBManager.get_code(code_id=code_id)
         if code:
-            return render_template('hexview.html', result=hexdump(code.code))
+            return render_template('hexview.html', result=hexdump(code.code or error_msg))
         else:
             return 'No such code_id', 404
   
