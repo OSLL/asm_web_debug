@@ -9,6 +9,9 @@ class BasicTest(unittest.TestCase):
     """ TestCase classes that want to be parametrized should
         inherit from this class.
     """
+    CODE_ID = 'test-compile-code'
+    ARCHS = ['x86', 'arm', 'avr']
+
     def __init__(self, methodName='runTest', param=None):
         super(BasicTest, self).__init__(methodName)
         self.param = param
@@ -37,3 +40,11 @@ class BasicTest(unittest.TestCase):
         jsError = body.get_attribute('JSError')
         self.assertIsNone(jsError)
         self.driver.close()
+
+    def open_code_page(self, code_id=None):
+        code_url = self.getUrl(f'/{code_id if code_id else self.CODE_ID}')
+        self.driver.get(code_url)
+
+    def get_code_id_from_current_url(self):
+        _, _, code_id = self.driver.current_url.rpartition('/')
+        return code_id
