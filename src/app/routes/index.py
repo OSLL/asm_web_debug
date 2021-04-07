@@ -80,7 +80,7 @@ def hexview(code_id):
     else:
         code = DBManager.get_code(code_id=code_id)
         if code:
-            return render_template('hexview.html', result=hexdump(code))
+            return render_template('hexview.html', result=hexdump(code.code))
         else:
             return 'No such code_id', 404
   
