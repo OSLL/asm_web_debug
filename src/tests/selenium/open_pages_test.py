@@ -37,6 +37,8 @@ class OpenPagesTest(BasicTest):
         # hexview by get-request (load code from DB, not from post-form)
         self.driver.get(self.getUrl(f"/hexview/{self.get_code_id_from_current_url()}"))
 
+        print(self.driver.page_source)
+
         assert all([text in self.driver.page_source for text in hextext]), f"No '{hextext}' in hexview"
 
     def set_code_and_open_hexview(self, text, hextext_list):
