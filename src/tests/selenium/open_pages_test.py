@@ -29,15 +29,10 @@ class OpenPagesTest(BasicTest):
         hextext = ["54 65 73 74"]
         self.set_code_and_open_hexview(text, hextext)
 
-    def test_open_hexview_by_get(self):
-        text = "Test"
-        hextext = ["54 65 73 74"]
-        self.set_code_and_open_hexview(text, hextext)
-
-        # hexview by get-request (load code from DB, not from post-form)
-        self.driver.get(self.getUrl(f"/hexview/{self.get_code_id_from_current_url()}"))
-
-        assert all([text in self.driver.page_source for text in hextext]), f"No '{hextext}' in hexview"
+    def test_open_unexistent_hexview_by_get(self):
+        unexistent_id = 'non_exist_id'
+        self.driver.get(self.getUrl(f"/hexview/{unexistent_id}"))
+        assert 'No such code_id' in self.driver.page_source, "No 'No such code_id' for unexistent code_id"
 
     def set_code_and_open_hexview(self, text, hextext_list):
         self.open_code_page()
