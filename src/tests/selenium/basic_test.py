@@ -48,3 +48,10 @@ class BasicTest(unittest.TestCase):
     def get_code_id_from_current_url(self):
         _, _, code_id = self.driver.current_url.rpartition('/')
         return code_id
+
+    def set_code(self, code):
+        # send code to textarea
+        self.driver.execute_script(f"""
+            element = document.querySelector('.CodeMirror:nth-of-type(1)');
+            element.CodeMirror.setValue(`{code}`);
+        """)

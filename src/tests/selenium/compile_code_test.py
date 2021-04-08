@@ -86,18 +86,13 @@ class CompileCodeTest(BasicTest):
         select.select_by_value(arch)
 
         # send code to textarea
-        self.driver.execute_script(f"""
-            element = document.querySelector('.CodeMirror:nth-of-type(1)');
-            element.CodeMirror.setValue(`{code}`);
-        """)
+        self.set_code(code)
         
         # find compile button and click
         compile_button = self.driver.find_element_by_id('Compile')
         compile_button.click()
         
-        #import time
-        #time.sleep(1)
-        #print(self.driver.page_source)
+        # wait alert
         try:
             WebDriverWait(self.driver, 3).until(
                 EC.text_to_be_present_in_element(
