@@ -1,8 +1,20 @@
+from pygdbmi.constants import GdbTimeoutError, DEFAULT_GDB_TIMEOUT_SEC
 from pygdbmi.gdbcontroller import GdbController
 from demo_debug.py_demo.gdb_logger import get_payload_str
 
 
-class gdb_wrapper:
+class gdb_wrapper(object):
+    class no_response(object):
+        def __call__(self, function):
+            def wrapper(*args, **kwargs):
+                try:
+                    return function(*args, **kwargs)
+                except GdbTimeoutError:
+                    return "Did not get response from gdb after {} seconds".format(
+                        kwargs['timeout_sec'] if 'timeout_sec' in kwargs else DEFAULT_GDB_TIMEOUT_SEC)
+            return wrapper
+
+    @no_response()
     def __init__(self, arch, port=None, file=None):
         self.arch = arch
         if arch == 'avr':
@@ -32,45 +44,54 @@ class gdb_wrapper:
     def __parse_log(log):
         return get_payload_str(log, [("stdout", "console"), ("stdout", "log")])
 
-    def connect_to_port(self, port):
-        log = self.gdb_ctrl.write("target extended-remote localhost:" + str(port))
+    @no_response()
+    def connect_to_port(self, port, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
+        log = self.gdb_ctrl.write("target extended-remote localhost:" + str(port), timeout_sec)
         return log
 
-    def set_architecture(self, architecture):
+    @no_response()
+    def set_architecture(self, architecture, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
         self.arch = architecture
-        log = self.gdb_ctrl.write("set architecture" + str(architecture))
+        log = self.gdb_ctrl.write("set architecture" + str(architecture), timeout_sec)
         return self.__parse_log(log)
 
-    def step_over(self, number=1):
-        log = self.gdb_ctrl.write("next " + str(number))
+    @no_response()
+    def step_over(self, number=1, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
+        log = self.gdb_ctrl.write("next " + str(number), timeout_sec)
         return self.__parse_log(log)
 
-    def step_in(self, number=1):
-        log = self.gdb_ctrl.write("step " + str(number))
+    @no_response()
+    def step_in(self, number=1, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
+        log = self.gdb_ctrl.write("step " + str(number), timeout_sec)
         return self.__parse_log(log)
 
     # Если у нас только внешняя функция, то он ничего не сделает
-    def step_out(self):
-        log = self.gdb_ctrl.write("-exec-finish")
+
+    @no_response()
+    def step_out(self, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
+        log = self.gdb_ctrl.write("-exec-finish", timeout_sec)
         return self.__parse_log(log)
 
-    def get_stack(self):
-        log = self.gdb_ctrl.write("-stack-list-frames")
+    @no_response()
+    def get_stack(self, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
+        log = self.gdb_ctrl.write("-stack-list-frames", timeout_sec)
         if log[0]['message'] == 'error':
             return {}
         return log[0]['payload']
 
-    def get_registers(self):
+    @no_response()
+    def get_registers(self, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
         # надо проверить что процесс запущен
         result = []
-        log = self.gdb_ctrl.write("-data-list-register-names")
-        indexes_of_registers = [index for index, elem in enumerate(log[0]['payload']['register-names']) if elem in self.__registers]
+        log = self.gdb_ctrl.write("-data-list-register-names", timeout_sec)
+        indexes_of_registers = [index for index, elem in enumerate(log[0]['payload']['register-names']) if
+                                elem in self.__registers]
         result.append([elem for elem in log[0]['payload']['register-names'] if elem in self.__registers])
         index_of_eflags = 0
         if self.__eflag_name in self.__registers:
             index_of_eflags = result[0].index(self.__eflag_name)
 
-        log = self.gdb_ctrl.write("-data-list-register-values r")
+        log = self.gdb_ctrl.write("-data-list-register-values r", timeout_sec)
         print(log)
         if log[0]['message'] == 'error':
             return []
@@ -79,7 +100,7 @@ class gdb_wrapper:
         result.append([reg_value['value'] for reg_value in log[0]['payload']['register-values'] if
                        int(reg_value['number']) in indexes_of_registers])
         if self.__eflag_name in self.__registers:
-            log = self.gdb_ctrl.write("print ${}".format(self.__eflag_name))
+            log = self.gdb_ctrl.write("print ${}".format(self.__eflag_name), timeout_sec)
             _, _, values = log[1]['payload'].partition(' = ')
             if self.arch == 'avr':
                 all_flags = ['C', 'Z', 'N', 'V', 'S', 'H', 'T', 'I']
@@ -90,15 +111,18 @@ class gdb_wrapper:
                 result[1][index_of_eflags] = values[:-2].strip('][').split()
         return result
 
-    def write(self, command):
+    @no_response()
+    def write(self, command, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
         if command.strip() == "q":
             self.gdb_ctrl.exit()
             return ""
-        log = self.gdb_ctrl.write(command)
+        log = self.gdb_ctrl.write(command, timeout_sec)
         return self.__parse_log(log)
 
+    @no_response()
     def quit(self):
         self.gdb_ctrl.exit()
+
 
 # basic test to be improved and should be output in a separate file
 if __name__ == '__main__':
@@ -142,7 +166,7 @@ if __name__ == '__main__':
         elif gcmd == 'n':
             print(gdbrun.step_over())
         else:
-            resp = gdbrun.write(gcmd)
+            resp = gdbrun.write(gcmd, timeout_sec=2)
             print(resp, end='')
         if gcmd == 'q':
             break
