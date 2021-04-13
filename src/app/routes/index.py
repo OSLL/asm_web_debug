@@ -8,6 +8,8 @@ from app.core.utils.hex import hexdump
 
 from app.core.source_manager import SourceManager
 from app.core.asmanager import ASManager
+from app.core.debug_manager import DebugManager
+from app.core.emulation_manager import EmulationManager
 
 
 index_bp = Blueprint('index', __name__)
@@ -85,11 +87,11 @@ def run(code_id):
     source_code = request.form.get('code', '')
     arch = request.form.get('arch', 'x86_64')
 
-    run_resp = subprocess.run([scc.get_code_file_path(code_id) + ".out"], capture_output = True)
-    run_success = not run_resp.returncode
-    run_logs = run_resp.stderr + run_resp.stdout
+    run_inst = EmulationManager.run_exec(scc.get_code_file_path(code_id) + ".out", arch, code_id)
+    if run_inst != None:
+        gdb_res = DebugManager.run_and_attach(run_inst, arch)
 
-    return { "success_run": run_success, "run_logs": run_logs }
+    return { "success_run": bool(run_inst) }
 
 
 @bp.route('/hexview/<uuid:code_id>', methods = ["POST"])
