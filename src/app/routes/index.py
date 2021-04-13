@@ -9,6 +9,7 @@ from app.core.db.manager import DBManager
 from app.core.source_manager import SourceManager as sm
 from app.core.asmanager import ASManager
 
+from flask_security import login_required
 
 index_bp = Blueprint('index', __name__)
 bp = index_bp
@@ -16,11 +17,13 @@ bp = index_bp
 
 @bp.route('/')
 @bp.route('/index')
+@login_required
 def index():
     return redirect(f"/{uuid4()}")
 
 
 @bp.route('/<code_id>')
+@login_required
 def index_id(code_id):
     code = DBManager.get_code(code_id=code_id)
     if code:

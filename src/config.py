@@ -10,11 +10,16 @@ class Config(object):
     ARCHS = ['x86', 'arm','avr']
     MONGODB_SETTINGS = {
         'db': 'database',
-        'host': 'mongo',
+        'host': '127.0.0.1',
         'port': 27017
     }
 
 class DeployConfig(Config):
+    MONGODB_SETTINGS = {
+        'db': 'database',
+        'host': 'mongo',
+        'port': 27017
+    }
     DEBUG = False
 
 
