@@ -10,11 +10,12 @@ class gdb_wrapper(object):
                 try:
                     return function(*args, **kwargs)
                 except GdbTimeoutError:
+                    print("Did not get response from gdb after {} seconds, in function {}".format(
+                        kwargs['timeout_sec'] if 'timeout_sec' in kwargs else DEFAULT_GDB_TIMEOUT_SEC, function))
                     return "Did not get response from gdb after {} seconds".format(
                         kwargs['timeout_sec'] if 'timeout_sec' in kwargs else DEFAULT_GDB_TIMEOUT_SEC)
             return wrapper
 
-    @no_response()
     def __init__(self, arch, port=None, file=None):
         self.arch = arch
         if arch == 'avr':
@@ -91,24 +92,23 @@ class gdb_wrapper(object):
         if self.__eflag_name in self.__registers:
             index_of_eflags = result[0].index(self.__eflag_name)
 
-        log = self.gdb_ctrl.write("-data-list-register-values r", timeout_sec)
-        print(log)
+        log = self.gdb_ctrl.write("-data-list-register-values r {}".format(indexes_of_registers), timeout_sec)
         if log[0]['message'] == 'error':
             return []
         # Это значит что процесс не запущен
 
-        result.append([reg_value['value'] for reg_value in log[0]['payload']['register-values'] if
-                       int(reg_value['number']) in indexes_of_registers])
+        result.append([reg_value['value'] for reg_value in log[0]['payload']['register-values']])
         if self.__eflag_name in self.__registers:
             log = self.gdb_ctrl.write("print ${}".format(self.__eflag_name), timeout_sec)
             _, _, values = log[1]['payload'].partition(' = ')
+            print(values)
             if self.arch == 'avr':
                 all_flags = ['C', 'Z', 'N', 'V', 'S', 'H', 'T', 'I']
-                result[1][index_of_eflags] = [all_flags[i] for i in range(8) if int(values) & 1 << i]
+                result[1][index_of_eflags] = [all_flags[i] for i in range(8) if int(values.rstrip()) & 1 << i]
             elif self.arch == 'arm':
-                result[1][index_of_eflags] = int(values[:-2])
+                result[1][index_of_eflags] = int(values.rstrip())
             else:
-                result[1][index_of_eflags] = values[:-2].strip('][').split()
+                result[1][index_of_eflags] = values.rstrip().strip('][').split()
         return result
 
     @no_response()
@@ -131,7 +131,7 @@ if __name__ == '__main__':
     from demo_debug.py_demo.qemu_run import qemu_runner
 
     prog_dir = "demo_debug/demos"
-    arg_arch = "x86_64"
+    arg_arch = "arm"
     arg_exec = "demo_helloworld"
 
     s_path = "{0}/{1}.{2}.s".format(prog_dir, arg_exec, arg_arch)
