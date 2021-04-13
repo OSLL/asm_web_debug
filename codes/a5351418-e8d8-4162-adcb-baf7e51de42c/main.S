@@ -22,8 +22,10 @@ _start:
 	addl $4, %esp
 
 	popl %ebp
-	cli
+    cli
     hlt
+    
+ret
 
 
 Fib:

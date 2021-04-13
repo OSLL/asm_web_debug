@@ -6,6 +6,7 @@ from app.core.utils.hex import hexdump
 
 from app.core.db.manager import DBManager
 
+from app.core.process_manager import ProcessManager
 from app.core.source_manager import SourceManager
 from app.core.asmanager import ASManager
 
@@ -56,7 +57,7 @@ def compile(code_id):
         print(e)
 
     # Compiling code from file into file with same name (see ASManager.compile())
-    as_flag, as_logs_stderr, as_logs_stdout = ASManager.compile(scc.get_code_file_path(code_id), arch)
+    as_flag, as_logs_stderr, as_logs_stdout = ASManager.compile(scc.get_code_file_path(code_id), arch, "../code_dependence/")
     as_logs = as_logs_stderr + as_logs_stdout
 
     return { "success_build": as_flag, "build_logs": as_logs.decode("utf-8") }
@@ -66,7 +67,11 @@ def compile(code_id):
 def run(code_id):
     scc = SourceManager(current_app.config['CODES_FOLDER'])
     source_code = request.form.get('code', '')
-    arch =  request.form.get('arch', 'x86_64')
+    arch =  request.form.get('arch', 'x86')
+
+    pm = ProcessManager()
+    pm.add_process(code_id, scc.get_code_file_path(code_id) + ".bin", arch)
+    pm.run(code_id)
 
     return { "success_run": True, "run_logs": f"Hello world, {arch}!" }
 
