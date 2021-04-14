@@ -10,8 +10,6 @@ class gdb_wrapper(object):
                 try:
                     return function(*args, **kwargs)
                 except GdbTimeoutError:
-                    print("Did not get response from gdb after {} seconds, in function {}".format(
-                        kwargs['timeout_sec'] if 'timeout_sec' in kwargs else DEFAULT_GDB_TIMEOUT_SEC, function))
                     return "Did not get response from gdb after {} seconds".format(
                         kwargs['timeout_sec'] if 'timeout_sec' in kwargs else DEFAULT_GDB_TIMEOUT_SEC)
             return wrapper
@@ -101,7 +99,6 @@ class gdb_wrapper(object):
         if self.__eflag_name in self.__registers:
             log = self.gdb_ctrl.write("print ${}".format(self.__eflag_name), timeout_sec)
             _, _, values = log[1]['payload'].partition(' = ')
-            print(values)
             if self.arch == 'avr':
                 all_flags = ['C', 'Z', 'N', 'V', 'S', 'H', 'T', 'I']
                 result[1][index_of_eflags] = [all_flags[i] for i in range(8) if int(values.rstrip()) & 1 << i]
