@@ -1,4 +1,4 @@
-from flask import Flask, flash
+from flask import Flask
 import os
 
 from app.routes.index import index_bp
@@ -53,8 +53,10 @@ if __name__ == "__main__":
     def create_user():
         user_datastore.create_user(_id='first_user')
         user_datastore.create_user(_id='second_user')
-        user = load_user('first_user')  #?
-        flask_login.login_user(user)
+        #user = load_user('first_user')  #?
+        '''use find_user as a workaround for uresolved 'id' in get_user'''
+        user = user_datastore.find_user(_id='first_user')
+        flask_login.login_user(user, remember=True)
         user.authenticated = True
         user.save()
 
