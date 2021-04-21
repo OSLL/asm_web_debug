@@ -8,6 +8,15 @@
 {% endblock %}
 
 {% block content %}
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class=flashes>
+    {% for message in messages %}
+      <h6> {{ message }} </h6>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
     <div id='task_info_div' style="float: left; width: 60%;">
         <p>Some info about task. Probably, it can be condition.</p>
         <div style="display: block; float: right;">

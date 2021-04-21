@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, flash
 import os
 
 from app.routes.index import index_bp
@@ -53,13 +53,15 @@ if __name__ == "__main__":
     def create_user():
         user_datastore.create_user(_id='first_user')
         user_datastore.create_user(_id='second_user')
-        #user = load_user('first_user')  #?
-        '''use find_user as a workaround for uresolved 'id' in get_user'''
+    
         user = user_datastore.find_user(_id='first_user')
         flask_login.login_user(user, remember=True)
-        user.authenticated = True
+        current = flask_login.current_user
+        #is_logged_in = current.get_id() is not None
         user.save()
+        flash('Authentication status: {}'.format(current.is_authenticated))
+        flash('Logged in as {}'.format(current.get_id()))
 
-    app.secret_key = "super secret key"  #?
+    app.secret_key = "super secret key"  
 
     run_app(app)
