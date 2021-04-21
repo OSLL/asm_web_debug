@@ -1,6 +1,5 @@
 from pygdbmi.constants import GdbTimeoutError, DEFAULT_GDB_TIMEOUT_SEC
 from pygdbmi.gdbcontroller import GdbController
-from demo_debug.py_demo.gdb_logger import get_payload_str
 
 
 class gdb_wrapper(object):
@@ -40,8 +39,11 @@ class gdb_wrapper(object):
             self.gdb_ctrl.write("file " + file)
 
     @staticmethod
-    def __parse_log(log):
-        return get_payload_str(log, [("stdout", "console"), ("stdout", "log")])
+    def __parse_log(log, type):
+        for el in log:
+            if el['type'] == type:
+                return el
+
 
     @no_response()
     def connect_to_port(self, port, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
@@ -52,24 +54,23 @@ class gdb_wrapper(object):
     def set_architecture(self, architecture, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
         self.arch = architecture
         log = self.gdb_ctrl.write("set architecture" + str(architecture), timeout_sec)
-        return self.__parse_log(log)
+        return log
 
     @no_response()
-    def step_over(self, number=1, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
-        log = self.gdb_ctrl.write("next " + str(number), timeout_sec)
-        return self.__parse_log(log)
+    def step_over(self, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
+        log = self.gdb_ctrl.write("-exec-next", timeout_sec)
+        return log
 
     @no_response()
-    def step_in(self, number=1, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
-        log = self.gdb_ctrl.write("step " + str(number), timeout_sec)
-        return self.__parse_log(log)
+    def step_in(self, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
+        log = self.gdb_ctrl.write("-exec-step", timeout_sec)
+        return log
 
     # Если у нас только внешняя функция, то он ничего не сделает
-
     @no_response()
     def step_out(self, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
         log = self.gdb_ctrl.write("-exec-finish", timeout_sec)
-        return self.__parse_log(log)
+        return log
 
     @no_response()
     def get_stack(self, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
@@ -91,14 +92,14 @@ class gdb_wrapper(object):
             index_of_eflags = result[0].index(self.__eflag_name)
 
         log = self.gdb_ctrl.write("-data-list-register-values r {}".format(indexes_of_registers), timeout_sec)
-        if log[0]['message'] == 'error':
+        if self.__parse_log(log, 'result')['message'] == 'error':
             return []
         # Это значит что процесс не запущен
 
         result.append([reg_value['value'] for reg_value in log[0]['payload']['register-values']])
         if self.__eflag_name in self.__registers:
             log = self.gdb_ctrl.write("print ${}".format(self.__eflag_name), timeout_sec)
-            _, _, values = log[1]['payload'].partition(' = ')
+            _, _, values = self.__parse_log(log, 'console')['payload'].partition(' = ')
             if self.arch == 'avr':
                 all_flags = ['C', 'Z', 'N', 'V', 'S', 'H', 'T', 'I']
                 result[1][index_of_eflags] = [all_flags[i] for i in range(8) if int(values.rstrip()) & 1 << i]
@@ -114,7 +115,7 @@ class gdb_wrapper(object):
             self.gdb_ctrl.exit()
             return ""
         log = self.gdb_ctrl.write(command, timeout_sec)
-        return self.__parse_log(log)
+        return log
 
     @no_response()
     def quit(self):
