@@ -110,6 +110,25 @@ class gdb_wrapper(object):
         return result
 
     @no_response()
+    def set_breakpoint(self, line_number, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
+        log = self.gdb_ctrl.write('-break-insert --line {}'.format(line_number), timeout_sec)
+        if log[0]['message'] != 'done':
+            return log
+        self.breakpoints[line_number] = log[0]['payload']['bkpt']['number']
+        return log
+
+    @no_response()
+    def remove_breakpoint(self, line_number, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
+        if line_number in self.breakpoints:
+            log = self.gdb_ctrl.write('-break-delete {}'.format(self.breakpoints[line_number]), timeout_sec)
+            if self.__parse_log(log, 'result')['message'] == 'done':
+                del self.breakpoints[line_number]
+            return log
+        return [{'type': 'result', 'message': 'error',
+                 'payload': {'msg': 'No breakpoint at line number {}'.format(line_number)}, 'token': None,
+                 'stream': 'stdout'}]
+
+    @no_response()
     def write(self, command, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
         if command.strip() == "q":
             self.gdb_ctrl.exit()
@@ -163,6 +182,10 @@ if __name__ == '__main__':
             print(gdbrun.get_stack())
         elif gcmd == 'n':
             print(gdbrun.step_over())
+        elif gcmd.startswith('breakpoint'):
+            print(gdbrun.set_breakpoint(int(gcmd.split()[1])))
+        elif gcmd.startswith('remove breakpoint'):
+            print(gdbrun.remove_breakpoint(int(gcmd.split()[2])))
         else:
             resp = gdbrun.write(gcmd, timeout_sec=2)
             print(resp, end='')
