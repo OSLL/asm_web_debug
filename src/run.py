@@ -8,7 +8,6 @@ from config import ConfigManager
 
 from flask_mongoengine import MongoEngine
 
-#from flask_login import LoginManager
 from flask_security import Security, MongoEngineUserDatastore
 from app.core.db.desc import Role, User
 import flask_login
@@ -57,11 +56,9 @@ if __name__ == "__main__":
         user = user_datastore.find_user(_id='first_user')
         flask_login.login_user(user, remember=True)
         current = flask_login.current_user
-        user.save()
 
         flash('Authentication status: {}'.format(current.is_authenticated))
         flash('Logged in as {}'.format(current.get_id()))
 
-    app.secret_key = "super secret key"  
 
     run_app(app)

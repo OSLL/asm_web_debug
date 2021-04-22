@@ -19,7 +19,7 @@ def check_login():
     if current_user.is_authenticated:
         pass
     else:
-        abort(403, description="Not authenticated")
+        abort(401, description="Not authenticated")
 
 
 @bp.route('/')

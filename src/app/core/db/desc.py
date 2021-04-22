@@ -1,7 +1,7 @@
 import mongoengine as me
 import datetime 
 
-from flask_security import RoleMixin, UserMixin #?
+from flask_security import RoleMixin, UserMixin 
 
 class Role(me.Document, RoleMixin):
     name = me.StringField(max_length=80, unique=True)
