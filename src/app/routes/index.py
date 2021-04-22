@@ -1,4 +1,4 @@
-from flask import Blueprint, make_response, render_template, request, current_app, redirect
+from flask import Blueprint, make_response, render_template, request, current_app, redirect, abort
 from uuid import uuid4
 
 from app.core.utils.debug_commands import DebugCommands
@@ -9,21 +9,26 @@ from app.core.db.manager import DBManager
 from app.core.source_manager import SourceManager as sm
 from app.core.asmanager import ASManager
 
-from flask_security import login_required
+from flask_login import current_user
 
 index_bp = Blueprint('index', __name__)
 bp = index_bp
 
+@bp.before_request
+def check_login():
+    if current_user.is_authenticated:
+        pass
+    else:
+        abort(403, description="Not authenticated")
+
 
 @bp.route('/')
 @bp.route('/index')
-@login_required
 def index():
     return redirect(f"/{uuid4()}")
 
 
 @bp.route('/<code_id>')
-@login_required
 def index_id(code_id):
     code = DBManager.get_code(code_id=code_id)
     if code:

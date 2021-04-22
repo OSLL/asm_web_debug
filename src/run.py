@@ -8,7 +8,7 @@ from config import ConfigManager
 
 from flask_mongoengine import MongoEngine
 
-from flask_login import LoginManager
+#from flask_login import LoginManager
 from flask_security import Security, MongoEngineUserDatastore
 from app.core.db.desc import Role, User
 import flask_login
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     db = MongoEngine(app)
     user_datastore = MongoEngineUserDatastore(db, User, Role)    
     security = Security(app, user_datastore)
-    login_manager = LoginManager(app)
+    login_manager = flask_login.LoginManager(app)
 
     @login_manager.user_loader
     def load_user(user_id):
@@ -57,8 +57,8 @@ if __name__ == "__main__":
         user = user_datastore.find_user(_id='first_user')
         flask_login.login_user(user, remember=True)
         current = flask_login.current_user
-        #is_logged_in = current.get_id() is not None
         user.save()
+
         flash('Authentication status: {}'.format(current.is_authenticated))
         flash('Logged in as {}'.format(current.get_id()))
 
