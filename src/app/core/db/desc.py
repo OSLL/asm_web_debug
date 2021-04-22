@@ -9,6 +9,7 @@ class Role(me.Document, RoleMixin):
 
 class User(me.Document, UserMixin):
     _id = me.StringField(primary_key=True)
+    username = me.StringField(max_length=80)
     datetime = me.DateTimeField(default=datetime.datetime.now)
     tasks = me.DictField()
     roles = me.ListField(me.ReferenceField(Role), default=[])
