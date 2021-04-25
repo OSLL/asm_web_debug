@@ -24,10 +24,10 @@ class DeployConfig(Config):
         'host': 'mongo',
         'port': 27017
     }
-    DEBUG = True
+    DEBUG = False
 
 
-class TestConfig(Config):
+class TestConfig(DeployConfig):
     ANON_ACCESS = True
 
 
