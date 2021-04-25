@@ -24,4 +24,4 @@ RUN apt install -y xvfb firefox wget
 ADD . /code
 WORKDIR /code
 RUN python3.8 -m pip install -r src/requirements.txt
-CMD ./scripts/local_start.sh $runmode
+CMD ./scripts/local_start.sh $RUNMODE
