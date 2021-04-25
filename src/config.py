@@ -14,6 +14,7 @@ class Config(object):
         'port': 27017
     }
     SECRET_KEY = 'super secret key'
+    DEBUG = True
     ANON_ACCESS = False
     ANON_USER_ID = 'a334-4276-8b34'
 
@@ -29,10 +30,11 @@ class DeployConfig(Config):
 
 class TestConfig(DeployConfig):
     ANON_ACCESS = True
+    DEBUG = True
 
 
 class DefaultConfig(Config):
-    DEBUG = True
+    pass
 
 
 class ConfigManager:
