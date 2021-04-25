@@ -20,6 +20,8 @@ bp = index_bp
 def check_login():
     if current_app.config['ANON_ACCESS']:
         login_user(current_app.user_datastore.find_user(_id=current_app.config['ANON_USER_ID']))
+        current_app.logger.debug('Anon access to service')
+        return
     if current_user.is_authenticated:
         pass
     else:
