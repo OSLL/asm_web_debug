@@ -12,7 +12,7 @@ DEFAULT_URL = "http://127.0.0.1:5000"
 def main(host):
     suite = unittest.TestSuite()
     suite.addTest(BasicTest.parametrize(OpenPagesTest, param=host))
-    suite.addTest(BasicTest.parametrize(CompileCodeTest, param=host))
+    #suite.addTest(BasicTest.parametrize(CompileCodeTest, param=host))
 
     returnCode = not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful()
     sys.exit(returnCode)
