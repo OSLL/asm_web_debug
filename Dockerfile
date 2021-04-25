@@ -2,7 +2,7 @@ FROM ubuntu:18.04
 ENV LANG en_US.UTF-8
 RUN apt update
 
-ARG runmode='deploy'
+ARG RUNMODE='deploy'
 
 # install python3.8
 RUN apt install -y software-properties-common
