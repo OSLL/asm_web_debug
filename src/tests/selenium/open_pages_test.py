@@ -10,26 +10,26 @@ class OpenPagesTest(BasicTest):
     def test_open_slash(self):
         self.driver.get(self.getUrl('/'))
         code_id = self.get_code_id_from_current_url()
-        assert code_id, 'No code_id in URL for new code(page)' + self.driver.page_source
+        assert code_id, 'No code_id in URL for new code(page)'
         assert "Web ASM" in self.driver.title, "No 'Web ASM' in title"
 
     def test_open_code(self):
         self.open_code_page()
         code_id = self.get_code_id_from_current_url()
-        assert code_id == self.CODE_ID, 'New code_id != test.CODE_ID' + self.driver.page_source
+        assert code_id == self.CODE_ID, 'New code_id != test.CODE_ID'
         assert "Web ASM" in self.driver.title, "No 'Web ASM' in title"
 
-    def _test_open_empty_hexview(self):
+    def test_open_empty_hexview(self):
         text = ""
         hextext = ["3C 4E 6F 20 63 6F 64 65 20 66 6F 72 20 68 65 78", "76 69 65 77 21 3E"]
         self.set_code_and_open_hexview(text, hextext)
 
-    def _test_open_hexview(self):
+    def test_open_hexview(self):
         text = "Test"
         hextext = ["54 65 73 74"]
         self.set_code_and_open_hexview(text, hextext)
 
-    def _test_open_unexistent_hexview_by_get(self):
+    def test_open_unexistent_hexview_by_get(self):
         unexistent_id = 'non_exist_id'
         self.driver.get(self.getUrl(f"/hexview/{unexistent_id}"))
         assert 'No such code_id' in self.driver.page_source, "No 'No such code_id' for unexistent code_id"
