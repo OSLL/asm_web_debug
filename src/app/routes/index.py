@@ -1,4 +1,4 @@
-from flask import Blueprint, make_response, render_template, request, current_app, redirect
+from flask import Blueprint, make_response, render_template, request, current_app, redirect, abort
 from uuid import uuid4
 
 from app.core.utils.debug_commands import DebugCommands
@@ -9,9 +9,23 @@ from app.core.db.manager import DBManager
 from app.core.source_manager import SourceManager as sm
 from app.core.asmanager import ASManager
 
+from flask_login import current_user, login_user
+from flask_security import MongoEngineUserDatastore
+
 
 index_bp = Blueprint('index', __name__)
 bp = index_bp
+
+@bp.before_request
+def check_login():
+    if current_app.config['ANON_ACCESS']:
+        login_user(current_app.user_datastore.find_user(_id=current_app.config['ANON_USER_ID']))
+        current_app.logger.info('Anon access to service')
+        return
+    if current_user.is_authenticated:
+        pass
+    else:
+        abort(401, description="Not authenticated")
 
 
 @bp.route('/')

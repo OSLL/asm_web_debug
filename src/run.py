@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, flash
 import os
 
 from app.routes.index import index_bp
@@ -7,6 +7,10 @@ from app.core.source_manager import SourceManager
 from config import ConfigManager
 
 from flask_mongoengine import MongoEngine
+
+from flask_security import Security, MongoEngineUserDatastore
+from app.core.db.desc import Role, User
+import flask_login
 
 def create_app():
     app = Flask(__name__)
@@ -36,4 +40,28 @@ def run_app(app):
 if __name__ == "__main__":
     app = create_app()
     db = MongoEngine(app)
+    user_datastore = MongoEngineUserDatastore(db, User, Role)    
+    security = Security(app, user_datastore)
+    login_manager = flask_login.LoginManager(app)
+
+    app.user_datastore = user_datastore
+    app.security = security
+    app.login_manager = login_manager
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.objects.get(_id=user_id)
+
+    @app.before_first_request
+    def create_user():
+        user_datastore.create_user(_id='first_user', username='first_username')
+        user_datastore.create_user(_id='second_user', username='second_username')
+
+        if app.config['ANON_ACCESS']:
+            user_datastore.create_user(_id=app.config['ANON_USER_ID'], username='anon_username')
+
+        user = user_datastore.find_user(_id='first_user')
+        flask_login.login_user(user, remember=True)
+        current = flask_login.current_user
+
     run_app(app)
