@@ -14,6 +14,9 @@ class Config(object):
         'port': 27017
     }
     SECRET_KEY = 'super secret key'
+    ANON_ACCESS = False
+    ANON_USER_ID = 'a334-4276-8b34'
+
 
 class DeployConfig(Config):
     MONGODB_SETTINGS = {
@@ -21,7 +24,11 @@ class DeployConfig(Config):
         'host': 'mongo',
         'port': 27017
     }
-    DEBUG = False
+    DEBUG = True
+
+
+class TestConfig(Config):
+    ANON_ACCESS = True
 
 
 class DefaultConfig(Config):
@@ -33,6 +40,7 @@ class ConfigManager:
     config = {
         'default': DefaultConfig,
         'deploy': DeployConfig,
+        'test': TestConfig
     }
 
     @classmethod
