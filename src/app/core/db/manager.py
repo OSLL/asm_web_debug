@@ -53,7 +53,7 @@ class DBManager:
         return Logs(_id=log_id, time=time, lineno=lineno, pathname=pathname, levelname=levelname, message=message).save()._id
 
     @staticmethod
-    def get_all_logs(self):
+    def get_all_logs():
         return Logs.objects.all()
 
     @staticmethod
@@ -66,16 +66,13 @@ class DBManager:
             return None
 
     @staticmethod
-    def get_filter_logs(self, query={}, limit=None, offset=None, sort=None, order=None):
-        logs = Logs.objects.raw(query).order_by([('time', DESCENDING)]) 
+    def get_filter_logs(query={}, limit=None, offset=None, sort=None, order=None):
+        logs = Logs.objects(**query).order_by('-time') 
         count = logs.count()
         if limit is not None and offset is not None:
             logs = logs.skip(offset).limit(limit)
         if sort:
-            if order == "asc":
-                logs = logs.order_by([(sort, ASCENDING)])
-            else:
-                logs = logs.order_by([(sort, DESCENDING)])
+            logs = logs.order_by(f"{'-' if order == 'asc' else '+'}{sort}")
         return logs, count
 
     

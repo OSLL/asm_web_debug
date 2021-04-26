@@ -8,7 +8,7 @@ class LogMongoHandler(logging.StreamHandler):
         logging.StreamHandler.__init__(self)
         self.setLevel('DEBUG')
         fmt = '[%(asctime)s] %(levelname)s %(module)s:%(lineno)s : %(message)s'
-        fmt_date = '%d-%M-%Y T%T%Z'
+        fmt_date = '%d-%M-%Y %T'
         formatter = logging.Formatter(fmt, fmt_date)
         self.setFormatter(formatter)
 
