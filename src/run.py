@@ -1,22 +1,24 @@
 from flask import Flask, flash
+import flask_login
+from flask_mongoengine import MongoEngine
+from flask_security import Security, MongoEngineUserDatastore
 import os
 
-from app.routes.index import index_bp
+from app.core.db.desc import Role, User
+from app.core.logging.log_settings import logging_init
 from app.core.source_manager import SourceManager
+from app.routes.index import index_bp
+from app.routes.logs import log_bp
 
 from config import ConfigManager
 
-from flask_mongoengine import MongoEngine
-
-from flask_security import Security, MongoEngineUserDatastore
-from app.core.db.desc import Role, User
-import flask_login
 
 def create_app():
     app = Flask(__name__)
 
     # register blueprints
     app.register_blueprint(index_bp)
+    app.register_blueprint(log_bp)
 
     # load config
     runmode = os.environ.get('RUNMODE')
@@ -48,6 +50,8 @@ if __name__ == "__main__":
     app.security = security
     app.login_manager = login_manager
 
+    logging_init(app)
+
     @login_manager.user_loader
     def load_user(user_id):
         return User.objects.get(_id=user_id)
@@ -61,7 +65,6 @@ if __name__ == "__main__":
             user_datastore.create_user(_id=app.config['ANON_USER_ID'], username='anon_username')
 
         user = user_datastore.find_user(_id='first_user')
-        flask_login.login_user(user, remember=True)
-        current = flask_login.current_user
+        flask_login.login_user(user)
 
     run_app(app)

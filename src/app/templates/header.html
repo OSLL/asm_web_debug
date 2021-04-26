@@ -1,6 +1,7 @@
 <div id="header">
     <div id='header'>
-        <a id="index_link" href="./" target="_self">Index page</a>
+        <a id="index_link" href="./" target="_self">Index</a>
+        <a id="index_link" href="{{url_for('logs.logs_page')}}" target="_blank">Logs</a>
         <div id="auth_user" style="text-align:right; float:right">
             Username: {{current_user.username}} <a href='/logout'>logout</a><br>
         </div>
