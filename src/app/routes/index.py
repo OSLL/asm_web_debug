@@ -20,6 +20,7 @@ def check_login():
         current_app.logger.debug('Anon access to service')
         return
     if current_user.is_authenticated:
+        current_app.logger.info(f"Authenticated user: {current_user.username}")
         pass
     else:
         abort(401, description="Not authenticated")
