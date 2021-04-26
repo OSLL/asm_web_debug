@@ -1,16 +1,13 @@
 from flask import Blueprint, make_response, render_template, request, current_app, redirect, abort
-from uuid import uuid4
-
-from app.core.utils.debug_commands import DebugCommands
-from app.core.utils.hex import hexdump
-
-from app.core.db.manager import DBManager
-
-from app.core.source_manager import SourceManager as sm
-from app.core.asmanager import ASManager
-
 from flask_login import current_user, login_user
 from flask_security import MongoEngineUserDatastore
+from uuid import uuid4
+
+from app.core.asmanager import ASManager
+from app.core.db.manager import DBManager
+from app.core.source_manager import SourceManager as sm
+from app.core.utils.debug_commands import DebugCommands
+from app.core.utils.hex import hexdump
 
 
 index_bp = Blueprint('index', __name__)
@@ -20,7 +17,7 @@ bp = index_bp
 def check_login():
     if current_app.config['ANON_ACCESS']:
         login_user(current_app.user_datastore.find_user(_id=current_app.config['ANON_USER_ID']))
-        current_app.logger.info('Anon access to service')
+        current_app.logger.debug('Anon access to service')
         return
     if current_user.is_authenticated:
         pass
@@ -65,11 +62,14 @@ def compile(code_id):
     try:
         sm.save_code(code_id, source_code)
     except OSError as e:
-        print(e)
+        current_app.logger.error(e)
 
     # Compiling code from file into file with same name (see ASManager.compile())
     as_flag, as_logs_stderr, as_logs_stdout = ASManager.compile(sm.get_code_file_path(code_id), arch)
     as_logs = as_logs_stderr + as_logs_stdout
+
+    current_app.logger.info(f'Compile {code_id}: success_build - {as_flag}')
+    current_app.logger.info(f'Compile {code_id}: build_logs\n{as_logs.decode("utf-8")}')
 
     return { "success_build": as_flag, "build_logs": as_logs.decode("utf-8") }
 
