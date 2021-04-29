@@ -22,31 +22,10 @@ class gdb_wrapper(object):
             self.gdb_ctrl.write("file " + file)
 
     @staticmethod
-    def __parse_log(log, type):
+    def _parse_log(log, type):
         for el in log:
             if el['type'] == type:
                 return el
-
-    @no_response()
-    def get_registers(self, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
-        # надо проверить что процесс запущен
-        result = []
-        log = self.gdb_ctrl.write("-data-list-register-names", timeout_sec)
-        indexes_of_registers = [index for index, elem in enumerate(log[0]['payload']['register-names']) if
-                                elem in self.__registers]
-        result.append([elem for elem in log[0]['payload']['register-names'] if elem in self.__registers])
-        index_of_flags = 0
-        if self.__flags_name in self.__registers:
-            index_of_flags = result[0].index(self.__flags_name)
-
-        log = self.gdb_ctrl.write("-data-list-register-values r {}".format(indexes_of_registers), timeout_sec)
-        if self.__parse_log(log, 'result')['message'] == 'error':
-            return []
-        # Это значит что процесс не запущен
-        result.append([reg_value['value'] for reg_value in log[0]['payload']['register-values']])
-        if self.__flags_name in self.__registers:
-            result[1][index_of_flags] = self.get_flags()
-        return result
 
     @no_response()
     def connect_to_port(self, port, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
@@ -72,9 +51,9 @@ class gdb_wrapper(object):
     @no_response()
     def get_stack(self, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
         log = self.gdb_ctrl.write("-stack-list-frames", timeout_sec)
-        if log[0]['message'] == 'error':
+        if gdb_wrapper._parse_log(log, 'result')['message'] == 'error':
             return {}
-        return log[0]['payload']
+        return gdb_wrapper._parse_log(log, 'result')['payload']
 
     @no_response()
     def get_registers(self, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
@@ -82,28 +61,22 @@ class gdb_wrapper(object):
         result = []
         log = self.gdb_ctrl.write("-data-list-register-names", timeout_sec)
         indexes_of_registers = [index for index, elem in enumerate(log[0]['payload']['register-names']) if
-                                elem in self.__registers]
-        result.append([elem for elem in log[0]['payload']['register-names'] if elem in self.__registers])
+                                elem in self._registers]
+        result.append([elem for elem in gdb_wrapper._parse_log(log, 'result')['payload']['register-names'] if
+                       elem in self._registers])
         index_of_eflags = 0
-        if self.__eflag_name in self.__registers:
-            index_of_eflags = result[0].index(self.__eflag_name)
+        if self._flags_name in self._registers:
+            index_of_eflags = result[0].index(self._flags_name)
 
         log = self.gdb_ctrl.write("-data-list-register-values r {}".format(indexes_of_registers), timeout_sec)
-        if self.__parse_log(log, 'result')['message'] == 'error':
+        if self._parse_log(log, 'result')['message'] == 'error':
             return []
         # Это значит что процесс не запущен
 
-        result.append([reg_value['value'] for reg_value in log[0]['payload']['register-values']])
-        if self.__eflag_name in self.__registers:
-            log = self.gdb_ctrl.write("print ${}".format(self.__eflag_name), timeout_sec)
-            _, _, values = self.__parse_log(log, 'console')['payload'].partition(' = ')
-            if self.arch == 'avr':
-                all_flags = ['C', 'Z', 'N', 'V', 'S', 'H', 'T', 'I']
-                result[1][index_of_eflags] = [all_flags[i] for i in range(8) if int(values.rstrip()) & 1 << i]
-            elif self.arch == 'arm':
-                result[1][index_of_eflags] = int(values.rstrip())
-            else:
-                result[1][index_of_eflags] = values.rstrip().strip('][').split()
+        result.append(
+            [reg_value['value'] for reg_value in gdb_wrapper._parse_log(log, 'result')['payload']['register-values']])
+        if self._flags_name in self._registers:
+            result[1][index_of_eflags] = self.get_flags()
         return result
 
     @no_response()
@@ -123,48 +96,48 @@ class gdb_wrapper_x86_64(gdb_wrapper):
     def __init__(self, port=None, file=None):
         self.gdb_ctrl = GdbController(["gdb-multiarch", "-q", "--interpreter=mi"])
         self.gdb_ctrl.write("set architecture auto")
-        self.__registers = {'r{}'.format(i) for i in range(8, 16)}
-        self.__registers.update({'rax', 'rdi', 'rsi', 'rdx', 'rcx', 'rbx', 'rsp', 'rbp', 'rip', 'eflags'})
-        # self.__registers.update({'eax', 'edi', 'esi', 'edx', 'ecx', 'ebx', 'esp', 'ebp', 'eip'})
-        self.__flags_name = 'eflags'
+        self._registers = {'r{}'.format(i) for i in range(8, 16)}
+        self._registers.update({'rax', 'rdi', 'rsi', 'rdx', 'rcx', 'rbx', 'rsp', 'rbp', 'rip', 'eflags'})
+        # self._registers.update({'eax', 'edi', 'esi', 'edx', 'ecx', 'ebx', 'esp', 'ebp', 'eip'})
+        self._flags_name = 'eflags'
         super().__init__(port, file)
 
     @gdb_wrapper.no_response()
     def get_flags(self, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
-        log = self.gdb_ctrl.write("print ${}".format(self.__flags_name), timeout_sec)
-        _, _, values = self.__parse_log(log, 'console')['payload'].partition(' = ')
-        return values.rstrip().strip('][').split()
+        log = self.gdb_ctrl.write("print ${}".format(self._flags_name), timeout_sec)
+        _, _, values = self._parse_log(log, 'console')['payload'].partition(' = ')
+        return values.rstrip('\\n').strip('][').split()
 
 
 class gdb_wrapper_arm(gdb_wrapper):
     def __init__(self, port=None, file=None):
         self.gdb_ctrl = GdbController(["gdb-multiarch", "-q", "--interpreter=mi"])
 
-        self.__registers = {'r{}'.format(i) for i in range(13)}
-        self.__registers.update({'sp', 'lr', 'pc', 'cpsr'})
-        self.__flags_name = 'cpsr'
+        self._registers = {'r{}'.format(i) for i in range(13)}
+        self._registers.update({'sp', 'lr', 'pc', 'cpsr'})
+        self._flags_name = 'cpsr'
         super().__init__(port, file)
 
     @gdb_wrapper.no_response()
     def get_flags(self, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
-        log = self.gdb_ctrl.write("print ${}".format(self.__flags_name), timeout_sec)
-        _, _, values = self.__parse_log(log, 'console')['payload'].partition(' = ')
+        log = self.gdb_ctrl.write("print ${}".format(self._flags_name), timeout_sec)
+        _, _, values = gdb_wrapper._parse_log(log, 'console')['payload'].partition(' = ')
         return int(values.rstrip())
 
 
 class gdb_wrapper_avr(gdb_wrapper):
     def __init__(self, port=None, file=None):
         self.gdb_ctrl = GdbController(["avr-gdb", "-q", "--interpreter=mi"])
-        self.__registers = {'r{}'.format(i) for i in range(32)}
-        self.__registers.update({'SP', 'PC', 'SREG'})
-        self.__flags_name = 'SREG'
+        self._registers = {'r{}'.format(i) for i in range(32)}
+        self._registers.update({'SP', 'PC', 'SREG'})
+        self._flags_name = 'SREG'
         super().__init__(port, file)
 
     @gdb_wrapper.no_response()
     def get_flags(self, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
         all_flags = ['C', 'Z', 'N', 'V', 'S', 'H', 'T', 'I']
-        log = self.gdb_ctrl.write("print ${}".format(self.__flags_name), timeout_sec)
-        _, _, values = self.__parse_log(log, 'console')['payload'].partition(' = ')
+        log = self.gdb_ctrl.write("print ${}".format(self._flags_name), timeout_sec)
+        _, _, values = gdb_wrapper._parse_log(log, 'console')['payload'].partition(' = ')
         return [all_flags[i] for i in range(8) if int(values.rstrip()) & 1 << i]
 
 
@@ -175,7 +148,7 @@ if __name__ == '__main__':
     from demo_debug.py_demo.qemu_run import qemu_runner
 
     prog_dir = "demo_debug/demos"
-    arg_arch = "avr"
+    arg_arch = "x86_64"
     arg_exec = "demo_helloworld"
 
     s_path = "{0}/{1}.{2}.s".format(prog_dir, arg_exec, arg_arch)
@@ -199,7 +172,7 @@ if __name__ == '__main__':
     qmrun = qemu_runner(arg_arch)
     qmrun.run(out_path)
 
-    gdbrun = gdb_wrapper_avr(qmrun.dbg_port, qmrun.cur_exec)
+    gdbrun = gdb_wrapper_x86_64(qmrun.dbg_port, qmrun.cur_exec)
     print('go')
     while True:
         gcmd = input()
