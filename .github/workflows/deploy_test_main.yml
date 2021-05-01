@@ -11,10 +11,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Deploy
         run: |
-          cd ${{ github.workspace }}
-          ls -la ${{ github.workspace }}
-          ls ${{ github.workspace }}/scripts
-          sh ${{ github.workspace }}/scripts/start_deploy.sh ${GITHUB_REF##*/}
+          sh ./scripts/start_deploy.sh ${GITHUB_REF##*/}
       - name: Build docker
         run: docker-compose build --build-arg RUNMODE=test
       - name: Run docker
