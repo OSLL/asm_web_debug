@@ -9,6 +9,7 @@ jobs:
     steps:
       - name: Deploy
         run: |
+          cd ${{ github.workspace }}
           pwd
           ls -la
           ls ./scripts
