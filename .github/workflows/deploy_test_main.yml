@@ -1,0 +1,22 @@
+name: Selenium Test on PR
+
+on: pull_request
+
+    
+jobs:
+  test:
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Deploy
+        run: ./scripts/start_deploy.sh ${GITHUB_REF##*/}
+      - name: Build docker
+        run: docker-compose build --build-arg RUNMODE=test
+      - name: Run docker
+        run: docker-compose up -d
+      - name: Check service port 
+        run: nc -vz localhost 5000
+      - name: Run tests
+        run: curl http://127.0.0.1:80
+      - name: Check logs 
+        run: docker-compose logs
+        if: always()
