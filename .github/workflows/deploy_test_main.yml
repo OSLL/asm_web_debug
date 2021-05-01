@@ -4,11 +4,11 @@ on: pull_request
 
     
 jobs:
-  test:
+  deploy:
     runs-on: ubuntu-18.04
     steps:
       - name: Deploy
-        run: ./scripts/start_deploy.sh ${GITHUB_REF##*/}
+        run: sh ./scripts/start_deploy.sh ${GITHUB_REF##*/}
       - name: Build docker
         run: docker-compose build --build-arg RUNMODE=test
       - name: Run docker
