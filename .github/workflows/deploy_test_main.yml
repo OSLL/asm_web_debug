@@ -22,5 +22,7 @@ jobs:
           docker image tag asmtestbuild_web:latest asm_web_debug_web:latest
 
           docker-compose up -d
+      - name: Deploy
+        run: /etc/init.d/apache2 restart
       - name: Run tests
         run: curl http://127.0.0.1:80
