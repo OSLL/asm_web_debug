@@ -10,10 +10,9 @@ jobs:
       - name: Deploy
         run: |
           cd ${{ github.workspace }}
-          pwd
-          ls -la
-          ls ./scripts
-          sh ./scripts/start_deploy.sh ${GITHUB_REF##*/}
+          ls -la ${{ github.workspace }}
+          ls ${{ github.workspace }}/scripts
+          sh ${{ github.workspace }}/scripts/start_deploy.sh ${GITHUB_REF##*/}
       - name: Build docker
         run: docker-compose build --build-arg RUNMODE=test
       - name: Run docker
