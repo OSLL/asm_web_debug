@@ -2,7 +2,7 @@
 set -e
 export LANG=en_US.UTF-8
 
-branch_to_deploy=${1:-"master"}
+branch_to_deploy=${1:-"main"}
 
 git fetch -a
 git checkout ${branch_to_deploy}
