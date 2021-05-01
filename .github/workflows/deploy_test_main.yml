@@ -1,4 +1,4 @@
-name: Selenium Test on PR
+name: Deploy Test on PR
 
 on: pull_request
 
@@ -8,7 +8,10 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
       - name: Deploy
-        run: sh ./scripts/start_deploy.sh ${GITHUB_REF##*/}
+        run: |
+          pwd
+          ls ./scripts
+          sh ./scripts/start_deploy.sh ${GITHUB_REF##*/}
       - name: Build docker
         run: docker-compose build --build-arg RUNMODE=test
       - name: Run docker
@@ -17,6 +20,3 @@ jobs:
         run: nc -vz localhost 5000
       - name: Run tests
         run: curl http://127.0.0.1:80
-      - name: Check logs 
-        run: docker-compose logs
-        if: always()
