@@ -10,7 +10,7 @@ git pull origin --no-edit ${branch_to_deploy}
 
 ./scripts/build_info.sh
 
-./scripts/setup_apache_config.sh task.moevm.info.conf
+./scripts/setup_apache_config.sh asm.moevm.info.conf
 
 # build test images
 docker-compose --project-name asmtestbuild build
