@@ -29,3 +29,9 @@ docker exec -t asm_web_debug_web_1 ./scripts/run_selenium.sh
 cd src/tests/selenium
 ./scripts/run_tests.sh http://127.0.0.1:5000
 ```
+
+# Deployment
+Domain: asm.moevm.info
+```bash
+./scripts/start_deploy.sh ${branch}
+```
