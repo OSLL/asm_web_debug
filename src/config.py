@@ -6,6 +6,7 @@ class Config(object):
     TEMPLATE_FOLDER ='app/templates'
     STATIC_FOLDER = 'app/static'
     CODES_FOLDER = '../codes/'
+    BUILD_FILE = '../DEBUG'
     DEBUG_COMMANDS = DebugCommands
     ARCHS = ['x86', 'arm','avr']
     MONGODB_SETTINGS = {
