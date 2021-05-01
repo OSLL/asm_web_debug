@@ -10,6 +10,7 @@ jobs:
       - name: Deploy
         run: |
           pwd
+          ls -la
           ls ./scripts
           sh ./scripts/start_deploy.sh ${GITHUB_REF##*/}
       - name: Build docker
