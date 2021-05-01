@@ -11,13 +11,16 @@ jobs:
         uses: actions/checkout@v2
       - name: Deploy
         run: |
-          git config core.ignorecase false
-          sh ./scripts/start_deploy.sh ${GITHUB_REF##*/}
-      - name: Build docker
-        run: docker-compose build --build-arg RUNMODE=test
-      - name: Run docker
-        run: docker-compose up -d
-      - name: Check service port 
-        run: nc -vz localhost 5000
+          sh ./scripts/build_info.sh
+          sh ./scripts/setup_apache_config.sh asm.moevm.info.conf
+
+          # build test images
+          docker-compose --project-name asmtestbuild build
+          # stop and remove current containers/images
+          docker-compose down --rmi local
+          # rename images if ok
+          docker image tag asmtestbuild_web:latest asm_web_debug_web:latest
+
+          docker-compose up -d
       - name: Run tests
         run: curl http://127.0.0.1:80
