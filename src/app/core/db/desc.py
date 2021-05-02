@@ -42,17 +42,6 @@ class Logs(me.Document):
 
 class Consumers(me.Document):
     _id = me.StringField(primary_key=True)
-    secret = me.StringField(default='secretconsumerkey')
-    datetime = me.DateTimeField(default=datetime.datetime.now)
+    secret = me.StringField()
+    datetime = me.DateTimeField()
     timestamps = me.ListField(blank=True)
-
-    def add_timestamp_and_nonce(self,  timestamp, nonce):
-        self.timestamps.append([timestamp,nonce])
-        self.save()
-
-    def has_timestamp_and_nonce(self, timestamp, nonce):
-        #return [timestamp, nonce] in self.timestamps
-        if self.timestamps == [timestamp, nonce]:
-            return True
-        else:
-            return False

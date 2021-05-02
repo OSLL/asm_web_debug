@@ -4,7 +4,7 @@ from flask_mongoengine import MongoEngine
 from pymongo import DESCENDING, ASCENDING
 import json
 
-from app.core.db.desc import Codes, User, Logs
+from app.core.db.desc import Codes, User, Logs, Consumers
 
 
 class DBManager:
@@ -75,4 +75,42 @@ class DBManager:
             logs = logs.order_by(f"{'-' if order == 'asc' else '+'}{sort}")
         return logs, count
 
+
+    #### lti ####
+
+    @staticmethod
+    def get_secret(key):
+        try:
+            return Consumers.objects.get(_id = key).secret
+        except Consumers.DoesNotExist:
+            return None
+
+    @staticmethod
+    def is_key_valid(key):
+        try:
+            Consumers.objects.get(_id = key)
+            print('key validated')
+            return True
+        except Consumers.DoesNotExist:
+            return False
+
+    @staticmethod
+    def add_timestamp_and_nonce(id_key, timestamp, nonce):
+        try:
+            consumer_obj = Consumers.objects.get(_id = id_key)
+            consumer_obj.timestamps.append([timestamp, nonce])
+            consumer_obj.save()
+        except Consumers.DoesNotExist:
+            #? creates a consumers obj? 
+            pass 
     
+    @staticmethod
+    def has_timestamp_and_nonce(id_key, timestamp, nonce):
+        try:
+            consumer_obj = Consumers.objects.get(_id = id_key)
+            if [timestamp, nonce] in consumer_obj.timestamps:
+                return True
+            else:
+                return False
+        except Consumers.DoesNotExist:
+            return False

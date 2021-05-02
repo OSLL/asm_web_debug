@@ -9,6 +9,7 @@ from app.core.logging.log_settings import logging_init
 from app.core.source_manager import SourceManager
 from app.routes.index import index_bp
 from app.routes.logs import log_bp
+from app.routes.lti import lti_bp
 
 from config import ConfigManager
 
@@ -19,6 +20,7 @@ def create_app():
     # register blueprints
     app.register_blueprint(index_bp)
     app.register_blueprint(log_bp)
+    app.register_blueprint(lti_bp)
 
     # load config
     runmode = os.environ.get('RUNMODE')
