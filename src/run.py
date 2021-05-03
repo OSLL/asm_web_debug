@@ -57,17 +57,9 @@ if __name__ == "__main__":
 
     @login_manager.user_loader
     def load_user(user_id):
-        return User.objects.get(_id=user_id)
-
-    @app.before_first_request
-    def create_user():
-        user_datastore.create_user(_id='first_user', username='first_username')
-        user_datastore.create_user(_id='second_user', username='second_username')
-
-        if app.config['ANON_ACCESS']:
-            user_datastore.create_user(_id=app.config['ANON_USER_ID'], username='anon_username')
-
-        user = user_datastore.find_user(_id='first_user')
-        flask_login.login_user(user)
+        try: 
+            return User.objects.get(_id=user_id)
+        except User.DoesNotExist:
+            return None
 
     run_app(app)
