@@ -12,7 +12,7 @@ from app.routes.logs import log_bp
 from app.routes.lti import lti_bp
 
 from config import ConfigManager
-
+from app.core.db.manager import DBManager
 
 def create_app():
     app = Flask(__name__)
@@ -52,6 +52,7 @@ if __name__ == "__main__":
     app.security = security
     app.login_manager = login_manager
 
+    DBManager.create_lti_consumer(app.config['LTI_KEY'], app.config['LTI_SECRET'])
     logging_init(app)
 
     @login_manager.user_loader

@@ -89,7 +89,6 @@ class DBManager:
     def is_key_valid(key):
         try:
             Consumers.objects.get(_id = key)
-            print('key validated')
             return True
         except Consumers.DoesNotExist:
             return False
@@ -101,16 +100,18 @@ class DBManager:
             consumer_obj.timestamps.append([timestamp, nonce])
             consumer_obj.save()
         except Consumers.DoesNotExist:
-            #? creates a consumers obj? 
             pass 
     
     @staticmethod
     def has_timestamp_and_nonce(id_key, timestamp, nonce):
         try:
             consumer_obj = Consumers.objects.get(_id = id_key)
-            if [timestamp, nonce] in consumer_obj.timestamps:
+            if (timestamp, nonce) in consumer_obj.timestamps:
                 return True
-            else:
-                return False
         except Consumers.DoesNotExist:
             return False
+
+    @staticmethod
+    def create_lti_consumer(id_key, secret_key, timestamp_and_nonce = []):
+        return Consumers(_id = id_key, secret = secret_key, timestamps = timestamp_and_nonce).save()
+
