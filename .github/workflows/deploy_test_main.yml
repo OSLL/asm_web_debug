@@ -24,6 +24,10 @@ jobs:
           docker-compose up -d
       - name: Change hosts
         run: sudo echo "127.0.0.1 asm.moevm.info" | sudo tee -a /etc/hosts
+      - name: Get index
+        run: |
+          curl -s "asm.moevm.info"
+          curl -s "asm.moevm.info" | grep "401 Unauthorized"
       - name: Run check index
         run: |
           if [ $(curl -s "asm.moevm.info" | grep "401 Unauthorized" | wc -l) == 1 ];
@@ -32,3 +36,6 @@ jobs:
           else
               exit 1
           fi
+      - name: Check logs 
+        run: docker-compose logs
+        if: always()
