@@ -1,5 +1,5 @@
 var codemirrorEditor = CodeMirror.fromTextArea(document.getElementById('build_log'), {
-                                    mode: 'shell',
+                                    mode: 'gas',
                                     gutters: ["CodeMirror-linenumbers"],
                                     theme: 'eclipse',
                                     readOnly: 'nocursor',
