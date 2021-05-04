@@ -20,17 +20,15 @@ class LTIRequestValidator(RequestValidator):
         return False
 
     def get_client_secret(self, client_key, request):
-        current_app.logger.error(DBManager.get_secret(client_key))
         return DBManager.get_secret(client_key)
 
     def validate_client_key(self, client_key, request):
-        current_app.logger.error(DBManager.is_key_valid(client_key))
         return DBManager.is_key_valid(client_key)
 
     def validate_timestamp_and_nonce(self, client_key, timestamp, nonce, request, request_token=None, access_token=None):
         if not DBManager.has_timestamp_and_nonce(client_key, timestamp, nonce):
             DBManager.add_timestamp_and_nonce(client_key, timestamp, nonce)
-            current_app.logger.error('timestamp and nonce are valid!')
+            current_app.logger.debug('timestamp and nonce are valid!')
             return True
         else:
             current_app.logger.error('timestamp and nonce are invalid!')

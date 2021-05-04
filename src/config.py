@@ -21,6 +21,7 @@ class Config(object):
     LTI_CONSUMERS = {
         'secretconsumerkey': 'supersecretconsumersecret'
     }
+    USER_ROLES = ['user', 'teacher', 'admin']
 
 class DeployConfig(Config):
     MONGODB_SETTINGS = {

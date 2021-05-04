@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from flask import Blueprint, make_response, render_template, request, current_app, abort
+from flask_security import roles_accepted
 from uuid import uuid4
 from urllib.parse import unquote
 
@@ -11,11 +12,13 @@ bp = log_bp
 
 
 @bp.route('/', methods=['GET', 'POST'])
+@roles_accepted('teacher', 'admin')
 def logs_page():
     return render_template('pages/logs.html')
 
 
 @bp.route('/<log_id>', methods=['GET', 'POST'])
+@roles_accepted('teacher', 'admin')
 def log_page(log_id):
     log = DBManager.get_log_by_id(log_id)
     if log:
@@ -24,7 +27,9 @@ def log_page(log_id):
         current_app.logger.debug(f'No such log_id {log_id}')
         abort(404)
 
+
 @bp.route('/get_filtered', methods=['GET', 'POST'])
+@roles_accepted('teacher', 'admin')
 def filter_logs():
     try:
         pathname = unquote(request.args.get('pathname', ''))

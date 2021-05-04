@@ -1,4 +1,4 @@
-from flask import Flask, flash
+from flask import Flask, flash, abort
 import flask_login
 from flask_mongoengine import MongoEngine
 from flask_security import Security, MongoEngineUserDatastore
@@ -37,7 +37,10 @@ def create_app():
     app.user_datastore = MongoEngineUserDatastore(db, User, Role)    
     app.security = Security(app, app.user_datastore)
     app.login_manager = flask_login.LoginManager(app)
-
+    
+    # TODO: do smth with role_requiered and etc 
+    app.security.unauthorized_handler(lambda fn=None, params=None: abort(404))
+    
     @app.before_first_request
     def init_roles_and_user():
         if app.config['ANON_ACCESS']:
