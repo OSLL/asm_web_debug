@@ -8,6 +8,8 @@ services:
       - "5000:5000"
     depends_on:
       - mongo
+    volumes:
+      - ./:/code
 
   mongo:
     image: "mongo:4.4.4-bionic"

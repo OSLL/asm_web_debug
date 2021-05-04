@@ -29,7 +29,7 @@ class DeployConfig(Config):
         'host': 'mongo',
         'port': 27017
     }
-    DEBUG = False
+    DEBUG = True
 
 
 class TestConfig(DeployConfig):
