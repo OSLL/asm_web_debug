@@ -18,7 +18,10 @@ class Config(object):
     DEBUG = True
     ANON_ACCESS = False
     ANON_USER_ID = 'a334-4276-8b34'
-
+    LTI_CONSUMERS = {
+        'secretconsumerkey': 'supersecretconsumersecret'
+    }
+    USER_ROLES = ['user', 'teacher', 'admin']
 
 class DeployConfig(Config):
     MONGODB_SETTINGS = {

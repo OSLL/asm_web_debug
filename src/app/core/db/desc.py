@@ -38,3 +38,10 @@ class Logs(me.Document):
     meta = {
         'indexes': ['time']
     }
+
+
+class Consumers(me.Document):
+    _id = me.StringField(primary_key=True)
+    secret = me.StringField()
+    datetime = me.DateTimeField(default=datetime.datetime.now)
+    timestamps = me.ListField(blank=True)
