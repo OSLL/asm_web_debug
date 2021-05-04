@@ -22,7 +22,13 @@ jobs:
           docker image tag asmtestbuild_web:latest asm_web_debug_web:latest
 
           docker-compose up -d
-      - name: Deploy
-        run: /etc/init.d/apache2 restart
-      - name: Run tests
-        run: curl http://127.0.0.1:80
+      - name: Change hosts
+        run: echo '127.0.0.1  asm.moevm.info' >> /etc/hosts
+      - name: Run check index
+        run: |
+          if [ $(curl -s "asm.moevm.info" | grep "401 Unauthorized" | wc -l) == 1 ];
+          then
+              exit 0
+          else
+              exit 1
+          fi
