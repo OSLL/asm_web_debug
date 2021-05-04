@@ -24,6 +24,10 @@ jobs:
           docker-compose up -d
       - name: Change hosts
         run: sudo echo "127.0.0.1 asm.moevm.info" | sudo tee -a /etc/hosts
+      - name: Sleep for 10s
+        uses: juliangruber/sleep-action@v1
+        with:
+          time: 10s
       - name: Get index
         run: |
           curl -s "asm.moevm.info"
