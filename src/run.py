@@ -39,9 +39,12 @@ def create_app():
     app.login_manager = flask_login.LoginManager(app)
 
     @app.before_first_request
-    def create_user():
+    def init_roles_and_user():
         if app.config['ANON_ACCESS']:
             app.user_datastore.create_user(_id=app.config['ANON_USER_ID'], username='anon_username')
+        for role in app.config['USER_ROLES']:
+            if not app.user_datastore.find_role(role):
+                app.user_datastore.create_role(name=role)
 
     @app.login_manager.user_loader
     def load_user(user_id):
