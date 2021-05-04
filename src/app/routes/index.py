@@ -1,4 +1,4 @@
-from flask import Blueprint, make_response, render_template, request, current_app, redirect, abort
+from flask import Blueprint, make_response, render_template, request, current_app as app, redirect, abort
 from flask_login import current_user, login_user
 from flask_security import MongoEngineUserDatastore
 from uuid import uuid4
@@ -15,15 +15,17 @@ bp = index_bp
 
 @bp.before_request
 def check_login():
-    if current_app.config['ANON_ACCESS']:
-        login_user(current_app.user_datastore.find_user(_id=current_app.config['ANON_USER_ID']))
-        current_app.logger.debug('Anon access to service')
-        return
     if current_user.is_authenticated:
-        current_app.logger.info(f"Authenticated user: {current_user.username}")
-        pass
+        app.logger.info(f"Authenticated user: {current_user.username}")
+        app.logger.debug(f"{current_user.to_json()}")
+        return
     else:
-        abort(401, description="Not authenticated")
+        if app.config['ANON_ACCESS']:
+            login_user(app.user_datastore.find_user(_id=app.config['ANON_USER_ID']))
+            app.logger.debug('Anon access to service')
+            return
+        else:
+            abort(401, description="Not authenticated")
 
 
 @bp.route('/')
@@ -34,6 +36,8 @@ def index():
 
 @bp.route('/<code_id>')
 def index_id(code_id):
+    if code_id not in current_user.tasks and not app.config['ANON_ACCESS']:
+        abort(404, description=f"Don't have access to code {code_id}")
     code = DBManager.get_code(code_id=code_id)
     if code:
         return render_template('index.html', txt_code=code.code)
@@ -63,14 +67,14 @@ def compile(code_id):
     try:
         sm.save_code(code_id, source_code)
     except OSError as e:
-        current_app.logger.error(e)
+        app.logger.error(e)
 
     # Compiling code from file into file with same name (see ASManager.compile())
     as_flag, as_logs_stderr, as_logs_stdout = ASManager.compile(sm.get_code_file_path(code_id), arch)
     as_logs = as_logs_stderr + as_logs_stdout
 
-    current_app.logger.info(f'Compile {code_id}: success_build - {as_flag}')
-    current_app.logger.info(f'Compile {code_id}: build_logs\n{as_logs.decode("utf-8")}')
+    app.logger.info(f'Compile {code_id}: success_build - {as_flag}')
+    app.logger.info(f'Compile {code_id}: build_logs\n{as_logs.decode("utf-8")}')
 
     return { "success_build": as_flag, "build_logs": as_logs.decode("utf-8") }
 
@@ -100,7 +104,8 @@ def hexview(code_id):
             return render_template('hexview.html', result=hexdump(code.code or error_msg))
         else:
             return 'No such code_id', 404
-  
+
+
 @bp.route('/debug/<code_id>', methods = ["POST"])
 def debug(code_id):
     command = request.form.get('debug_command', '')

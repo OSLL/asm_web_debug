@@ -3,3 +3,4 @@ flask-mongoengine==1.0.0
 selenium==3.141.0
 flask-security==3.0.0
 flask-login==0.5.0
+lti==0.9.5
