@@ -2,7 +2,7 @@
 
 {% block title %}Log #{{log._id}}{% endblock %}
 {% block head %}
-<link href="static/css/prism.css" rel="stylesheet">
+<link href="static/css/libs/prism.css" rel="stylesheet">
 <style>
 
 .msg_pre, code {
@@ -48,8 +48,8 @@
 {% endblock %}
 
 {% block script %}
-<script src="static/js/json5.min.js"></script>
-<script src="static/js/prism.js"></script>
+<script src="static/js/libs/json5.min.js"></script>
+<script src="static/js/libs/prism.js"></script>
 <script>
     let logs_msg = $('.log_message').html();
     console.log(logs_msg);
