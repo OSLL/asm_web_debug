@@ -18,7 +18,7 @@ def check_login():
     current_app.logger.debug(current_user)
     if current_user.is_authenticated:
         current_app.logger.info(f"Authenticated user: {current_user.username}")
-        pass
+        return
     else:
         if current_app.config['ANON_ACCESS']:
             login_user(current_app.user_datastore.find_user(_id=current_app.config['ANON_USER_ID']))

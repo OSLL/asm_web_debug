@@ -3,6 +3,7 @@ from flask import request
 from app.core.db.manager import DBManager
 
 PASSBACK_PARAMS = ('lis_outcome_service_url', 'lis_result_sourcedid', 'oauth_consumer_key')
+CUSTOM_PARAM_PREFIX = 'custom_'
 
 def extract_passback_params(data):
     params = {}
@@ -17,3 +18,7 @@ def extract_passback_params(data):
 def create_consumers(consumer_dict):
     for key, secret in consumer_dict.items():
         DBManager.create_lti_consumer(key, secret)
+
+
+def get_custom_params(data):
+    return { key[len(CUSTOM_PARAM_PREFIX):]: data[key] for key in data if key.startswith(CUSTOM_PARAM_PREFIX) }

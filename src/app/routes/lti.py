@@ -3,7 +3,7 @@ from flask import Blueprint, abort, request, make_response, render_template, url
 from app.core.db.manager import DBManager
 
 from app.core.lti_core.lti_validator import LTIRequestValidator
-from app.core.lti_core.lti_utils import extract_passback_params
+from app.core.lti_core.lti_utils import extract_passback_params, get_custom_params
 from app.core.lti_core.check_request import check_request
 from app.core.db.desc import Consumers, User
 
@@ -25,7 +25,11 @@ def lti_route():
         username = temporary_user_params.get('ext_user_username')
         user_id = f"{username}_{temporary_user_params.get('tool_consumer_instance_guid', '')}"
         params_for_passback = extract_passback_params(temporary_user_params)
-        task_id = str(uuid4())  # change in future
+        custom_params = get_custom_params(temporary_user_params)
+
+        task_id = custom_params.get('task_id',
+            f"{temporary_user_params.get('user_id')}-{temporary_user_params.get('resource_link_id')}")
+        #task_id = str(uuid4())  # change in future
 
         user = DBManager.get_user(user_id)
         if user:
