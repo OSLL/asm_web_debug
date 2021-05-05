@@ -1,6 +1,6 @@
 #!/bin/bash
 
-host=${1:-"http://127.0.0.1:5000"}
+host=${1:-"http://127.0.0.1:5100"}
 
 ./scripts/install_selenium_driver.sh
 
