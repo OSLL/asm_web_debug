@@ -7,7 +7,7 @@ from basic_test import BasicTest
 from open_pages_test import OpenPagesTest
 from compile_code_test import CompileCodeTest
 
-DEFAULT_URL = "http://127.0.0.1:5000"
+DEFAULT_URL = "http://127.0.0.1:5100"
 
 def main(host):
     suite = unittest.TestSuite()
