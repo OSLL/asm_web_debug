@@ -17,10 +17,10 @@ docker-compose --project-name asmtestbuild build
 # stop and remove current containers/images
 docker-compose down --rmi local
 # rename images if ok
-docker image tag asmtestbuild_web:latest asm_web_debug_web:latest
+docker image tag asmtestbuild_web:latest asmwebidedeploy_web:latest
 
 docker-compose up -d
 
 sleep 10
 echo "Init logs"
-docker logs `docker ps -aqf "name=asm_web_debug_web"`
+docker logs `docker ps -aqf "name=asmwebidedeploy_web"`
