@@ -11,6 +11,7 @@ class gdb_wrapper(object):
                 except GdbTimeoutError:
                     return "Did not get response from gdb after {} seconds".format(
                         kwargs['timeout_sec'] if 'timeout_sec' in kwargs else DEFAULT_GDB_TIMEOUT_SEC)
+
             return wrapper
 
     def __init__(self, port=None, file=None):
@@ -26,6 +27,21 @@ class gdb_wrapper(object):
         for el in log:
             if el['type'] == type:
                 return el
+
+    @staticmethod
+    def _parse_flags(flags_value, all_flags):
+        result = {}
+        for i in range(len(all_flags)):
+            flag_name = all_flags[i]
+            if isinstance(flag_name, list):
+                if flag_name[0] in result:
+                    result[flag_name[0]] += (flags_value >> i & 1) << flag_name[1]
+                elif flags_value >> i & 1:
+                    result[flag_name[0]] = (flags_value >> i & 1) << flag_name[1]
+            else:
+                if flags_value >> i & 1:
+                    result[flag_name] = 1
+        return result
 
     @no_response()
     def connect_to_port(self, port, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
@@ -64,9 +80,9 @@ class gdb_wrapper(object):
                                 elem in self._registers]
         result.append([elem for elem in gdb_wrapper._parse_log(log, 'result')['payload']['register-names'] if
                        elem in self._registers])
-        index_of_eflags = 0
+        index_of_flags = 0
         if self._flags_name in self._registers:
-            index_of_eflags = result[0].index(self._flags_name)
+            index_of_flags = result[0].index(self._flags_name)
 
         log = self.gdb_ctrl.write("-data-list-register-values r {}".format(indexes_of_registers), timeout_sec)
         if self._parse_log(log, 'result')['message'] == 'error':
@@ -76,7 +92,7 @@ class gdb_wrapper(object):
         result.append(
             [reg_value['value'] for reg_value in gdb_wrapper._parse_log(log, 'result')['payload']['register-values']])
         if self._flags_name in self._registers:
-            result[1][index_of_eflags] = self.get_flags()
+            result[1][index_of_flags] = self.get_flags()
         return result
 
     @no_response()
@@ -95,7 +111,7 @@ class gdb_wrapper(object):
 class gdb_wrapper_x86_64(gdb_wrapper):
     def __init__(self, port=None, file=None):
         self.gdb_ctrl = GdbController(["gdb-multiarch", "-q", "--interpreter=mi"])
-        self.gdb_ctrl.write("set architecture auto")
+        self.gdb_ctrl.write("set architecture i386:x86_64")
         self._registers = {'r{}'.format(i) for i in range(8, 16)}
         self._registers.update({'rax', 'rdi', 'rsi', 'rdx', 'rcx', 'rbx', 'rsp', 'rbp', 'rip', 'eflags'})
         # self._registers.update({'eax', 'edi', 'esi', 'edx', 'ecx', 'ebx', 'esp', 'ebp', 'eip'})
@@ -106,13 +122,20 @@ class gdb_wrapper_x86_64(gdb_wrapper):
     def get_flags(self, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
         log = self.gdb_ctrl.write("print ${}".format(self._flags_name), timeout_sec)
         _, _, values = self._parse_log(log, 'console')['payload'].partition(' = ')
-        return values.rstrip('\\n').strip('][').split()
+        result = {}
+        all_flags = values.rstrip('\\n').strip('][').split()
+        for flag_value in all_flags:
+            flag_name, _, value = flag_value.partition('=')
+            if value == '':
+                value = 1
+            result[flag_name] = value
+        return result
 
 
 class gdb_wrapper_arm(gdb_wrapper):
     def __init__(self, port=None, file=None):
         self.gdb_ctrl = GdbController(["gdb-multiarch", "-q", "--interpreter=mi"])
-
+        self.gdb_ctrl.write("set architecture arm")
         self._registers = {'r{}'.format(i) for i in range(13)}
         self._registers.update({'sp', 'lr', 'pc', 'cpsr'})
         self._flags_name = 'cpsr'
@@ -122,7 +145,12 @@ class gdb_wrapper_arm(gdb_wrapper):
     def get_flags(self, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
         log = self.gdb_ctrl.write("print ${}".format(self._flags_name), timeout_sec)
         _, _, values = gdb_wrapper._parse_log(log, 'console')['payload'].partition(' = ')
-        return int(values.rstrip())
+
+        all_flags = [['M', 0], ['M', 1], ['M', 2], ['M', 3], ['M', 4], 'T', 'F', 'I', 'A', 'E', ['IT', 0], ['IT', 2],
+                     ['IT', 3], ['IT', 4], ['IT', 5], ['IT', 6], ['GE', 0], ['GE', 1], ['GE', 2], ['GE', 3], ['DNM', 0],
+                     ['DNM', 1], ['DNM', 2], ['DNM', 3], 'J', ['IT', 0], ['IT', 1], 'Q', 'V', 'C', 'Z', 'N']
+
+        return gdb_wrapper._parse_flags(int(values.rstrip('\\n')), all_flags)
 
 
 class gdb_wrapper_avr(gdb_wrapper):
@@ -138,7 +166,8 @@ class gdb_wrapper_avr(gdb_wrapper):
         all_flags = ['C', 'Z', 'N', 'V', 'S', 'H', 'T', 'I']
         log = self.gdb_ctrl.write("print ${}".format(self._flags_name), timeout_sec)
         _, _, values = gdb_wrapper._parse_log(log, 'console')['payload'].partition(' = ')
-        return [all_flags[i] for i in range(8) if int(values.rstrip()) & 1 << i]
+
+        return gdb_wrapper._parse_flags(int(values.rstrip('\\n')), all_flags)
 
 
 # basic test to be improved and should be output in a separate file
