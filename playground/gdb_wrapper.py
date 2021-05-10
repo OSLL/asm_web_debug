@@ -7,8 +7,12 @@ class gdb_wrapper(object):
         def __call__(self, function):
             def wrapper(*args, **kwargs):
                 try:
+                    if args[0].need_dump:
+                        args[0].gdb_ctrl.get_gdb_response()
+                        args[0].need_dump = False
                     return function(*args, **kwargs)
                 except GdbTimeoutError:
+                    args[0].need_dump = True
                     return "Did not get response from gdb after {} seconds".format(
                         kwargs['timeout_sec'] if 'timeout_sec' in kwargs else DEFAULT_GDB_TIMEOUT_SEC)
 
@@ -17,6 +21,7 @@ class gdb_wrapper(object):
     def __init__(self, port=None, file=None):
         self.breakpoints = {}
         self.pid = self.gdb_ctrl.gdb_process.pid
+        self.need_dump = False
         if port is not None:
             self.connect_to_port(port)
         if file is not None:
@@ -100,7 +105,7 @@ class gdb_wrapper(object):
         if command.strip() == "q":
             self.gdb_ctrl.exit()
             return ""
-        log = self.gdb_ctrl.write(command, timeout_sec)
+        log = self.gdb_ctrl.write(mi_cmd_to_write=command, timeout_sec=timeout_sec)
         return log
 
     @no_response()
@@ -146,8 +151,8 @@ class gdb_wrapper_arm(gdb_wrapper):
         log = self.gdb_ctrl.write("print ${}".format(self._flags_name), timeout_sec)
         _, _, values = gdb_wrapper._parse_log(log, 'console')['payload'].partition(' = ')
 
-        all_flags = [['M', 0], ['M', 1], ['M', 2], ['M', 3], ['M', 4], 'T', 'F', 'I', 'A', 'E', ['IT', 0], ['IT', 2],
-                     ['IT', 3], ['IT', 4], ['IT', 5], ['IT', 6], ['GE', 0], ['GE', 1], ['GE', 2], ['GE', 3], ['DNM', 0],
+        all_flags = [['M', 0], ['M', 1], ['M', 2], ['M', 3], ['M', 4], 'T', 'F', 'I', 'A', 'E', ['IT', 2], ['IT', 3],
+                     ['IT', 4], ['IT', 5], ['IT', 6], ['IT', 7], ['GE', 0], ['GE', 1], ['GE', 2], ['GE', 3], ['DNM', 0],
                      ['DNM', 1], ['DNM', 2], ['DNM', 3], 'J', ['IT', 0], ['IT', 1], 'Q', 'V', 'C', 'Z', 'N']
 
         return gdb_wrapper._parse_flags(int(values.rstrip('\\n')), all_flags)
