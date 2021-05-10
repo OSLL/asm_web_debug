@@ -1,4 +1,7 @@
 """
+	qemu-system-x86_64 -kernel a.out -m 10M  -no-reboot 
+	ld -melf_i386 -T linker.ld  main.S.o
+
 
 
 	ld -Ttext=0x101000 -Tdata=0x100000 -melf_i386 mboot.o -o kernel.elf

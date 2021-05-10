@@ -2,9 +2,22 @@ import os
 import subprocess
 from flask import current_app
 
+class ProcessManagerError(Exception):
+    pass
+
+
+
 class QemuUserProcess:
-    def __init__(self, uid, path, arch):
-        self.uid = uid
+    process_list = { }
+
+    def __init__(self, path, arch):
+
+        if not os.path.isfile(path):
+            raise ProcessManagerError('File not found')
+
+        if not arch in current_app.config["ARCHS"]:
+	        raise ProcessManagerError('unknown arch')
+
         self.path = path
         self.arch = arch
 
@@ -13,14 +26,6 @@ class QemuUserProcess:
         self.dbg_port = 0
         self.status = 0
 
-class ProcessManagerError(Exception):
-    pass
-
-class ProcessManager:
-    process_list = { }
-
-    def __init__(self):
-        pass
 
     def add_process(self, uid, path, arch):
         if not os.path.isfile(path):
