@@ -25,15 +25,9 @@ def index():
 
 @bp.route('/<code_id>')
 def index_id(code_id):
-
-    scc = SourceManager(current_app.config['CODES_FOLDER'])
-    code = None
-
-    if scc.is_code_exists(code_id):
-        code = scc.get_code(code_id) #DBManager.get_code(code_id=code_id)
-
+    code = DBManager.get_code(code_id=code_id)
     if code:
-        return render_template('index.html', txt_code=code)
+        return render_template('index.html', txt_code=code.code)
     else:
         return render_template('index.html', txt_code='; Put your code here.')
 
@@ -44,20 +38,7 @@ def save_code(code_id):
     breakpoints = request.form.get('breakpoints', '[]')
     arch =  request.form.get('arch', 'x86_64')
 
-
-    scc = SourceManager(current_app.config['CODES_FOLDER'])
-
-    source_code = request.form.get('code', '')
-    breakpoints = request.form.get('breakpoints', '[]')
-    arch =  request.form.get('arch', 'x86_64')
-
-
-    try:
-        scc.save_code(code_id, source_code)
-    except OSError as e:
-        print(e)
-
-    #DBManager.create_code(code_id=code_id, source_code=source_code, breakpoints=breakpoints, arch=arch)
+    DBManager.create_code(code_id=code_id, source_code=source_code, breakpoints=breakpoints, arch=arch)
     
     return { "success_save" : True }
 
@@ -70,7 +51,7 @@ def compile(code_id):
     breakpoints = request.form.get('breakpoints', '[]')
     arch =  request.form.get('arch', 'x86_64')
 
-    #DBManager.create_code(code_id=code_id, source_code=source_code, breakpoints=breakpoints, arch=arch)
+    DBManager.create_code(code_id=code_id, source_code=source_code, breakpoints=breakpoints, arch=arch)
 
     try:
         scc.save_code(code_id, source_code)
@@ -103,7 +84,7 @@ def run(code_id):
     if arch != "x86_64":
         return { "success_run": False, "run_logs": f"Arch {arch} not supported!" }
 
-    run_result = subprocess.run(["./environment/qemu-x86_64", bin_file], capture_output = True)
+    run_result = subprocess.run(["/code/environment/qemu-x86_64", bin_file], capture_output = True)
 
     if run_result.returncode == 0:
         status = 'success'

@@ -5,7 +5,7 @@ class Config(object):
     PORT = '5000'
     TEMPLATE_FOLDER ='app/templates'
     STATIC_FOLDER = 'app/static'
-    CODES_FOLDER = './codes/'
+    CODES_FOLDER = '../codes/'
     DEBUG_COMMANDS = DebugCommands
     ARCHS = ['x86_64', 'ARM','AVR']
     MONGODB_SETTINGS = {
