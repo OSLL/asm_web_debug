@@ -38,11 +38,11 @@ class ASManager:
 	@classmethod
 	def compile(cls, filename, arch):
 		# Remembering information about compiled file
-		cls.arch = arch
-		cls.filename = filename
-		cls.binary_filename = filename + ".bin"
-		cls.build_flags = []
-		cls.exec_path = None
+		arch = arch
+		filename = filename
+		binary_filename = filename + ".bin"
+		build_flags = []
+		exec_path = None
 
 
 		if not arch in current_app.config["ARCHS"] or not arch in cls.arch_exec_path:
@@ -54,19 +54,19 @@ class ASManager:
 
 		# Setting up run flags
 		if arch in cls.arch_build_flags:
-			cls.build_flags.extend(cls.arch_build_flags[arch])
+			build_flags.extend(cls.arch_build_flags[arch])
 
 		# Setting up executable path
 		if arch in cls.arch_exec_path:
-			cls.exec_path = cls.arch_exec_path[arch]
+			exec_path = cls.arch_exec_path[arch]
 		else:
 			raise CompileError('unknown arch')
 
 
 		# Forming arguments to as process
-		args = [cls.exec_path]
-		args.extend(cls.build_flags)
-		args.extend([cls.filename, "-o", cls.binary_filename])
+		args = [exec_path]
+		args.extend(build_flags)
+		args.extend([filename, "-o", binary_filename])
 
 		# Returning response from as
 		as_resp = subprocess.run(args, capture_output = True)
