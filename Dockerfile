@@ -2,6 +2,9 @@ FROM ubuntu:18.04
 ENV LANG en_US.UTF-8
 RUN apt update
 
+ARG RUNMODE='deploy'
+ENV RUNMODE=$RUNMODE
+
 # install python3.8
 RUN apt install -y software-properties-common
 RUN add-apt-repository -y ppa:deadsnakes/ppa
@@ -38,5 +41,4 @@ RUN cp /usr/bin/qemu-arm    ./environment/
 RUN cp /usr/bin/qemu-i386   ./environment/
 RUN python3.8 ./environment/security/qemu-x86_64-patch.py ./environment/qemu-x86_64
 
-CMD ./scripts/local_start.sh deploy
-
+CMD ./scripts/local_start.sh $RUNMODE

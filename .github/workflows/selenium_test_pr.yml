@@ -15,15 +15,15 @@ jobs:
       - name: Install requirements
         run: python3.8 -m pip install -r src/requirements.txt
       - name: Build docker
-        run: docker-compose build
+        run: docker-compose build --build-arg RUNMODE=test
       - name: Run docker
         run: docker-compose up -d
       - name: Check service port 
-        run: nc -vz localhost 5000
+        run: nc -vz localhost 5100
       - name: Run tests
         run: |
           cd src/tests/selenium
-          PATH=/$PATH xvfb-run python3.8 main.py http://127.0.0.1:5000
+          PATH=/$PATH xvfb-run python3.8 main.py http://127.0.0.1:5100
       - name: Check logs 
         run: docker-compose logs
         if: always()
