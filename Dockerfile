@@ -38,7 +38,6 @@ RUN python3.8 -m pip install -r src/requirements.txt
 RUN cp /usr/bin/qemu-x86_64 ./environment/
 RUN cp /usr/bin/qemu-i386   ./environment/
 RUN cp /usr/bin/qemu-arm    ./environment/
-RUN cp /usr/bin/qemu-i386   ./environment/
 RUN python3.8 ./environment/security/qemu-x86_64-patch.py ./environment/qemu-x86_64
 
 CMD ./scripts/local_start.sh $RUNMODE
