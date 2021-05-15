@@ -9,20 +9,17 @@ class CompileError(Exception):
 class ASManager:
 
         # Constants:
-	arch_exec_path = {"x86_64" : "gcc"}
-	
-						  #,
-                          #"arm"    : "arm-none-eabi-as",
-                          #"avr"    : "avr-as"}
-
+	arch_exec_path = {"x86_64" : "gcc",
+                      "ARM"    : "arm-none-eabi-as",
+                      "AVR"    : "avr-as"}
 
 	arch_build_flags = {"x86_64" : ["-no-pie", "-nodefaultlibs", "-nostartfiles", "-g"],\
-					  "avr" : ["-g", "-mmcu=avr6"],\
-					  "arm" : ["-march=armv7-a", "-mcpu=cortex-a5"]}
+					  "AVR" : ["-g", "-mmcu=avr6"],\
+					  "ARM" : ["-march=armv7-a", "-mcpu=cortex-a5"]}
 
-	arch_link_flags = {"avr" : ["avr-ld", "-m avr1"],\
+	arch_link_flags = {"AVR" : ["avr-ld", "-m avr1"],\
 					  "x86_64" : ["x86_64-linux-gnu-ld", "-melf_i386"],\
-					  "arm" : ["arm-none-eabi-ld"]}
+					  "ARM" : ["arm-none-eabi-ld"]}
 
         # Static methods:
 
@@ -46,7 +43,7 @@ class ASManager:
 
 
 		if not arch in current_app.config["ARCHS"] or not arch in cls.arch_exec_path:
-			raise CompileError('Compile error: unknown arch')
+			raise CompileError(f'Compile error: unknown arch: {arch}')
 
 		if not os.path.isfile(filename):
 			raise FileNotFoundError('Compile error: file \'{0}\' not found'.format(filename))
