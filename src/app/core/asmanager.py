@@ -10,7 +10,7 @@ class ASManager:
 
         # Constants:
 	arch_exec_path = {"x86_64" : "gcc",
-                      "ARM"    : "arm-none-eabi-as",
+                      "ARM"    : "arm-linux-gnueabi-as",
                       "AVR"    : "avr-as"}
 
 	arch_build_flags = {"x86_64" : ["-no-pie", "-nodefaultlibs", "-nostartfiles", "-g"],\
