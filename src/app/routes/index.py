@@ -105,7 +105,7 @@ def run(code_id):
     if arch != "x86_64":
         return { "success_run": False, "run_logs": f"Arch {arch} not supported!" }
 
-    run_result = subprocess.run(["/code/environment/qemu-x86_64", bin_file], capture_output = True)
+    run_result = subprocess.run(["../environment/qemu-x86_64", bin_file], capture_output = True)
 
     if run_result.returncode == 0:
         status = 'success'
