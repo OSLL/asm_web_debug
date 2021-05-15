@@ -8,7 +8,7 @@ class Config(object):
     CODES_FOLDER = '../codes/'
     BUILD_FILE = '../DEBUG'
     DEBUG_COMMANDS = DebugCommands
-    ARCHS = ['x86', 'arm','avr']
+    ARCHS = ['x86_64', 'ARM','AVR']
     MONGODB_SETTINGS = {
         'db': 'database',
         'host': '127.0.0.1',

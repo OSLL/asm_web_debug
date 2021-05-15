@@ -10,7 +10,7 @@ class BasicTest(unittest.TestCase):
         inherit from this class.
     """
     CODE_ID = 'test-compile-code'
-    ARCHS = ['x86', 'arm', 'avr']
+    ARCHS = ['x86_64', 'ARM','AVR']
 
     def __init__(self, methodName='runTest', param=None):
         super(BasicTest, self).__init__(methodName)

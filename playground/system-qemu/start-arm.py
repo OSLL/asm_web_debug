@@ -13,6 +13,16 @@ INSTALL:
 arm-none-eabi-***
 	sudo apt install gcc-arm-none-eabi
 
+qemu-system-arm -cpu help
+qemu-system-arm -machine help
+
+
+qemu-system-arm -m 1024M -M versatilepb \
+                -kernel vmlinuz-3.2.0-4-versatile -initrd initrd.gz \
+                -append "root=/dev/ram" -hda armdisk.img -no-reboot
+
+qemu-system-arm -M verdex -pflash flash -monitor null -nographic -m 289
+
 """
 
 

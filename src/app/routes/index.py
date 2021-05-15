@@ -2,12 +2,20 @@ from flask import Blueprint, make_response, render_template, request, current_ap
 from flask_login import current_user, login_user
 from flask_security import MongoEngineUserDatastore
 from uuid import uuid4
+import os
+import subprocess
 
 from app.core.asmanager import ASManager
 from app.core.db.manager import DBManager
 from app.core.source_manager import SourceManager as sm
 from app.core.utils.debug_commands import DebugCommands
 from app.core.utils.hex import hexdump
+
+from app.core.db.manager import DBManager
+
+from app.core.process_manager import QemuUserProcess
+from app.core.source_manager import SourceManager
+from app.core.asmanager import ASManager
 
 
 index_bp = Blueprint('index', __name__)
@@ -85,7 +93,26 @@ def run(code_id):
     source_code = request.form.get('code', '')
     arch =  request.form.get('arch', 'x86_64')
 
-    return { "success_run": True, "run_logs": f"Hello world, {arch}!\n\n {code}" }
+    if not sm.is_code_exists(code_id):
+        return { "success_run": False, "run_logs": f"Code not exists" }
+
+
+    bin_file = sm.get_code_file_path(code_id) + ".bin"
+
+    if not os.path.isfile(bin_file):
+        return { "success_run": False, "run_logs": f"Code not compiled" }
+
+    if arch != "x86_64":
+        return { "success_run": False, "run_logs": f"Arch {arch} not supported!" }
+
+    run_result = subprocess.run(["../environment/qemu-x86_64", bin_file], capture_output = True)
+
+    if run_result.returncode == 0:
+        status = 'success'
+    else:
+        status = run_result.returncode
+
+    return { "success_run": True, "run_logs": f"STATUS: {status};\nstdout: {run_result.stdout};\nstderr: {run_result.stderr};\n" }
 
 
 @bp.route('/hexview/<code_id>', methods = ["GET", "POST"])
