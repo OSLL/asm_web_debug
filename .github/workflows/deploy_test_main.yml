@@ -9,7 +9,7 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v2
-      - Create .env
+      - name: Create .env
         run: echo "AWI_SECRET_KEY=secret_key" > .env
       - name: Deploy
         run: |
