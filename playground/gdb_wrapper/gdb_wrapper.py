@@ -1,4 +1,5 @@
 from pygdbmi.constants import GdbTimeoutError, DEFAULT_GDB_TIMEOUT_SEC
+from playground.gdb_wrapper.gdb_error import gdb_error
 
 
 class gdb_wrapper(object):
@@ -19,6 +20,8 @@ class gdb_wrapper(object):
 
     def __init__(self, port=None, file=None):
         self.breakpoints = {}
+        self.__all_regs = set()
+        self.__changed_regs = set()
         self.pid = self.gdb_ctrl.gdb_process.pid
         self.need_dump = False
         if port is not None:
@@ -80,7 +83,8 @@ class gdb_wrapper(object):
         # надо проверить что процесс запущен
         result = []
         log = self.gdb_ctrl.write("-data-list-register-names", timeout_sec)
-        indexes_of_registers = [index for index, elem in enumerate(log[0]['payload']['register-names']) if
+        indexes_of_registers = [index for index, elem in
+                                enumerate(gdb_wrapper._parse_log(log, 'result')['payload']['register-names']) if
                                 elem in self._registers]
         result.append([elem for elem in gdb_wrapper._parse_log(log, 'result')['payload']['register-names'] if
                        elem in self._registers])
@@ -122,9 +126,23 @@ class gdb_wrapper(object):
     def write(self, command, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
         if command.strip() == "q":
             self.gdb_ctrl.exit()
-            return ""
+            return []
         log = self.gdb_ctrl.write(mi_cmd_to_write=command, timeout_sec=timeout_sec)
         return log
+
+    @no_response()
+    def set_register(self, reg_name, value, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
+        if len(self.__all_regs) == 0:
+            log = self.gdb_ctrl.write("-data-list-register-names", timeout_sec)
+            self.__all_regs = gdb_wrapper._parse_log(log, 'result')['payload']['register-names']
+        if reg_name not in self.__all_regs:
+            raise KeyError('No such register')
+        if reg_name not in self.__changed_regs:
+            log = self.gdb_ctrl.write('-var-create {0} * ${0}'.format(reg_name))
+            if self._parse_log(log, 'result')['message'] == 'error':
+                raise gdb_error(log, 'Error in creating a variable for a register')
+            self.__changed_regs.add(reg_name)
+        return self.gdb_ctrl.write('-var-assign {} {}'.format(reg_name, value))
 
     @no_response()
     def quit(self):

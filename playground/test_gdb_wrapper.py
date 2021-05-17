@@ -1,3 +1,6 @@
+import re
+
+
 def compile_and_start(dir_path, file_name, arch):
     from demo_debug.py_demo.as_run import as_runner
     from demo_debug.py_demo.ld_run import ld_runner
@@ -30,6 +33,7 @@ def run(gdb_run):
     print('go')
     while True:
         gcmd = input()
+        gcmd = gcmd.strip()
         if gcmd == 'info reg':
             print(gdb_run.get_registers())
         elif gcmd == 'info stack':
@@ -40,6 +44,8 @@ def run(gdb_run):
             print(gdb_run.remove_breakpoint(int(gcmd.split()[2])))
         elif gcmd == 'n':
             print(gdb_run.step_over())
+        elif gcmd.startswith('set'):
+            print(gdb_run.set_register(*re.split(r'\s+', gcmd)[1:]))
         else:
             resp = gdb_run.write(gcmd, timeout_sec=1)
             print(resp, end='')
@@ -61,5 +67,5 @@ def get_gdb_wrapper(dir_path, file_name, arch):
 
 
 if __name__ == '__main__':
-    gdb_wrapper = get_gdb_wrapper('demo_debug/demos', 'demo_helloworld.arm', 'arm')
+    gdb_wrapper = get_gdb_wrapper('demo_debug/demos', 'demo_helloworld.x86_64', 'x86_64')
     run(gdb_wrapper)
