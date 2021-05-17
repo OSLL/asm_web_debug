@@ -8,6 +8,8 @@ services:
       - "5100:5000"
     depends_on:
       - mongo
+    env_file:
+      - .env
 
   mongo:
     image: "mongo:4.4.4-bionic"
