@@ -9,6 +9,8 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v2
+      - name: Create .env
+        run: echo "AWI_SECRET_KEY=secret_key" > .env
       - name: Deploy
         run: |
           sudo sh ./scripts/build_info.sh

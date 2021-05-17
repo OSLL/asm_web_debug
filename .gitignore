@@ -3,3 +3,4 @@
 geckodriver*
 codes/*
 DEBUG
+.env
