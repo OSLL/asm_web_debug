@@ -3,7 +3,7 @@ from os import environ as os_environ
 from app.core.lti_core.lti_utils import parse_consumer_info
 from app.core.utils.debug_commands import DebugCommands
 
-os_environ
+
 class Config(object):
     HOST = '0.0.0.0'
     PORT = '5000'
@@ -43,7 +43,7 @@ class DeployConfig(Config):
         'host': 'mongo',
         'port': 27017
     }
-    DEBUG = True
+    DEBUG = False
 
 
 class TestConfig(DeployConfig):
