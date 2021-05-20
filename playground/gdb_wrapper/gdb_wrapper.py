@@ -40,7 +40,7 @@ class gdb_wrapper(object):
             if isinstance(flag_name, list):
                 if flag_name[0] in result:
                     result[flag_name[0]] += (flags_value >> i & 1) << flag_name[1]
-                elif flags_value >> i & 1:
+                else:
                     result[flag_name[0]] = (flags_value >> i & 1) << flag_name[1]
             else:
                 if flags_value >> i & 1:
