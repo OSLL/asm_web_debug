@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}Logs Table{% endblock %}
+{% block head %}
+
+<link href="static/css/libs/bootstrap-table.min.css" rel="stylesheet">
+<link href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" rel="stylesheet">
+<link href="static/css/libs/bootstrap-datepicker.min.css" rel="stylesheet">
+<link href="static/css/libs/prism.css" rel="stylesheet">
+
+<style>
+    .msg {
+        white-space: nowrap; 
+        overflow: hidden; 
+        text-overflow: ellipsis; 
+        max-width: 350px;
+    }
+    .log_id {
+        white-space: nowrap; 
+        overflow: hidden; 
+        text-overflow: ellipsis; 
+        max-width: 50px;
+    }
+    .msg_pre, code {
+        max-width:70vw !important;
+        white-space: pre-wrap !important;
+    }
+    .container {
+        max-width: 1200px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <h3>Logs Table</h3>
+
+    <div>
+        <table id="logs_table" class="table table-sm" style="width: 100%" 
+        data-toggle="table" 
+        data-show-fullscreen="true"
+        data-filter-control="true" 
+        data-pagination="true" 
+        data-show-search-clear-button="true"
+        data-page-list="[5, 10, 25, 50, All]" 
+        data-detail-view="true" 
+        data-detail-formatter="detailFormatter"
+        data-ajax="ajaxRequest"
+        data-query-params="queryParams"
+        data-show-refresh="true"
+        data-auto-refresh="true"
+        data-auto-refresh-interval="10"
+        data-side-pagination="server">
+            <thead>
+                <tr>
+                    <th scope="col" class="log_id" data-field="_id" data-formatter="LogLink">id</th>
+                    <th scope="col" data-field="time" data-filter-control="datepicker" data-filter-datepicker-options='{"autoclose":true, "clearBtn": true, "todayHighlight": true, "format": "yyyy-mm-dd"}' data-sortable="true">time</th>
+                    <th scope="col" data-field="pathname" data-filter-control="select" data-sortable="true">pathname</th>
+                    <th scope="col" data-field="lineno" data-sortable="true">lineno</th>
+                    <th scope="col" data-field="levelname" data-filter-control="select" data-sortable="true">levelname</th>
+                    <th scope="col" data-field="message" data-formatter="MsgFormatter" class="msg" data-filter-control="input" data-sortable="true">message</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+
+{% endblock %}
+
+{% block script %}
+    <script src="static/js/libs/bootstrap-table.min.js"></script>
+    <script src="static/js/libs/bootstrap-table-filter-control.min.js"></script>
+    <script src="static/js/libs/bootstrap-datepicker.min.js"></script>
+    <script src="static/js/libs/bootstrap-table-auto-refresh.min.js"></script>
+    <script src="static/js/libs/json5.min.js"></script>
+    <script src="static/js/libs/prism.js"></script>
+    <script src="static/js/libs/popper.min.js"></script>
+    <script src="static/js/logs_page.js"></script>
+    <script src="static/js/url_by_filter.js"></script>
+{% endblock %}

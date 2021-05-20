@@ -1,0 +1,47 @@
+name: Deploy Test on PR
+
+on: pull_request
+
+    
+jobs:
+  deploy:
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Create .env
+        run: echo "AWI_SECRET_KEY=secret_key" > .env
+      - name: Deploy
+        run: |
+          sudo sh ./scripts/build_info.sh
+          sudo sh ./scripts/setup_apache_config.sh asm.moevm.info.conf
+
+          # build test images
+          docker-compose --project-name asmtestbuild build
+          # stop and remove current containers/images
+          docker-compose down --rmi local
+          # rename images if ok
+          docker image tag asmtestbuild_web:latest asm_web_debug_web:latest
+
+          docker-compose up -d
+      - name: Change hosts
+        run: sudo echo "127.0.0.1 asm.moevm.info" | sudo tee -a /etc/hosts
+      - name: Sleep for 10s
+        uses: juliangruber/sleep-action@v1
+        with:
+          time: 10s
+      - name: Get index
+        run: |
+          curl -s "asm.moevm.info"
+          curl -s "asm.moevm.info" | grep "401 Unauthorized"
+      - name: Run check index
+        run: |
+          if [ $(curl -s "asm.moevm.info" | grep "401 Unauthorized" | wc -l) == 1 ];
+          then
+              exit 0
+          else
+              exit 1
+          fi
+      - name: Check logs 
+        run: docker-compose logs
+        if: always()

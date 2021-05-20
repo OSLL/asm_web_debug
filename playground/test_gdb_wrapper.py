@@ -34,6 +34,10 @@ def run(gdb_run):
             print(gdb_run.get_registers())
         elif gcmd == 'info stack':
             print(gdb_run.get_stack())
+        elif gcmd.startswith('breakpoint'):
+            print(gdb_run.set_breakpoint(int(gcmd.split()[1])))
+        elif gcmd.startswith('remove breakpoint'):
+            print(gdb_run.remove_breakpoint(int(gcmd.split()[2])))
         elif gcmd == 'n':
             print(gdb_run.step_over())
         else:
@@ -46,13 +50,13 @@ def run(gdb_run):
 def get_gdb_wrapper(dir_path, file_name, arch):
     qm_run = compile_and_start(dir_path, file_name, arch)
     if arch == 'x86_64':
-        from playground.gdb_wrapper.gdb_wrapper_x86 import gdb_wrapper_x86_64
+        from gdb_wrapper.gdb_wrapper_x86 import gdb_wrapper_x86_64
         return gdb_wrapper_x86_64(qm_run.dbg_port, qm_run.cur_exec)
     elif arch == 'arm':
-        from playground.gdb_wrapper.gdb_wrapper_arm import gdb_wrapper_arm
+        from gdb_wrapper.gdb_wrapper_arm import gdb_wrapper_arm
         return gdb_wrapper_arm(qm_run.dbg_port, qm_run.cur_exec)
     elif arch == 'avr':
-        from playground.gdb_wrapper.gdb_wrapper_avr import gdb_wrapper_avr
+        from gdb_wrapper.gdb_wrapper_avr import gdb_wrapper_avr
         return gdb_wrapper_avr(qm_run.dbg_port, qm_run.cur_exec)
 
 

@@ -100,6 +100,25 @@ class gdb_wrapper(object):
         return result
 
     @no_response()
+    def set_breakpoint(self, line_number, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
+        log = self.gdb_ctrl.write('-break-insert --line {}'.format(line_number), timeout_sec)
+        if gdb_wrapper._parse_log(log, 'result')['message'] != 'done':
+            return log
+        self.breakpoints[line_number] = gdb_wrapper._parse_log(log, 'result')['payload']['bkpt']['number']
+        return log
+
+    @no_response()
+    def remove_breakpoint(self, line_number, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
+        if line_number in self.breakpoints:
+            log = self.gdb_ctrl.write('-break-delete {}'.format(self.breakpoints[line_number]), timeout_sec)
+            if gdb_wrapper._parse_log(log, 'result')['message'] == 'done':
+                del self.breakpoints[line_number]
+            return log
+        return [{'type': 'result', 'message': 'error',
+                 'payload': {'msg': 'No breakpoint at line number {}'.format(line_number)}, 'token': None,
+                 'stream': 'stdout'}]
+
+    @no_response()
     def write(self, command, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
         if command.strip() == "q":
             self.gdb_ctrl.exit()

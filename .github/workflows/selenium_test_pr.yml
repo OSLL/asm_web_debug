@@ -1,0 +1,31 @@
+name: Selenium Test on PR
+
+on: pull_request
+
+    
+jobs:
+  test:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v1
+        with:
+          python-version: '3.8'
+      - name: Install requirements
+        run: python3.8 -m pip install -r src/requirements.txt
+      - name: Create .env
+        run: echo "AWI_SECRET_KEY=secret_key" > .env
+      - name: Build docker
+        run: docker-compose build --build-arg RUNMODE=test
+      - name: Run docker
+        run: docker-compose up -d
+      - name: Check service port 
+        run: nc -vz localhost 5100
+      - name: Run tests
+        run: |
+          cd src/tests/selenium
+          PATH=/$PATH xvfb-run python3.8 main.py http://127.0.0.1:5100
+      - name: Check logs 
+        run: docker-compose logs
+        if: always()

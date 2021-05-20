@@ -1,20 +1,15 @@
 .global EntryPoint
 
 
-
 EntryPoint:
 	pushl %ebp
 	movl %esp, %ebp
 
-	iLp:
-
-		pushl $1000
-			call Fib
-		subl $4, %esp
+	pushl $7
+	call Fib
+	addl $4, %esp
 
 	# ans in eax
-
-	jmp iLp
 
 	popl %ebp
 ret
