@@ -13,7 +13,7 @@ class QemuUserProcess:
     def __init__(self, path, arch):
 
         if not os.path.isfile(path):
-            raise ProcessManagerError('File not found')
+                raise ProcessManagerError('File not found')
 
         if not arch in current_app.config["ARCHS"]:
 	        raise ProcessManagerError('unknown arch')
@@ -49,11 +49,16 @@ class QemuUserProcess:
         process = self.process_list.get(uid, None)
         if process == None:
             raise ProcessManagerError('process with {0} uid not found'.format(uid))
-        
         #only x86
-        if process.arch != "x86":
-            raise ProcessManagerError('arch TODO')
-        subprocess.run(["qemu-system-x86_64", "-kernel", process.path, "-m", "10M", "-no-reboot"])
+        if process.arch == "x86":
+	        subprocess.run(["qemu-system-x86_64", "-kernel", process.path, "-m", "10M", "-no-reboot"])
+        elif process.arch == "avr":
+                subprocess.run(["qemu-system-avr", "-machine", "mega",\
+                                                   "-display", "none",\
+                                                   "-S", "-gdb", "tcp::{0}".format(self.dbg_port),
+                                                   "-bios", process.path])
+        else:
+	        raise ProcessManagerError('arch TODO')
 
     def finish(self, uid):
         pass
