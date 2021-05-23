@@ -20,7 +20,7 @@ class Config(object):
     }
     SECRET_KEY = ''
     DEBUG = True
-    ANON_ACCESS = False
+    ANON_ACCESS = True
     ANON_USER_ID = 'a334-4276-8b34'
     LTI_CONSUMERS = {}
     USER_ROLES = ('user', 'teacher', 'admin')

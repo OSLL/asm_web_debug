@@ -13,7 +13,8 @@ from app.core.utils.hex import hexdump
 
 from app.core.db.manager import DBManager
 
-from app.core.process_manager import QemuUserProcess
+from app.core.QemuUserProcess import QemuUserProcess
+from app.core.QemuUserProcess import QemuUserProcessMode
 from app.core.source_manager import SourceManager
 from app.core.asmanager import ASManager
 
@@ -96,16 +97,24 @@ def run(code_id):
     if not sm.is_code_exists(code_id):
         return { "success_run": False, "run_logs": f"Code not exists" }
 
-
     bin_file = sm.get_code_file_path(code_id) + ".bin"
+
+    compile(code_id)
 
     if not os.path.isfile(bin_file):
         return { "success_run": False, "run_logs": f"Code not compiled" }
 
-    if arch != "x86_64":
+    if arch != "x86_64":                                                            # TODO Arm, avr
         return { "success_run": False, "run_logs": f"Arch {arch} not supported!" }
 
-    run_result = subprocess.run(["../environment/qemu-x86_64", bin_file], capture_output = True)
+
+    process = QemuUserProcess(bin_file, arch, QemuUserProcessMode.RUN)
+
+    qemu_emul = ["../environment/qemu-x86_64"]
+    qemu_emul.append('-g')
+    qemu_emul.append('1233')
+    qemu_emul.append(bin_file)
+    run_result = subprocess.run(qemu_emul, capture_output = True)
 
     if run_result.returncode == 0:
         status = 'success'
