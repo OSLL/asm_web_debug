@@ -22,6 +22,8 @@ from app.core.asmanager import ASManager
 index_bp = Blueprint('index', __name__)
 bp = index_bp
 
+process_manag_global = {}
+
 @bp.before_request
 def check_login():
     if current_user.is_authenticated:
@@ -107,21 +109,16 @@ def run(code_id):
     if arch != "x86_64":                                                            # TODO Arm, avr
         return { "success_run": False, "run_logs": f"Arch {arch} not supported!" }
 
-
-    process = QemuUserProcess(bin_file, arch, QemuUserProcessMode.RUN)
-
-    qemu_emul = ["../environment/qemu-x86_64"]
-    qemu_emul.append('-g')
-    qemu_emul.append('1233')
-    qemu_emul.append(bin_file)
-    run_result = subprocess.run(qemu_emul, capture_output = True)
-
-    if run_result.returncode == 0:
-        status = 'success'
+    process = None
+    if  code_id in process_manag_global:
+        process = QemuUserProcess(bin_file, arch)
     else:
-        status = run_result.returncode
+        process = QemuUserProcess(bin_file, arch)
+        process_manag_global[code_id] = process
 
-    return { "success_run": True, "run_logs": f"STATUS: {status};\nstdout: {run_result.stdout};\nstderr: {run_result.stderr};\n" }
+    return process.run()
+
+    
 
 
 @bp.route('/hexview/<code_id>', methods = ["GET", "POST"])
@@ -148,4 +145,10 @@ def debug(code_id):
     for e in DebugCommands:
         if command == e.value:
             return e.name + ' ' + str(code_id)
+
+    if command == DebugCommands.START_DEBUG:
+        return 'start'
     return f'No debug such debug command: {command}', 404
+
+
+

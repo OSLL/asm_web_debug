@@ -33,6 +33,7 @@ RUN apt install -y xvfb firefox wget
 ADD . /code
 WORKDIR /code
 RUN python3.8 -m pip install -r src/requirements.txt
+RUN python3.8 -m pip install pygdbmi
 
 #patching qemu (x86_64) TODO ARM...
 RUN cp /usr/bin/qemu-x86_64 ./environment/
