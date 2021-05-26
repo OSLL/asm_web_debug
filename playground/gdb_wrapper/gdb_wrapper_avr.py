@@ -10,6 +10,8 @@ class gdb_wrapper_avr(gdb_wrapper):
         self._registers = {'r{}'.format(i) for i in range(32)}
         self._registers.update({'SP', 'PC', 'SREG'})
         self._flags_name = 'SREG'
+        self._flag_to_pos = {'C': [0], 'Z': [1], 'N': [2], 'V': [3], 'S': [4], 'H': [5], 'T': [6], 'I': [7]}
+
         super().__init__(port, file)
 
     @gdb_wrapper.no_response()

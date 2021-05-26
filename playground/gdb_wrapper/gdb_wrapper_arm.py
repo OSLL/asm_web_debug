@@ -11,6 +11,10 @@ class gdb_wrapper_arm(gdb_wrapper):
         self._registers = {'r{}'.format(i) for i in range(13)}
         self._registers.update({'sp', 'lr', 'pc', 'cpsr'})
         self._flags_name = 'cpsr'
+        self._flag_to_pos = {'M': [0, 1, 2, 3, 4], 'T': [5], 'F': [6], 'I': [7], 'A': [8], 'E': [9],
+                             'IT': [25, 26, 10, 11, 12, 13, 14, 15], 'GE': [16, 17, 18, 19], 'DNM': [20, 21, 22, 23],
+                             'J': [24], 'Q': [27], 'V': [28], 'C': [29], 'Z': [30], 'N': [31]}
+
         super().__init__(port, file)
 
     @gdb_wrapper.no_response()

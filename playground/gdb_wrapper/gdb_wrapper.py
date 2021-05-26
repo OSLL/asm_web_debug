@@ -51,6 +51,25 @@ class gdb_wrapper(object):
         return result
 
     @no_response()
+    def _get_updated_flags_reg(self, flag_name, flag_value, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
+        log = self.gdb_ctrl.write("p/t ${}".format(self._flags_name), timeout_sec)
+        _, _, value_string = gdb_wrapper._parse_log(log, 'console')['payload'].partition(' = ')
+        value_string = value_string.rstrip('\\n')
+
+        value_string = '0' * (64 - len(value_string)) + value_string
+
+        if flag_name not in self._flag_to_pos:
+            raise KeyError('No such flag')
+
+        value_list = list(value_string)
+
+        for index, pos_in_reg in enumerate(self._flag_to_pos[flag_name]):
+            value_list[- pos_in_reg - 1] = chr(48 + ((flag_value >> index) & 1))
+
+        value_string = ''.join(value_list)
+        return int(value_string, 2)
+
+    @no_response()
     def connect_to_port(self, port, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
         log = self.gdb_ctrl.write("target extended-remote localhost:" + str(port), timeout_sec)
         return log
@@ -135,13 +154,21 @@ class gdb_wrapper(object):
         if len(self.__all_regs) == 0:
             log = self.gdb_ctrl.write("-data-list-register-names", timeout_sec)
             self.__all_regs = gdb_wrapper._parse_log(log, 'result')['payload']['register-names']
-        if reg_name not in self.__all_regs:
+        if reg_name not in self.__all_regs and reg_name not in self._flag_to_pos:
             raise KeyError('No such register')
+        is_flag = reg_name in self._flag_to_pos
+        if is_flag:
+            flag_name = reg_name
+            reg_name = self._flags_name
+
         if reg_name not in self.__changed_regs:
             log = self.gdb_ctrl.write('-var-create {0} * ${0}'.format(reg_name))
             if self._parse_log(log, 'result')['message'] == 'error':
                 raise gdb_error(log, 'Error in creating a variable for a register')
             self.__changed_regs.add(reg_name)
+
+        if is_flag:
+            value = self._get_updated_flags_reg(flag_name, int(value), timeout_sec)
         return self.gdb_ctrl.write('-var-assign {} {}'.format(reg_name, value))
 
     @no_response()

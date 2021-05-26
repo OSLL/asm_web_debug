@@ -12,6 +12,10 @@ class gdb_wrapper_x86_64(gdb_wrapper):
         self._registers.update({'rax', 'rdi', 'rsi', 'rdx', 'rcx', 'rbx', 'rsp', 'rbp', 'rip', 'eflags'})
         # self._registers.update({'eax', 'edi', 'esi', 'edx', 'ecx', 'ebx', 'esp', 'ebp', 'eip'})
         self._flags_name = 'eflags'
+        self._flag_to_pos = {'CF': [0], 'PF': [2], 'AF': [4], 'ZF': [6], 'SF': [7], 'TF': [8], 'IF': [9], 'DF': [10],
+                             'OF': [11], 'IOPL': [11, 12], 'NT': [14], 'RF': [16], 'VM': [17], 'AC': [18], 'VIF': [19],
+                             'VIP': [20], 'ID': [21]}
+
         super().__init__(port, file)
 
     @gdb_wrapper.no_response()
