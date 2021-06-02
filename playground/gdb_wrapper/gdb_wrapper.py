@@ -46,8 +46,7 @@ class gdb_wrapper(object):
                 else:
                     result[flag_name[0]] = (flags_value >> i & 1) << flag_name[1]
             else:
-                if flags_value >> i & 1:
-                    result[flag_name] = 1
+                result[flag_name] = flags_value >> i & 1
         return result
 
     @no_response()

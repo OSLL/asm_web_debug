@@ -29,4 +29,7 @@ class gdb_wrapper_x86_64(gdb_wrapper):
             if value == '':
                 value = 1
             result[flag_name] = value
+        for flag_name in self._flag_to_pos:
+            if flag_name not in result:
+                result[flag_name] = 0
         return result
