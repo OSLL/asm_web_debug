@@ -1,5 +1,6 @@
 from pygdbmi.constants import GdbTimeoutError, DEFAULT_GDB_TIMEOUT_SEC
 from playground.gdb_wrapper.gdb_error import gdb_error
+from typing import Union, List
 
 
 class gdb_wrapper(object):
@@ -18,7 +19,7 @@ class gdb_wrapper(object):
 
             return wrapper
 
-    def __init__(self, port=None, file=None):
+    def __init__(self, port: int = None, file: str = None):
         self.breakpoints = {}
         self.__all_regs = set()
         self.__changed_regs = set()
@@ -30,13 +31,13 @@ class gdb_wrapper(object):
             self.gdb_ctrl.write("file " + file)
 
     @staticmethod
-    def _parse_log(log, type):
+    def _parse_log(log, type: str):
         for el in log:
             if el['type'] == type:
                 return el
 
     @staticmethod
-    def _parse_flags(flags_value, all_flags):
+    def _parse_flags(flags_value: int, all_flags: List):
         result = {}
         for i in range(len(all_flags)):
             flag_name = all_flags[i]
@@ -50,7 +51,7 @@ class gdb_wrapper(object):
         return result
 
     @no_response()
-    def _get_updated_flags_reg(self, flag_name, flag_value, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
+    def _get_updated_flags_reg(self, flag_name: str, flag_value: int, timeout_sec: int = DEFAULT_GDB_TIMEOUT_SEC):
         log = self.gdb_ctrl.write("p/t ${}".format(self._flags_name), timeout_sec)
         _, _, value_string = gdb_wrapper._parse_log(log, 'console')['payload'].partition(' = ')
         value_string = value_string.rstrip('\\n')
@@ -69,35 +70,35 @@ class gdb_wrapper(object):
         return int(value_string, 2)
 
     @no_response()
-    def connect_to_port(self, port, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
+    def connect_to_port(self, port: int, timeout_sec: int = DEFAULT_GDB_TIMEOUT_SEC):
         log = self.gdb_ctrl.write("target extended-remote localhost:" + str(port), timeout_sec)
         return log
 
     @no_response()
-    def step_over(self, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
+    def step_over(self, timeout_sec: int = DEFAULT_GDB_TIMEOUT_SEC):
         log = self.gdb_ctrl.write("-exec-next", timeout_sec)
         return log
 
     @no_response()
-    def step_in(self, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
+    def step_in(self, timeout_sec: int = DEFAULT_GDB_TIMEOUT_SEC):
         log = self.gdb_ctrl.write("-exec-step", timeout_sec)
         return log
 
     # Если у нас только внешняя функция, то он ничего не сделает
     @no_response()
-    def step_out(self, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
+    def step_out(self, timeout_sec: int = DEFAULT_GDB_TIMEOUT_SEC):
         log = self.gdb_ctrl.write("-exec-finish", timeout_sec)
         return log
 
     @no_response()
-    def get_stack(self, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
+    def get_stack(self, timeout_sec: int = DEFAULT_GDB_TIMEOUT_SEC):
         log = self.gdb_ctrl.write("-stack-list-frames", timeout_sec)
         if gdb_wrapper._parse_log(log, 'result')['message'] == 'error':
             return {}
         return gdb_wrapper._parse_log(log, 'result')['payload']
 
     @no_response()
-    def get_registers(self, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
+    def get_registers(self, timeout_sec: int = DEFAULT_GDB_TIMEOUT_SEC):
         # надо проверить что процесс запущен
         result = []
         log = self.gdb_ctrl.write("-data-list-register-names", timeout_sec)
@@ -122,7 +123,7 @@ class gdb_wrapper(object):
         return result
 
     @no_response()
-    def set_breakpoint(self, line_number, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
+    def set_breakpoint(self, line_number: int, timeout_sec: int = DEFAULT_GDB_TIMEOUT_SEC):
         log = self.gdb_ctrl.write('-break-insert --line {}'.format(line_number), timeout_sec)
         if gdb_wrapper._parse_log(log, 'result')['message'] != 'done':
             return log
@@ -130,7 +131,7 @@ class gdb_wrapper(object):
         return log
 
     @no_response()
-    def remove_breakpoint(self, line_number, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
+    def remove_breakpoint(self, line_number: int, timeout_sec: int = DEFAULT_GDB_TIMEOUT_SEC):
         if line_number in self.breakpoints:
             log = self.gdb_ctrl.write('-break-delete {}'.format(self.breakpoints[line_number]), timeout_sec)
             if gdb_wrapper._parse_log(log, 'result')['message'] == 'done':
@@ -141,7 +142,7 @@ class gdb_wrapper(object):
                  'stream': 'stdout'}]
 
     @no_response()
-    def write(self, command, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
+    def write(self, command: Union[str, List[str]], timeout_sec: int = DEFAULT_GDB_TIMEOUT_SEC):
         if command.strip() == "q":
             self.gdb_ctrl.exit()
             return []
@@ -149,7 +150,7 @@ class gdb_wrapper(object):
         return log
 
     @no_response()
-    def set_register(self, reg_name, value, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
+    def set_register(self, reg_name: str, value: int, timeout_sec: int = DEFAULT_GDB_TIMEOUT_SEC):
         if len(self.__all_regs) == 0:
             log = self.gdb_ctrl.write("-data-list-register-names", timeout_sec)
             self.__all_regs = gdb_wrapper._parse_log(log, 'result')['payload']['register-names']

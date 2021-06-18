@@ -5,7 +5,7 @@ from playground.gdb_wrapper.gdb_wrapper import gdb_wrapper
 
 
 class gdb_wrapper_arm(gdb_wrapper):
-    def __init__(self, port=None, file=None):
+    def __init__(self, port: int = None, file: str = None):
         self.gdb_ctrl = GdbController(["gdb-multiarch", "-q", "--interpreter=mi"])
         self.gdb_ctrl.write("set architecture arm")
         self._registers = {'r{}'.format(i) for i in range(13)}
@@ -18,7 +18,7 @@ class gdb_wrapper_arm(gdb_wrapper):
         super().__init__(port, file)
 
     @gdb_wrapper.no_response()
-    def get_flags(self, timeout_sec=DEFAULT_GDB_TIMEOUT_SEC):
+    def get_flags(self, timeout_sec: int = DEFAULT_GDB_TIMEOUT_SEC):
         log = self.gdb_ctrl.write("print ${}".format(self._flags_name), timeout_sec)
         _, _, values = gdb_wrapper._parse_log(log, 'console')['payload'].partition(' = ')
 
