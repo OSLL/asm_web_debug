@@ -135,12 +135,12 @@ $(function() {
 					editor.getDoc().setValue(resp['build_logs']);
 					console.log(resp)
 					if (resp['success_build'])
-						success_alert(`Компиляция прошла успешно. ${resp['timestamp']}`)
+						success_alert(`Компиляция прошла успешно. ${Date(resp['timestamp'])}`)
 					else
-						failure_alert(`Компиляция провалилась. Проверьте логи компиляции. ${resp['timestamp']}`, 5000)
+						failure_alert(`Компиляция провалилась. Проверьте логи компиляции. ${Date(resp['timestamp'])}`, 5000)
 				},
 				error: function(resp){
-					failure_alert('Код не был отправлен. Попробуйте снова')
+					failure_alert(`Код не был отправлен. Попробуйте снова. ${Date()}`)
 				},
 			});
 			e.preventDefault();
@@ -149,7 +149,7 @@ $(function() {
 		// run-button
 		$('#Run').click(function (e){
 			var [code, breakpoints] = get_code_and_breakpoints()
-			success_alert("<span class='spinner-border spinner-border-sm'></span> Запуск...", delay=0)
+			success_alert(`<span class='spinner-border spinner-border-sm'></span> Запуск... ${Date()}`, delay=0)
 
 			$.ajax({
 				url: '/run/' + code_id,
@@ -167,15 +167,15 @@ $(function() {
 					console.log(resp)
 					var msg = ''
 					if (resp['success_run']){
-						success_alert(`Программа выполнена. ${resp['timestamp']}`)	
+						success_alert(`Программа выполнена. ${Date(resp['timestamp'])}`)	
 					}
 					else
 					{
-						failure_alert(`Запуск программы провалился. Проверьте логи. ${resp['timestamp']}`, 5000)
+						failure_alert(`Запуск программы провалился. Проверьте логи. ${Date(resp['timestamp'])}`, 5000)
 					}
 				},
 				error: function(resp){
-					failure_alert('Программа не была запущена. Попробуйте снова', 5000)
+					failure_alert(`Программа не была запущена. Попробуйте снова. ${Date()}`, 5000)
 				},
 			});
 			e.preventDefault();

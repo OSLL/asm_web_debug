@@ -8,6 +8,7 @@
 {% endblock %}
 
 {% block content %}
+    {% set code = code or dict(code='', arch='x86_64', breakpoints=[]) %}
     <div id='task_info_div' style="float: left; width: 60%;">
         <p>Some info about task. Probably, it can be condition.</p>
         <div style="display: block; float: right;">
@@ -21,6 +22,17 @@
         <div id='left_main_div' style="float: left; width: 78%;">
 
         	<hr></hr>
+            <div id="lastSave">
+                {% if 'last_update' in code %}
+                    {% set time = code['last_update'] %}
+                    Последнее сохранение:
+                    <span id='lastSavedTime'>
+                        <script language="javascript" type="text/javascript">
+                            document.write(new Date({{time}}*1000))
+                        </script>
+                    </span>
+                {% endif %}
+                </div><br>
             <div id='ajax-alert'></div>
             <select id='arch_select' name='arch'>
                 {% for arch in config['ARCHS'] %}
@@ -35,7 +47,7 @@
             <input type="button" id="Step_out" class="btn btn-outline-info" name="Step out" value="Step out" debug_code="{{config['DEBUG_COMMANDS'].STEP_OUT.value}}"/>
             <br><br>
                 
-            <form><textarea id='code' class='code' >{{ txt_code }}</textarea></form>
+            <form><textarea id='code' class='code' >{{ code['code'] }}</textarea></form>
 
             <input type="button" id="HexView" class="btn btn-outline-secondary" name="Open binary in HEX view" value="Open binary in HEX view"/>
             <input type="button" id="Compile" class="btn btn-outline-secondary" name="Compile" value="Compile"/>

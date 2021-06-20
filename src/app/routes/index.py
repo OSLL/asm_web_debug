@@ -6,10 +6,12 @@ import subprocess
 
 from app.core.asmanager import ASManager
 from app.core.db.manager import DBManager
+from app.core.db.utils import code_to_dict
 from app.core.source_manager import SourceManager as sm
 from app.core.utils.debug_commands import DebugCommands
 from app.core.utils.hex import hexdump
 from app.response import Response
+
 
 
 index_bp = Blueprint('index', __name__)
@@ -36,9 +38,9 @@ def index_id(code_id):
         abort(404, description=f"Don't have access to code {code_id}")
     code = DBManager.get_code(code_id=code_id)
     if code:
-        return render_template('pages/index.html', txt_code=code.code)
+        return render_template('pages/index.html', code=code_to_dict(code))
     else:
-        return render_template('pages/index.html', txt_code='; Put your code here.')
+        return render_template('pages/index.html')
 
 
 @bp.route('/save/<code_id>', methods = ["POST"])
