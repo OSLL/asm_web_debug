@@ -135,9 +135,9 @@ $(function() {
 					editor.getDoc().setValue(resp['build_logs']);
 					console.log(resp)
 					if (resp['success_build'])
-						success_alert('Компиляция прошла успешно')
+						success_alert(`Компиляция прошла успешно. ${resp['timestamp']}`)
 					else
-						failure_alert('Компиляция провалилась. Проверьте логи компиляции.', 5000)
+						failure_alert(`Компиляция провалилась. Проверьте логи компиляции. ${resp['timestamp']}`, 5000)
 				},
 				error: function(resp){
 					failure_alert('Код не был отправлен. Попробуйте снова')
@@ -149,7 +149,7 @@ $(function() {
 		// run-button
 		$('#Run').click(function (e){
 			var [code, breakpoints] = get_code_and_breakpoints()
-			success_alert("<span class='spinner-border spinner-border-sm'></span> Запуск...", 30000)
+			success_alert("<span class='spinner-border spinner-border-sm'></span> Запуск...", delay=0)
 
 			$.ajax({
 				url: '/run/' + code_id,
@@ -167,12 +167,11 @@ $(function() {
 					console.log(resp)
 					var msg = ''
 					if (resp['success_run']){
-						success_alert('Программа выполнена')	
+						success_alert(`Программа выполнена. ${resp['timestamp']}`)	
 					}
 					else
 					{
-						failure_alert('Запуск программы провалился. Проверьте логи.', 5000)
-						return
+						failure_alert(`Запуск программы провалился. Проверьте логи. ${resp['timestamp']}`, 5000)
 					}
 				},
 				error: function(resp){
