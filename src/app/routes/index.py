@@ -30,21 +30,15 @@ def check_login():
             abort(401, description="Not authenticated")
 
 
-@bp.route('/')
-@bp.route('/index')
-def index():
-    return redirect(f"/{uuid4()}")
-
-
 @bp.route('/<code_id>')
 def index_id(code_id):
     if code_id not in current_user.tasks and not app.config['ANON_ACCESS']:
         abort(404, description=f"Don't have access to code {code_id}")
     code = DBManager.get_code(code_id=code_id)
     if code:
-        return render_template('index.html', txt_code=code.code)
+        return render_template('pages/index.html', txt_code=code.code)
     else:
-        return render_template('index.html', txt_code='; Put your code here.')
+        return render_template('pages/index.html', txt_code='; Put your code here.')
 
 
 @bp.route('/save/<code_id>', methods = ["POST"])
@@ -119,11 +113,11 @@ def hexview(code_id):
         if code:
             code.code = source_code
             code.save()
-        return render_template('hexview.html', result=hexdump(source_code or error_msg))
+        return render_template('pages/hexview.html', result=hexdump(source_code or error_msg))
     else:
         code = DBManager.get_code(code_id=code_id)
         if code:
-            return render_template('hexview.html', result=hexdump(code.code or error_msg))
+            return render_template('pages/hexview.html', result=hexdump(code.code or error_msg))
         else:
             return 'No such code_id', 404
 
