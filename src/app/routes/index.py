@@ -36,12 +36,6 @@ def check_login():
             abort(401, description="Not authenticated")
 
 
-@bp.route('/')
-@bp.route('/index')
-def index():
-    return redirect(f"/{uuid4()}")
-
-
 @bp.route('/<code_id>')
 def index_id(code_id):
     if code_id not in current_user.tasks and not app.config['ANON_ACCESS']:
