@@ -1,6 +1,5 @@
-from flask import Blueprint, make_response, render_template, request, current_app as app, redirect, abort
+from flask import Blueprint, render_template, request, current_app as app, redirect, abort
 from flask_login import current_user, login_user
-from flask_security import MongoEngineUserDatastore
 from uuid import uuid4
 import os
 import subprocess
@@ -10,12 +9,7 @@ from app.core.db.manager import DBManager
 from app.core.source_manager import SourceManager as sm
 from app.core.utils.debug_commands import DebugCommands
 from app.core.utils.hex import hexdump
-
-from app.core.db.manager import DBManager
-
-from app.core.process_manager import QemuUserProcess
-from app.core.source_manager import SourceManager
-from app.core.asmanager import ASManager
+from app.response import Response
 
 
 index_bp = Blueprint('index', __name__)
@@ -61,7 +55,7 @@ def save_code(code_id):
 
     DBManager.create_code(code_id=code_id, source_code=source_code, breakpoints=breakpoints, arch=arch)
     
-    return { "success_save" : True }
+    return Response(success_save=True)
 
 
 @bp.route('/compile/<code_id>', methods = ["POST"])
@@ -84,26 +78,26 @@ def compile(code_id):
     app.logger.info(f'Compile {code_id}: success_build - {as_flag}')
     app.logger.info(f'Compile {code_id}: build_logs\n{as_logs.decode("utf-8")}')
 
-    return { "success_build": as_flag, "build_logs": as_logs.decode("utf-8") }
+    return Response(success_build=as_flag, build_logs=as_logs.decode("utf-8"))
 
 
 @bp.route('/run/<code_id>', methods = ["POST"])
 def run(code_id):
-    code = sm.get_code(code_id)
+    #code = sm.get_code(code_id)
     source_code = request.form.get('code', '')
     arch =  request.form.get('arch', 'x86_64')
 
     if not sm.is_code_exists(code_id):
-        return { "success_run": False, "run_logs": f"Code not exists" }
+        return Response(success_run=False, run_logs=f"Code not exists")
 
 
     bin_file = sm.get_code_file_path(code_id) + ".bin"
 
     if not os.path.isfile(bin_file):
-        return { "success_run": False, "run_logs": f"Code not compiled" }
+        return Response(success_run=False, run_logs=f"Code not compiled")
 
     if arch != "x86_64":
-        return { "success_run": False, "run_logs": f"Arch {arch} not supported!" }
+        return Response(success_run=False, run_logs=f"Arch {arch} not supported!")
 
     run_result = subprocess.run(["../environment/qemu-x86_64", bin_file], capture_output = True)
 
@@ -112,7 +106,8 @@ def run(code_id):
     else:
         status = run_result.returncode
 
-    return { "success_run": True, "run_logs": f"STATUS: {status};\nstdout: {run_result.stdout};\nstderr: {run_result.stderr};\n" }
+    return Response(success_run=True,
+                            run_logs=f"STATUS: {status};\nstdout: {run_result.stdout};\nstderr: {run_result.stderr};\n")
 
 
 @bp.route('/hexview/<code_id>', methods = ["GET", "POST"])
