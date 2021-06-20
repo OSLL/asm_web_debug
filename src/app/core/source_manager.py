@@ -13,7 +13,7 @@ class SourceManager:
 			raise Exception('arg zero length exception')
 
 		if cls.src_dir_path[-1] != '/':
-			cls.src_dir_path = self.src_dir_path  + '/'
+			cls.src_dir_path = cls.src_dir_path  + '/'
 
 		cls.mkdir(cls.src_dir_path)
 
