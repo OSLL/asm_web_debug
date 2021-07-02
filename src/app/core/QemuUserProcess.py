@@ -10,13 +10,6 @@ from enum import Enum, auto
 class QemuUserProcessError(Exception):
     pass
 
-
-class QemuUserProcessMode(Enum):
-    RUN = '1'
-    DEBUG = '2'
-    SINGLESTEP = '3'
-
-
 class QemuUserProcess:
 
     class QemuUserProcessState:
@@ -30,7 +23,8 @@ class QemuUserProcess:
                     # "ARM" : ["../environment/qemu-arm"]
                     # "AVR" : ["../environment/qemu-system-avr -cpu ... "]
 
-    def __init__(self, path, arch):
+
+    def __init__(cls, path, arch, debug):
 
         if not os.path.isfile(path):
             raise QemuUserProcessError('File not found')
@@ -38,71 +32,73 @@ class QemuUserProcess:
         if not arch in current_app.config["ARCHS"]:
 	        raise QemuUserProcessError('unknown arch')
 
-        self.path = path
-        self.arch = arch
-        self.mode = QemuUserProcessMode.RUN
+        cls.path = path
+        cls.arch = arch
+        cls.debug = debug
 
-        self.process_pid = 0
-        self.dbg_pid = 0
+        cls.process_pid = 0
 
-        self.dbg_port = 0
-        self.state = QemuUserProcess.QemuUserProcessState.NOTRUN
+        cls.dbg_port = 0
+        cls.state = QemuUserProcess.QemuUserProcessState.NOTRUN
 
 
     def get_state(self):
         return self.state
 
 
-    def run(self, mode = QemuUserProcessMode.RUN):
+    def run(cls, debug_port = 0):
         run_args = []
 
-        self.mode = mode
-        self.dbg_port = 1234 # random port
+        cls.dbg_port = debug_port # random port
 
-        if self.arch in self.arch_run_cmd:
-            run_args = self.arch_run_cmd[self.arch]
+        if cls.arch in cls.arch_run_cmd:
+            run_args = cls.arch_run_cmd[cls.arch]
         else:
-            return { "success_run": False, "run_logs": f"Arch {self.arch} not supported!" }
+            return { "success_run": False, "run_logs": f"Arch {cls.arch} not supported!" }
 
-        if self.mode == QemuUserProcessMode.DEBUG:
+        if cls.debug:
             run_args.append('-g')
-            run_args.append(str(self.dbg_port))
+            run_args.append(str(cls.dbg_port))
         
         # path to binnary file for run
-        run_args.append(self.path) 
-        print(self.path)
+        run_args.append(cls.path) 
+        print(cls.path)
 
-        if self.state == QemuUserProcess.QemuUserProcessState.PROCESSING:
+        if cls.state == QemuUserProcess.QemuUserProcessState.PROCESSING:
             return { "success_run": False, "run_logs": f"Process already running" }
 
-        self.state = QemuUserProcess.QemuUserProcessState.PROCESSING
+        cls.state = QemuUserProcess.QemuUserProcessState.PROCESSING
         
+        # TODO timeout = ....
+        #
         run_result = subprocess.run(run_args, capture_output = True)
-        self.state = QemuUserProcess.QemuUserProcessState.FINISHED
+        cls.state = QemuUserProcess.QemuUserProcessState.FINISHED
         
         if run_result.returncode == 0:
             status = 'success'
         else:
             status = run_result.returncode
 
+        cls.dbg_port = 0
+
         return { "success_run": True, "run_logs": f"STATUS: {status};\nstdout: {run_result.stdout};\nstderr: {run_result.stderr};\n" }
 
 
-    def debug(self):
+    def debug(cls):
         pass
 
 
-    def kill(self):
-        self.state = QemuUserProcess.QemuUserProcessState.KILLED
+    def kill(cls):
+        cls.state = QemuUserProcess.QemuUserProcessState.KILLED
         #os.kill(self.process_pid)
         #os.kill(self.gdb_pid)
 
 
-    def get_pids(self):
-        return [self.process_pid, self.dbg_pid]
+    def get_pid(cls):
+        return cls.process_pid
 
 
-    def get_debug_port(self):
-        return self.dbg_port
+    def get_debug_port(cls):
+        return cls.dbg_port
 
 

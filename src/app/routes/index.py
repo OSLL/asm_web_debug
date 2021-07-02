@@ -13,16 +13,15 @@ from app.core.utils.hex import hexdump
 
 from app.core.db.manager import DBManager
 
+from app.core.ProcessManager import ProcessManager
 from app.core.QemuUserProcess import QemuUserProcess
-from app.core.QemuUserProcess import QemuUserProcessMode
 from app.core.source_manager import SourceManager
 from app.core.asmanager import ASManager
 
+process_manager = ProcessManager()
 
 index_bp = Blueprint('index', __name__)
 bp = index_bp
-
-process_manag_global = {}
 
 @bp.before_request
 def check_login():
@@ -109,16 +108,7 @@ def run(code_id):
     if arch != "x86_64":                                                            # TODO Arm, avr
         return { "success_run": False, "run_logs": f"Arch {arch} not supported!" }
 
-    process = None
-    if  code_id in process_manag_global:
-        process = QemuUserProcess(bin_file, arch)
-    else:
-        process = QemuUserProcess(bin_file, arch)
-        process_manag_global[code_id] = process
-
-    return process.run()
-
-    
+    return process_manager.exec(bin_file, code_id, arch, False)
 
 
 @bp.route('/hexview/<code_id>', methods = ["GET", "POST"])
@@ -146,8 +136,9 @@ def debug(code_id):
         if command == e.value:
             return e.name + ' ' + str(code_id)
 
-    if command == DebugCommands.START_DEBUG:
-        return 'start'
+    #if command == DebugCommands.START_DEBUG:
+    #    process_manager.exec(bin_file, code_id, arch, True)
+
     return f'No debug such debug command: {command}', 404
 
 
