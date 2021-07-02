@@ -14,13 +14,17 @@ class ProcessManager:
         cls.max_num_of_process = max_num_of_process
         cls.min_port = min_port
 
+        ProcessManager.next_port_stub(min_port)
+
 
     # process_id <--- hash(user_id + code_id)
     def exec(cls, path, process_id, arch, debug):
         qemu_process  = None
         gdb_process   = None
+        port = 0
 
-        port = 0 #gen_port()
+        if debug:
+            port = ProcessManager.next_port_stub(cls.min_port) ## TODO get free port 
 
         qemu_process = QemuUserProcess(path, arch, debug)
 
@@ -57,3 +61,12 @@ class ProcessManager:
 
     def debug(cls, command):
         pass
+
+
+    # Don't use this method in release version
+    # it's just stub for debug version
+    @staticmethod
+    def next_port_stub(min_port):
+        a = min_port
+        for i in range(a, a+10000):
+            yield i
