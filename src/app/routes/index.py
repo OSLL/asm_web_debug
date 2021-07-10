@@ -96,23 +96,25 @@ def run(code_id):
     if not sm.is_code_exists(code_id):
         return { "success_run": False, "run_logs": f"Code not exists" }
 
-
     bin_file = sm.get_code_file_path(code_id) + ".bin"
 
     if not os.path.isfile(bin_file):
         return { "success_run": False, "run_logs": f"Code not compiled" }
+    qproc = QemuUserProcess(bin_file, arch)
+    qproc.add_process(code_id, bin_file, arch)
+    qproc.run(code_id)
 
-    #if arch != "x86_64":
-    #    return { "success_run": False, "run_logs": f"Arch {arch} not supported!" }
-
-    run_result = subprocess.run(["../environment/qemu-x86_64", bin_file], capture_output = True)
-
-    if run_result.returncode == 0:
-        status = 'success'
+    rsuccess = True
+    if qproc.get_pids(code_id)[0] == -1:
+        rsuccess = False
+        rlog = "Target executable was not run"
     else:
-        status = run_result.returncode
+        rlog = "Exit code: {0}".format(qproc.get_status(code_id))
 
-    return { "success_run": True, "run_logs": f"STATUS: {status};\nstdout: {run_result.stdout};\nstderr: {run_result.stderr};\n" }
+    if qproc.get_status(code_id) != 0:
+        rsuccess = False
+
+    return { "success_run": rsuccess, "run_logs": rlog }
 
 
 @bp.route('/hexview/<code_id>', methods = ["GET", "POST"])
