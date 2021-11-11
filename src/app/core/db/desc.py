@@ -1,5 +1,5 @@
-import datetime 
-from flask_security import RoleMixin, UserMixin 
+import datetime
+from flask_security import RoleMixin, UserMixin
 import mongoengine as me
 
 
@@ -20,24 +20,22 @@ class User(me.Document, UserMixin):
 class Codes(me.Document):
     _id = me.StringField(primary_key=True)
     created = me.DateTimeField(default=datetime.datetime.now)
-    last_update = me.DateTimeField(default=datetime.datetime.now)     
-    code = me.StringField()                  
+    last_update = me.DateTimeField(default=datetime.datetime.now)
+    code = me.StringField()
     breakpoints = me.ListField(me.IntField())
     arch = me.StringField()
-    lti_user = me.ReferenceField('LTI_sessions', dbref=True)
+    lti_user = me.ReferenceField("LTI_sessions", dbref=True)
 
 
 class Logs(me.Document):
     _id = me.StringField(primary_key=True)
-    time = me.DateTimeField(default=datetime.datetime.now) 
+    time = me.DateTimeField(default=datetime.datetime.now)
     levelname = me.StringField()
     message = me.StringField()
     lineno = me.IntField()
     pathname = me.StringField()
 
-    meta = {
-        'indexes': ['time']
-    }
+    meta = {"indexes": ["time"]}
 
 
 class Consumers(me.Document):

@@ -1,4 +1,11 @@
-from flask import Blueprint, render_template, request, current_app as app, redirect, abort
+from flask import (
+    Blueprint,
+    render_template,
+    request,
+    current_app as app,
+    redirect,
+    abort,
+)
 from flask_login import current_user, login_user
 from uuid import uuid4
 import os
@@ -13,9 +20,9 @@ from app.core.utils.hex import hexdump
 from app.response import Response
 
 
-
-index_bp = Blueprint('index', __name__)
+index_bp = Blueprint("index", __name__)
 bp = index_bp
+
 
 @bp.before_request
 def check_login():
@@ -24,43 +31,47 @@ def check_login():
         app.logger.debug(f"{current_user.to_json()}")
         return
     else:
-        if app.config['ANON_ACCESS']:
-            login_user(app.user_datastore.find_user(_id=app.config['ANON_USER_ID']))
-            app.logger.debug('Anon access to service')
+        if app.config["ANON_ACCESS"]:
+            login_user(app.user_datastore.find_user(_id=app.config["ANON_USER_ID"]))
+            app.logger.debug("Anon access to service")
             return
         else:
             abort(401, description="Not authenticated")
 
 
-@bp.route('/<code_id>')
+@bp.route("/<code_id>")
 def index_id(code_id):
-    if code_id not in current_user.tasks and not app.config['ANON_ACCESS']:
+    if code_id not in current_user.tasks and not app.config["ANON_ACCESS"]:
         abort(404, description=f"Don't have access to code {code_id}")
     code = DBManager.get_code(code_id=code_id)
     if code:
-        return render_template('pages/index.html', code=code_to_dict(code))
+        return render_template("pages/index.html", code=code_to_dict(code))
     else:
-        return render_template('pages/index.html')
+        return render_template("pages/index.html")
 
 
-@bp.route('/save/<code_id>', methods = ["POST"])
+@bp.route("/save/<code_id>", methods=["POST"])
 def save_code(code_id):
-    source_code = request.form.get('code', '')
-    breakpoints = request.form.get('breakpoints', '[]')
-    arch =  request.form.get('arch', 'x86_64')
+    source_code = request.form.get("code", "")
+    breakpoints = request.form.get("breakpoints", "[]")
+    arch = request.form.get("arch", "x86_64")
 
-    DBManager.create_code(code_id=code_id, source_code=source_code, breakpoints=breakpoints, arch=arch)
-    
+    DBManager.create_code(
+        code_id=code_id, source_code=source_code, breakpoints=breakpoints, arch=arch
+    )
+
     return Response(success_save=True)
 
 
-@bp.route('/compile/<code_id>', methods = ["POST"])
+@bp.route("/compile/<code_id>", methods=["POST"])
 def compile(code_id):
-    source_code = request.form.get('code', '')
-    breakpoints = request.form.get('breakpoints', '[]')
-    arch =  request.form.get('arch', 'x86_64')
+    source_code = request.form.get("code", "")
+    breakpoints = request.form.get("breakpoints", "[]")
+    arch = request.form.get("arch", "x86_64")
 
-    DBManager.create_code(code_id=code_id, source_code=source_code, breakpoints=breakpoints, arch=arch)
+    DBManager.create_code(
+        code_id=code_id, source_code=source_code, breakpoints=breakpoints, arch=arch
+    )
 
     try:
         sm.save_code(code_id, source_code)
@@ -68,24 +79,25 @@ def compile(code_id):
         app.logger.error(e)
 
     # Compiling code from file into file with same name (see ASManager.compile())
-    as_flag, as_logs_stderr, as_logs_stdout = ASManager.compile(sm.get_code_file_path(code_id), arch)
+    as_flag, as_logs_stderr, as_logs_stdout = ASManager.compile(
+        sm.get_code_file_path(code_id), arch
+    )
     as_logs = as_logs_stderr + as_logs_stdout
 
-    app.logger.info(f'Compile {code_id}: success_build - {as_flag}')
+    app.logger.info(f"Compile {code_id}: success_build - {as_flag}")
     app.logger.info(f'Compile {code_id}: build_logs\n{as_logs.decode("utf-8")}')
 
     return Response(success_build=as_flag, build_logs=as_logs.decode("utf-8"))
 
 
-@bp.route('/run/<code_id>', methods = ["POST"])
+@bp.route("/run/<code_id>", methods=["POST"])
 def run(code_id):
-    #code = sm.get_code(code_id)
-    source_code = request.form.get('code', '')
-    arch = request.form.get('arch', 'x86_64')
+    # code = sm.get_code(code_id)
+    source_code = request.form.get("code", "")
+    arch = request.form.get("arch", "x86_64")
 
     if not sm.is_code_exists(code_id):
         return Response(success_run=False, run_logs=f"Code not exists")
-
 
     bin_file = sm.get_code_file_path(code_id) + ".bin"
 
@@ -98,36 +110,42 @@ def run(code_id):
     run_result = subprocess.run(["qemu-x86_64", bin_file], capture_output=True)
 
     if run_result.returncode == 0:
-        status = 'success'
+        status = "success"
     else:
         status = run_result.returncode
 
-    return Response(success_run=True,
-                            run_logs=f"STATUS: {status};\nstdout: {run_result.stdout};\nstderr: {run_result.stderr};\n")
+    return Response(
+        success_run=True,
+        run_logs=f"STATUS: {status};\nstdout: {run_result.stdout};\nstderr: {run_result.stderr};\n",
+    )
 
 
-@bp.route('/hexview/<code_id>', methods = ["GET", "POST"])
+@bp.route("/hexview/<code_id>", methods=["GET", "POST"])
 def hexview(code_id):
-    error_msg = '<No code for hexview!>'
+    error_msg = "<No code for hexview!>"
     if request.method == "POST":
-        source_code = request.form.get('hexview', '')
+        source_code = request.form.get("hexview", "")
         code = DBManager.get_code(code_id=code_id)
         if code:
             code.code = source_code
             code.save()
-        return render_template('pages/hexview.html', result=hexdump(source_code or error_msg))
+        return render_template(
+            "pages/hexview.html", result=hexdump(source_code or error_msg)
+        )
     else:
         code = DBManager.get_code(code_id=code_id)
         if code:
-            return render_template('pages/hexview.html', result=hexdump(code.code or error_msg))
+            return render_template(
+                "pages/hexview.html", result=hexdump(code.code or error_msg)
+            )
         else:
-            return 'No such code_id', 404
+            return "No such code_id", 404
 
 
-@bp.route('/debug/<code_id>', methods = ["POST"])
+@bp.route("/debug/<code_id>", methods=["POST"])
 def debug(code_id):
-    command = request.form.get('debug_command', '')
+    command = request.form.get("debug_command", "")
     for e in DebugCommands:
         if command == e.value:
-            return e.name + ' ' + str(code_id)
-    return f'No debug such debug command: {command}', 404
+            return e.name + " " + str(code_id)
+    return f"No debug such debug command: {command}", 404

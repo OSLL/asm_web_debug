@@ -13,10 +13,10 @@ class QemuUserProcess:
     def __init__(self, path, arch):
 
         if not os.path.isfile(path):
-            raise ProcessManagerError('File not found')
+            raise ProcessManagerError("File not found")
 
         if not arch in current_app.config["ARCHS"]:
-            raise ProcessManagerError('unknown arch')
+            raise ProcessManagerError("unknown arch")
 
         self.path = path
         self.arch = arch
@@ -28,10 +28,10 @@ class QemuUserProcess:
 
     def add_process(self, uid, path, arch):
         if not os.path.isfile(path):
-            raise ProcessManagerError('File not found')
+            raise ProcessManagerError("File not found")
 
         if not arch in current_app.config["ARCHS"]:
-            raise ProcessManagerError('unknown arch')
+            raise ProcessManagerError("unknown arch")
 
         process = QemuUserProcess(uid, path, arch)
         self.process_list[uid] = process
@@ -46,12 +46,14 @@ class QemuUserProcess:
     def run(self, uid):
         process = self.process_list.get(uid, None)
         if process is None:
-            raise ProcessManagerError('process with {0} uid not found'.format(uid))
+            raise ProcessManagerError("process with {0} uid not found".format(uid))
 
         # only x86
         if process.arch != "x86":
-            raise ProcessManagerError('arch TODO')
-        subprocess.run(["qemu-system-x86_64", "-kernel", process.path, "-m", "10M", "-no-reboot"])
+            raise ProcessManagerError("arch TODO")
+        subprocess.run(
+            ["qemu-system-x86_64", "-kernel", process.path, "-m", "10M", "-no-reboot"]
+        )
 
     def finish(self, uid):
         pass

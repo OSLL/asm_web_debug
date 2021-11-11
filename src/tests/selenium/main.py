@@ -9,6 +9,7 @@ from compile_code_test import CompileCodeTest
 
 DEFAULT_URL = "http://127.0.0.1:5100"
 
+
 def main(host):
     suite = unittest.TestSuite()
     suite.addTest(BasicTest.parametrize(OpenPagesTest, param=host))
@@ -18,6 +19,6 @@ def main(host):
     sys.exit(returnCode)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     host = sys.argv[1] if len(sys.argv) == 2 else DEFAULT_URL
     main(host)

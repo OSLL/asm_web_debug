@@ -62,11 +62,12 @@ _start:
 
 WRONG_CODE = "it's not a code!"
 
+
 class CompileCodeTest(BasicTest):
 
     ARCH_CODES = [X86_CODE, ARM_CODE, AVR_CODE]
     SUCCESS_MSG = "Компиляция прошла успешно"
-    FAILURE_MSG = "Компиляция провалилась. Проверьте логи компиляции." 
+    FAILURE_MSG = "Компиляция провалилась. Проверьте логи компиляции."
 
     def test_success_compile(self):
         self.open_code_page()
@@ -80,24 +81,22 @@ class CompileCodeTest(BasicTest):
 
     def compile_code(self, code, arch, succcess=True):
         msg = self.SUCCESS_MSG if succcess else self.FAILURE_MSG
-        
+
         # choose arch
-        select = Select(self.driver.find_element_by_id('arch_select'))
+        select = Select(self.driver.find_element_by_id("arch_select"))
         select.select_by_value(arch)
 
         # send code to textarea
         self.set_code(code)
-        
+
         # find compile button and click
-        compile_button = self.driver.find_element_by_id('Compile')
+        compile_button = self.driver.find_element_by_id("Compile")
         compile_button.click()
-        
+
         # wait alert
         try:
             WebDriverWait(self.driver, 3).until(
-                EC.text_to_be_present_in_element(
-                    (By.ID, 'ajax-alert'),
-                    msg)
-            ) 
+                EC.text_to_be_present_in_element((By.ID, "ajax-alert"), msg)
+            )
         except:
             assert False, f'No message "{msg}". Arch {arch}'

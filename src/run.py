@@ -28,32 +28,34 @@ def create_app():
     app.register_blueprint(welcome_bp)
 
     # load config
-    runmode = os.environ.get('RUNMODE')
+    runmode = os.environ.get("RUNMODE")
     app.config.from_object(ConfigManager.get_config(runmode))
 
     # setup app folders
-    app.template_folder = app.config['TEMPLATE_FOLDER']
-    app.static_folder = app.config['STATIC_FOLDER']
+    app.template_folder = app.config["TEMPLATE_FOLDER"]
+    app.static_folder = app.config["STATIC_FOLDER"]
 
     db = MongoEngine(app)
-    app.user_datastore = MongoEngineUserDatastore(db, User, Role)    
+    app.user_datastore = MongoEngineUserDatastore(db, User, Role)
     app.security = Security(app, app.user_datastore)
     app.login_manager = flask_login.LoginManager(app)
-    
-    # TODO: do smth with role_requiered and etc 
+
+    # TODO: do smth with role_requiered and etc
     app.security.unauthorized_handler(lambda fn=None, params=None: abort(404))
-    
+
     @app.before_first_request
     def init_roles_and_user():
-        if app.config['ANON_ACCESS']:
-            app.user_datastore.create_user(_id=app.config['ANON_USER_ID'], username='anon_username')
-        for role in app.config['USER_ROLES']:
+        if app.config["ANON_ACCESS"]:
+            app.user_datastore.create_user(
+                _id=app.config["ANON_USER_ID"], username="anon_username"
+            )
+        for role in app.config["USER_ROLES"]:
             if not app.user_datastore.find_role(role):
                 app.user_datastore.create_role(name=role)
 
     @app.login_manager.user_loader
     def load_user(user_id):
-        try: 
+        try:
             return User.objects.get(_id=user_id)
         except User.DoesNotExist:
             return None
@@ -62,17 +64,17 @@ def create_app():
 
 
 def run_app(app):
-    # init SourceManager 
-    SourceManager.init(app.config['CODES_FOLDER'])
-    
+    # init SourceManager
+    SourceManager.init(app.config["CODES_FOLDER"])
+
     # init logging
     logging_init(app)
 
     # init lti consumers
-    create_consumers(app.config['LTI_CONSUMERS'])
+    create_consumers(app.config["LTI_CONSUMERS"])
 
     # run app
-    app.run(host=app.config['HOST'], port=app.config['PORT'])
+    app.run(host=app.config["HOST"], port=app.config["PORT"])
 
 
 if __name__ == "__main__":

@@ -5,45 +5,36 @@ from app.core.utils.debug_commands import DebugCommands
 
 
 class Config(object):
-    HOST = '0.0.0.0'
-    PORT = '5000'
-    TEMPLATE_FOLDER ='app/templates'
-    STATIC_FOLDER = 'app/static'
-    CODES_FOLDER = '../codes/'
-    ENVIRONMENT_FOLDER = '../environment'
-    BUILD_FILE = '../DEBUG'
+    HOST = "0.0.0.0"
+    PORT = "5000"
+    TEMPLATE_FOLDER = "app/templates"
+    STATIC_FOLDER = "app/static"
+    CODES_FOLDER = "../codes/"
+    ENVIRONMENT_FOLDER = "../environment"
+    BUILD_FILE = "../DEBUG"
     DEBUG_COMMANDS = DebugCommands
-    ARCHS = ('x86_64', 'ARM', 'AVR')
-    MONGODB_SETTINGS = {
-        'db': 'database',
-        'host': '127.0.0.1',
-        'port': 27017
-    }
-    SECRET_KEY = ''
+    ARCHS = ("x86_64", "ARM", "AVR")
+    MONGODB_SETTINGS = {"db": "database", "host": "127.0.0.1", "port": 27017}
+    SECRET_KEY = ""
     DEBUG = True
     ANON_ACCESS = False
-    ANON_USER_ID = 'a334-4276-8b34'
+    ANON_USER_ID = "a334-4276-8b34"
     LTI_CONSUMERS = {}
-    USER_ROLES = ('user', 'teacher', 'admin')
-    
+    USER_ROLES = ("user", "teacher", "admin")
 
     @classmethod
     def load_data_from_env(cls):
         # consumers
-        consumer_keys = os_environ.get('AWI_CONSUMER_KEYS', '')
-        consumer_secrets = os_environ.get('AWI_CONSUMER_SECRETS', '')
+        consumer_keys = os_environ.get("AWI_CONSUMER_KEYS", "")
+        consumer_secrets = os_environ.get("AWI_CONSUMER_SECRETS", "")
         cls.LTI_CONSUMERS = parse_consumer_info(consumer_keys, consumer_secrets)
 
         # flask secret
-        cls.SECRET_KEY = os_environ.get('AWI_SECRET_KEY', '')
+        cls.SECRET_KEY = os_environ.get("AWI_SECRET_KEY", "")
 
 
 class DeployConfig(Config):
-    MONGODB_SETTINGS = {
-        'db': 'database',
-        'host': 'mongo',
-        'port': 27017
-    }
+    MONGODB_SETTINGS = {"db": "database", "host": "mongo", "port": 27017}
     DEBUG = False
 
 
@@ -57,12 +48,8 @@ class DefaultConfig(Config):
 
 
 class ConfigManager:
-        
-    config = {
-        'default': DefaultConfig,
-        'deploy': DeployConfig,
-        'test': TestConfig
-    }
+
+    config = {"default": DefaultConfig, "deploy": DeployConfig, "test": TestConfig}
 
     @classmethod
     def get_config(cls, config_type):
@@ -71,7 +58,7 @@ class ConfigManager:
             config = cls.config[config_type]
         else:
             print(f"No such config: '{config_type}'. Using default config")
-            config = cls.config['default']
+            config = cls.config["default"]
 
         try:
             config.load_data_from_env()

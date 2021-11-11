@@ -1,4 +1,4 @@
-import datetime 
+import datetime
 from flask import current_app
 from flask_mongoengine import MongoEngine
 from pymongo import DESCENDING, ASCENDING
@@ -16,12 +16,12 @@ class DBManager:
         try:
             return Codes.objects.get(_id=code_id)
         except Codes.DoesNotExist:
-            current_app.logger.debug(f'Code not found: {code_id}')
+            current_app.logger.debug(f"Code not found: {code_id}")
             return None
-     
+
     @staticmethod
     def create_code(code_id, source_code, breakpoints, arch):
-    	#breakpoints accepted as request.form.get('breakpoints') 
+        # breakpoints accepted as request.form.get('breakpoints')
         b_p = json.loads(breakpoints)
         code_obj = Codes.objects(_id=code_id).first()
         if code_obj:
@@ -36,7 +36,9 @@ class DBManager:
 
     @staticmethod
     def get_codes_older_than(days):
-    	return Codes.objects(created__lte=(datetime.datetime.now()-datetime.timedelta(days=days))).to_json()
+        return Codes.objects(
+            created__lte=(datetime.datetime.now() - datetime.timedelta(days=days))
+        ).to_json()
 
     #### log ####
 
@@ -45,12 +47,23 @@ class DBManager:
         try:
             return User.objects.get(_id=user_id)
         except User.DoesNotExist:
-            current_app.logger.debug(f'User not found: {user_id}')
+            current_app.logger.debug(f"User not found: {user_id}")
             return None
 
     @staticmethod
     def add_log(log_id, time, lineno, pathname, levelname, message):
-        return Logs(_id=log_id, time=time, lineno=lineno, pathname=pathname, levelname=levelname, message=message).save()._id
+        return (
+            Logs(
+                _id=log_id,
+                time=time,
+                lineno=lineno,
+                pathname=pathname,
+                levelname=levelname,
+                message=message,
+            )
+            .save()
+            ._id
+        )
 
     @staticmethod
     def get_all_logs():
@@ -62,12 +75,12 @@ class DBManager:
             log = Logs.objects.get(_id=log_id)
             return log
         except Logs.DoesNotExist:
-            current_app.logger.debug(f'Log not found: {log_id}')
+            current_app.logger.debug(f"Log not found: {log_id}")
             return None
 
     @staticmethod
     def get_filter_logs(query={}, limit=None, offset=None, sort=None, order=None):
-        logs = Logs.objects(**query).order_by('-time') 
+        logs = Logs.objects(**query).order_by("-time")
         count = logs.count()
         if limit is not None and offset is not None:
             logs = logs.skip(offset).limit(limit)
@@ -75,20 +88,19 @@ class DBManager:
             logs = logs.order_by(f"{'-' if order == 'asc' else '+'}{sort}")
         return logs, count
 
-
     #### lti ####
 
     @staticmethod
     def get_secret(key):
         try:
-            return Consumers.objects.get(_id = key).secret
+            return Consumers.objects.get(_id=key).secret
         except Consumers.DoesNotExist:
             return None
 
     @staticmethod
     def is_key_valid(key):
         try:
-            Consumers.objects.get(_id = key)
+            Consumers.objects.get(_id=key)
             return True
         except Consumers.DoesNotExist:
             return False
@@ -96,22 +108,23 @@ class DBManager:
     @staticmethod
     def add_timestamp_and_nonce(id_key, timestamp, nonce):
         try:
-            consumer_obj = Consumers.objects.get(_id = id_key)
+            consumer_obj = Consumers.objects.get(_id=id_key)
             consumer_obj.timestamps.append([timestamp, nonce])
             consumer_obj.save()
         except Consumers.DoesNotExist:
-            pass 
-    
+            pass
+
     @staticmethod
     def has_timestamp_and_nonce(id_key, timestamp, nonce):
         try:
-            consumer_obj = Consumers.objects.get(_id = id_key)
+            consumer_obj = Consumers.objects.get(_id=id_key)
             if (timestamp, nonce) in consumer_obj.timestamps:
                 return True
         except Consumers.DoesNotExist:
             return False
 
     @staticmethod
-    def create_lti_consumer(id_key, secret_key, timestamp_and_nonce = []):
-        return Consumers(_id = id_key, secret = secret_key, timestamps = timestamp_and_nonce).save()
-
+    def create_lti_consumer(id_key, secret_key, timestamp_and_nonce=[]):
+        return Consumers(
+            _id=id_key, secret=secret_key, timestamps=timestamp_and_nonce
+        ).save()
