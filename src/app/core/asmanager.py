@@ -8,21 +8,6 @@ class CompileError(Exception):
 
 
 class ASManager:
-    # Constants:
-    arch_exec_path = {"x86_64": "gcc", "ARM": "arm-linux-gnueabi-as", "AVR": "avr-as"}
-
-    arch_build_flags = {
-        "x86_64": ["-no-pie", "-nodefaultlibs", "-nostartfiles", "-g"],
-        "AVR": ["-g", "-mmcu=avr6"],
-        "ARM": ["-march=armv7-a", "-mcpu=cortex-a5"],
-    }
-
-    arch_link_flags = {
-        "AVR": ["avr-ld", "-m avr1"],
-        "x86_64": ["x86_64-linux-gnu-ld", "-melf_i386"],
-        "ARM": ["arm-none-eabi-ld"],
-    }
-
     # Static methods:
 
     # Description:
@@ -43,7 +28,7 @@ class ASManager:
         build_flags = []
         exec_path = None
 
-        if not arch in current_app.config["ARCHS"] or not arch in cls.arch_exec_path:
+        if not arch in current_app.config["ARCHS"]:
             raise CompileError(f"Compile error: unknown arch: {arch}")
 
         if not os.path.isfile(filename):
@@ -51,20 +36,18 @@ class ASManager:
                 "Compile error: file '{0}' not found".format(filename)
             )
 
-        # Setting up run flags
-        if arch in cls.arch_build_flags:
-            build_flags.extend(cls.arch_build_flags[arch])
-
-        # Setting up executable path
-        if arch in cls.arch_exec_path:
-            exec_path = cls.arch_exec_path[arch]
-        else:
-            raise CompileError("unknown arch")
+        arch_cfg = current_app.config["ARCHS"][arch]
 
         # Forming arguments to as process
-        args = [exec_path]
-        args.extend(build_flags)
-        if arch == "x86_64":
+        args = [
+            arch_cfg.get("toolchain_prefix", "") + "gcc",
+            "-no-pie",
+            "-nodefaultlibs",
+            "-nostartfiles",
+            "-g",
+        ]
+
+        if arch_cfg.get("seccomp", False):
             # use seccomp
             args.extend(
                 [
@@ -72,7 +55,7 @@ class ASManager:
                     os.path.join(
                         current_app.config["ENVIRONMENT_FOLDER"],
                         "seccomp",
-                        "x86_64",
+                        arch,
                         "entry.S",
                     ),
                 ]

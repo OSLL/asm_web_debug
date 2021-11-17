@@ -1,73 +1,80 @@
+import ast
 import os
+import signal
 import subprocess
+import uuid
 from flask import current_app
 
 
-class ProcessManagerError(Exception):
-    pass
-
-
-class QemuUserProcess:
-    process_list = {}
-
-    def __init__(self, path, arch):
-
-        if not os.path.isfile(path):
-            raise ProcessManagerError("File not found")
-
-        if not arch in current_app.config["ARCHS"]:
-            raise ProcessManagerError("unknown arch")
-
-        self.path = path
+class UserProcess:
+    def __init__(self, exe_path, arch="x86_64"):
+        self.exe_path = exe_path
         self.arch = arch
+        self.uuid = uuid.uuid4()
+        self.gdb = None
+        self.program = None
 
-        self.pid = 0
-        self.dbg_pid = 0
-        self.dbg_port = 0
-        self.status = 0
+    def start_with_debugger(self):
+        arch_cfg = current_app.config["ARCHS"][self.arch]
+        port = "31415"  # TODO: pick properly
 
-    def add_process(self, uid, path, arch):
-        if not os.path.isfile(path):
-            raise ProcessManagerError("File not found")
+        qemu_cmd = [
+            arch_cfg["qemu"],
+            "-g",
+            port
+        ]
 
-        if not arch in current_app.config["ARCHS"]:
-            raise ProcessManagerError("unknown arch")
+        gdb_cmd = [
+            arch_cfg.get("toolchain_prefix", "") + "gdb",
+            "-q",
+            "-nx",
+            "-ex", "python import sys",
+            "-ex", f"file {self.exe_path}",
+            "-ex", f"target remote :{port}",
+            "-ex", "b _start",
+            "-ex", "c",
+            "-ex", "d 1"
+        ]
 
-        process = QemuUserProcess(uid, path, arch)
-        self.process_list[uid] = process
-
-    def get_status(self, uid):
-        process = self.process_list.get(uid, None)
-        if process is None:
-            return 0
-
-        return process.status
-
-    def run(self, uid):
-        process = self.process_list.get(uid, None)
-        if process is None:
-            raise ProcessManagerError("process with {0} uid not found".format(uid))
-
-        # only x86
-        if process.arch != "x86":
-            raise ProcessManagerError("arch TODO")
-        subprocess.run(
-            ["qemu-system-x86_64", "-kernel", process.path, "-m", "10M", "-no-reboot"]
+        self.program = subprocess.Popen(
+            qemu_cmd,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
         )
 
-    def finish(self, uid):
-        pass
+        self.gdb = subprocess.Popen(
+            gdb_cmd,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
 
-    def get_pids(self, uid):
-        process = self.process_list.get(uid, None)
-        if process is None:
-            return 0
+    def gdb_command(self, command):
+        if self.gdb is None:
+            raise RuntimeError(f"Failed to execute GDB command {command!r}: no debugger attached")
 
-        return process.pid, process.dbg_pid
+        code = f"""
+try:
+    result = gdb.execute({command!r}, False, True)
+    print(repr(result), file=sys.stderr)
+except Exception as e:
+    print(repr(e), file=sys.stderr)
+"""
 
-    def get_debug_port(self, uid):
-        process = self.process_list.get(uid, None)
-        if process is None:
-            return 0
+        self.gdb.stdin.write(f"python exec({code!r})".encode())
+        self.gdb.stdin.flush()
+        response = self.gdb.stderr.readline().decode()
+        response = ast.literal_eval(response)
+        if isinstance(response, Exception):
+            raise response
+        return response
 
-        return process.dbg_port
+    def terminate(self):
+        if self.gdb is not None:
+            self.gdb.stdin.write(b"q\n")
+            self.gdb.stdin.close()
+        elif self.program is not None:
+            self.program.send_signal(signal.SIGKILL)
+        self.gdb = None
+        self.program = None

@@ -13,7 +13,6 @@ class Config(object):
     ENVIRONMENT_FOLDER = "../environment"
     BUILD_FILE = "../DEBUG"
     DEBUG_COMMANDS = DebugCommands
-    ARCHS = ("x86_64", "ARM", "AVR")
     MONGODB_SETTINGS = {"db": "database", "host": "127.0.0.1", "port": 27017}
     SECRET_KEY = ""
     DEBUG = True
@@ -21,6 +20,7 @@ class Config(object):
     ANON_USER_ID = "a334-4276-8b34"
     LTI_CONSUMERS = {}
     USER_ROLES = ("user", "teacher", "admin")
+    ARCHS = {"x86_64": {"seccomp": True, "toolchain_prefix": "", "qemu": "qemu-x86_64"}}
 
     @classmethod
     def load_data_from_env(cls):
@@ -48,7 +48,6 @@ class DefaultConfig(Config):
 
 
 class ConfigManager:
-
     config = {"default": DefaultConfig, "deploy": DeployConfig, "test": TestConfig}
 
     @classmethod
