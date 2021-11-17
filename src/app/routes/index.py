@@ -81,7 +81,7 @@ def compile(code_id):
 def run(code_id):
     #code = sm.get_code(code_id)
     source_code = request.form.get('code', '')
-    arch =  request.form.get('arch', 'x86_64')
+    arch = request.form.get('arch', 'x86_64')
 
     if not sm.is_code_exists(code_id):
         return Response(success_run=False, run_logs=f"Code not exists")
@@ -95,7 +95,7 @@ def run(code_id):
     if arch != "x86_64":
         return Response(success_run=False, run_logs=f"Arch {arch} not supported!")
 
-    run_result = subprocess.run(["../environment/qemu-x86_64", bin_file], capture_output = True)
+    run_result = subprocess.run(["qemu-x86_64", bin_file], capture_output=True)
 
     if run_result.returncode == 0:
         status = 'success'

@@ -10,9 +10,10 @@ class Config(object):
     TEMPLATE_FOLDER ='app/templates'
     STATIC_FOLDER = 'app/static'
     CODES_FOLDER = '../codes/'
+    ENVIRONMENT_FOLDER = '../environment'
     BUILD_FILE = '../DEBUG'
     DEBUG_COMMANDS = DebugCommands
-    ARCHS = ('x86_64', 'ARM','AVR')
+    ARCHS = ('x86_64', 'ARM', 'AVR')
     MONGODB_SETTINGS = {
         'db': 'database',
         'host': '127.0.0.1',
