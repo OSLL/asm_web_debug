@@ -3,40 +3,34 @@
 {% block title %}Web ASM{% endblock %}
 
 {% block head %}
-    <link href="static/css/libs/codemirror.min.css" rel="stylesheet" type="text/css" />
-    <link href="static/css/libs/eclipse.css" rel="stylesheet" type="text/css" />
+    <link href="{{ url_for("static", filename="css/libs/codemirror.min.css") }}" rel="stylesheet" type="text/css" />
+    <link href="{{ url_for("static", filename="css/libs/eclipse.css") }}" rel="stylesheet" type="text/css" />
 {% endblock %}
 
 {% block content %}
     {% set code = code or dict(code='', arch='x86_64', breakpoints=[]) %}
-    <div id='task_info_div' style="float: left; width: 60%;">
-        <p>Some info about task. Probably, it can be condition.</p>
+    <div id="task_info_div" style="float: left; width: 60%;">
+        <p>/* Problem statement */</p>
         <div style="display: block; float: right;">
-        	<input type="button" class="btn btn-info" name="Check" value="Check" onclick="buttonClick(this)" />
-        	<input type="button" class="btn btn-success" name="My solutions" value="My solutions" onclick="buttonClick(this)" />
+        	<button class="btn btn-info">Check</button>
+        	<button class="btn btn-success">My solutions</button>
         </div>
     </div>
 
-    <div id='main_div'>
-
-        <div id='left_main_div' style="float: left; width: 78%;">
-
-        	<hr></hr>
+    <div id="main_div">
+        <div id="left_main_div" style="float: left; width: 78%;">
+        	<hr />
             <div id="lastSave">
                 {% if 'last_update' in code %}
                     {% set time = code['last_update'] %}
                     Последнее сохранение:
-                    <span id='lastSavedTime'>
-                        <script language="javascript" type="text/javascript">
-                            document.write(new Date({{time}}*1000))
-                        </script>
-                    </span>
+                    <span id="lastSavedTime">{{ time }}</span>
                 {% endif %}
                 </div><br>
-            <div id='ajax-alert'></div>
-            <select id='arch_select' name='arch'>
+            <div id="ajax-alert"></div>
+            <select id="arch_select" name="arch">
                 {% for arch in config['ARCHS'] %}
-                    <option value={{arch}}>{{arch}}</option>
+                    <option value="{{arch}}">{{arch}}</option>
                 {% endfor %}
             </select>
             <input type="button" id="Run" class="btn btn-outline-success" name="Run" value="Run"/> 
@@ -94,12 +88,12 @@
 
 
 {% block script %}
-    <script src="static/js/libs/codemirror.min.js"></script>
-    <script src="static/js/libs/gas.min.js"></script>
-    <script src="static/js/libs/shell.min.js"></script>
-    <script src="static/js/libs/jquery.md5.min.js"></script>
+    <script src="{{ url_for("static", filename="js/libs/codemirror.min.js") }}"></script>
+    <script src="{{ url_for("static", filename="js/libs/gas.min.js") }}"></script>
+    <script src="{{ url_for("static", filename="js/libs/shell.min.js") }}"></script>
+    <script src="{{ url_for("static", filename="js/libs/jquery.md5.min.js") }}"></script>
 
-    <script src="static/js/index.js"></script>
-    <script src="static/js/build_log.js"></script>
-    <script src="static/js/editor.js"></script>
+    <script src="{{ url_for("static", filename="js/index.js") }}"></script>
+    <script src="{{ url_for("static", filename="js/build_log.js") }}"></script>
+    <script src="{{ url_for("static", filename="js/editor.js") }}"></script>
 {% endblock %}

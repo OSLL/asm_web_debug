@@ -108,8 +108,6 @@ def run(code_id):
     if arch != "x86_64":
         return Response(success_run=False, run_logs=f"Arch {arch} not supported!")
 
-    UserProcess(bin_file).interact()
-
     run_result = subprocess.run(["qemu-x86_64", bin_file], capture_output=True)
 
     if run_result.returncode == 0:
