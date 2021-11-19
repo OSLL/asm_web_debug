@@ -14,6 +14,7 @@ import subprocess
 from app.core.asmanager import ASManager
 from app.core.db.manager import DBManager
 from app.core.db.utils import code_to_dict
+from app.core.process_manager import UserProcess
 from app.core.source_manager import SourceManager as sm
 from app.core.utils.debug_commands import DebugCommands
 from app.core.utils.hex import hexdump
@@ -106,6 +107,8 @@ def run(code_id):
 
     if arch != "x86_64":
         return Response(success_run=False, run_logs=f"Arch {arch} not supported!")
+
+    UserProcess(bin_file).interact()
 
     run_result = subprocess.run(["qemu-x86_64", bin_file], capture_output=True)
 

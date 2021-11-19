@@ -38,7 +38,7 @@ class DeployConfig(Config):
     DEBUG = False
 
 
-class TestConfig(DeployConfig):
+class TestConfig(Config):
     ANON_ACCESS = True
     DEBUG = True
 

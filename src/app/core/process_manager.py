@@ -1,5 +1,3 @@
-import ast
-import os
 import signal
 import subprocess
 import uuid
@@ -28,12 +26,7 @@ class UserProcess:
             arch_cfg.get("toolchain_prefix", "") + "gdb",
             "-q",
             "-nx",
-            "-ex", "python import sys",
-            "-ex", f"file {self.exe_path}",
-            "-ex", f"target remote :{port}",
-            "-ex", "b _start",
-            "-ex", "c",
-            "-ex", "d 1"
+            "--interpreter=mi2"
         ]
 
         self.program = subprocess.Popen(
@@ -54,26 +47,10 @@ class UserProcess:
         if self.gdb is None:
             raise RuntimeError(f"Failed to execute GDB command {command!r}: no debugger attached")
 
-        code = f"""
-try:
-    result = gdb.execute({command!r}, False, True)
-    print(repr(result), file=sys.stderr)
-except Exception as e:
-    print(repr(e), file=sys.stderr)
-"""
-
-        self.gdb.stdin.write(f"python exec({code!r})".encode())
-        self.gdb.stdin.flush()
-        response = self.gdb.stderr.readline().decode()
-        response = ast.literal_eval(response)
-        if isinstance(response, Exception):
-            raise response
-        return response
-
     def terminate(self):
         if self.gdb is not None:
-            self.gdb.stdin.write(b"q\n")
-            self.gdb.stdin.close()
+            self.gdb_command("-exec-abort")
+            self.gdb_command("-gdb-exit")
         elif self.program is not None:
             self.program.send_signal(signal.SIGKILL)
         self.gdb = None
