@@ -1,4 +1,4 @@
-flask==1.1.2
+flask==2.0.2
 flask-mongoengine==1.0.0
 selenium==3.141.0
 flask-security==3.0.0

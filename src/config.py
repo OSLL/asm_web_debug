@@ -1,7 +1,6 @@
 from os import environ as os_environ
 
 from app.core.lti_core.lti_utils import parse_consumer_info
-from app.core.utils.debug_commands import DebugCommands
 
 
 class Config(object):
@@ -12,7 +11,6 @@ class Config(object):
     CODES_FOLDER = "../codes/"
     ENVIRONMENT_FOLDER = "../environment"
     BUILD_FILE = "../DEBUG"
-    DEBUG_COMMANDS = DebugCommands
     MONGODB_SETTINGS = {"db": "database", "host": "127.0.0.1", "port": 27017}
     SECRET_KEY = ""
     DEBUG = True

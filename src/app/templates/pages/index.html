@@ -33,12 +33,12 @@
                     <option value="{{arch}}">{{arch}}</option>
                 {% endfor %}
             </select>
-            <input type="button" id="Run" class="btn btn-outline-success" name="Run" value="Run"/> 
-            <input type="button" id="Debug" class="btn btn-outline-warning" name="Debug" value="Debug" debug_code="{{config['DEBUG_COMMANDS'].START_DEBUG.value}}"/>
-            <input type="button" id="Continue" class="btn btn-outline-info" name="Continue" value="Continue" debug_code="{{config['DEBUG_COMMANDS'].CONTINUE.value}}" />
-            <input type="button" id="Step_into" class="btn btn-outline-info" name="Step into" value="Step into" debug_code="{{config['DEBUG_COMMANDS'].STEP_INTO.value}}"/>
-            <input type="button" id="Step_over" class="btn btn-outline-info" name="Step over" value="Step over" debug_code="{{config['DEBUG_COMMANDS'].STEP_OVER.value}}"/>
-            <input type="button" id="Step_out" class="btn btn-outline-info" name="Step out" value="Step out" debug_code="{{config['DEBUG_COMMANDS'].STEP_OUT.value}}"/>
+            <button id="button_run" class="btn btn-outline-success">Run</button>
+            <button id="button_debug" class="btn btn-outline-warning">Debug</button>
+            <button id="button_continue" class="btn btn-outline-info">Continue</button>
+            <button id="button_step_into" class="btn btn-outline-info">Step into</button>
+            <button id="button_step_over" class="btn btn-outline-info">Step over</button>
+            <button id="button_step_out" class="btn btn-outline-info">Step out</button>
             <br><br>
                 
             <form><textarea id='code' class='code' >{{ code['code'] }}</textarea></form>
@@ -95,5 +95,4 @@
 
     <script src="{{ url_for("static", filename="js/index.js") }}"></script>
     <script src="{{ url_for("static", filename="js/build_log.js") }}"></script>
-    <script src="{{ url_for("static", filename="js/editor.js") }}"></script>
 {% endblock %}

@@ -2,9 +2,39 @@ $(function() {
     let hash_saved_code = "";
     let code_id = get_code_id();
 
+    let cm = CodeMirror.fromTextArea(document.getElementById("code"), {
+        lineNumbers: true,
+        mode: "gas",
+        viewportMargin: Infinity,
+        gutters: ["CodeMirror-linenumbers", "breakpoints"],
+        theme: "eclipse",
+        lineWrapping: true
+    });
+
+    cm.on("gutterClick", (_, n) => {
+        let info = cm.lineInfo(n);
+        let breakpoint = info.gutterMarkers ? null : makeMarker();
+        cm.setGutterMarker(n, "breakpoints", breakpoint);
+    });
+
+    cm.getGutterElement().style['width'] = '45px';
+    cm.getGutterElement().style['text-align'] = 'right';
+    cm.setSize('100%', 'auto');
+    cm.getScrollerElement().style.minHeight = '400px';
+    cm.refresh();
+
     test_table_create(); // test table creation for registers an stacks
     setup_button_handle(); // setup button handling
     capture_hotkey(); // setup capturing browser hotkyes
+
+    function makeMarker() {
+        let marker = document.createElement("div");
+        marker.style.color = "#822";
+        marker.style.position = "absolute";
+        marker.style.left = "-40px";
+        marker.innerHTML = "●";
+        return marker;
+    }
 
     function test_table_create() {
         let reg = document.querySelector('#register_body');
@@ -69,7 +99,7 @@ $(function() {
                 } else
                     hash_saved_code = hash
 
-                let [code, breakpoints] = get_code_and_breakpoints()
+                let [code, breakpoints] = getCodeAndBreakpoints()
 
                 $.ajax({
                     url: '/save/' + code_id,
@@ -96,7 +126,7 @@ $(function() {
         });
     }
 
-    function get_code_and_breakpoints() {
+    function getCodeAndBreakpoints() {
         let editor = $('.CodeMirror')[0].CodeMirror;
         let breakpoints = [];
         let lines = editor.lineCount();
@@ -113,7 +143,7 @@ $(function() {
     function setup_button_handle() {
         // compile button
         $("#Compile").click(function(e) {
-            let [code, breakpoints] = get_code_and_breakpoints()
+            let [code, breakpoints] = getCodeAndBreakpoints()
             success_alert("<span class='spinner-border spinner-border-sm'></span> Компиляция...", 30000)
 
             $.ajax({
@@ -143,8 +173,8 @@ $(function() {
         });
 
         // run-button
-        $('#Run').click(function(e) {
-            let [code, breakpoints] = get_code_and_breakpoints()
+        $('#button_run').click(function(e) {
+            let [code, breakpoints] = getCodeAndBreakpoints()
             success_alert(`<span class='spinner-border spinner-border-sm'></span> Запуск... ${Date()}`, delay = 0)
 
             $.ajax({
@@ -176,7 +206,7 @@ $(function() {
         });
 
         // debug-button
-        setup_debug_button_handle()
+        setupDebugButtonHandle()
 
         // hexview button
         $("#HexView").click(function(e) {
@@ -203,33 +233,49 @@ $(function() {
         });
     }
 
-    function setup_debug_button_handle() {
-        $("#Debug").click(function(e) {
-            send_debug_command(e.target)
+    function setupDebugButtonHandle() {
+        $("#button_debug").click(function(e) {
+            let [code, breakpoints] = getCodeAndBreakpoints();
+
+            debugCommand({
+                "command": "start",
+                "code": code,
+                "breakpoints": breakpoints
+            });
         });
-        $("#Continue").click(function(e) {
-            send_debug_command(e.target)
+
+        $("#button_continue").click(function(e) {
+            debugCommand({
+                "command": "continue"
+            });
         });
-        $("#Step_into").click(function(e) {
-            send_debug_command(e.target)
+
+        $("#button_step_into").click(function(e) {
+            debugCommand({
+                "command": "step_into"
+            });
         });
-        $("#Step_over").click(function(e) {
-            send_debug_command(e.target)
+
+        $("#button_step_over").click(function(e) {
+            debugCommand({
+                "command": "step_over"
+            });
         });
-        $("#Step_out").click(function(e) {
-            send_debug_command(e.target)
+
+        $("#button_step_out").click(function(e) {
+            debugCommand({
+                "command": "step_out"
+            });
         });
     }
 
 
-    function send_debug_command(button) {
+    function debugCommand(data) {
         $.ajax({
             url: '/debug/' + code_id,
             type: 'POST',
-            contenType: 'application/json',
-            data: {
-                'debug_command': button.getAttribute('debug_code')
-            },
+            contentType: 'application/json',
+            data: data,
             success: function(response) {
                 console.log(response);
             },
@@ -241,12 +287,12 @@ $(function() {
 
 
     function calc_hash_code() {
-        return $.MD5(JSON.stringify(get_code_and_breakpoints()))
+        return $.MD5(JSON.stringify(getCodeAndBreakpoints()))
     }
 
     function check_hash_code(hash) {
         let new_hash = calc_hash_code()
-        if (hash != new_hash)
+        if (hash !== new_hash)
             return [false, new_hash]
         else
             return [true, new_hash]

@@ -16,7 +16,6 @@ from app.core.db.manager import DBManager
 from app.core.db.utils import code_to_dict
 from app.core.process_manager import UserProcess
 from app.core.source_manager import SourceManager as sm
-from app.core.utils.debug_commands import DebugCommands
 from app.core.utils.hex import hexdump
 from app.response import Response
 
@@ -145,8 +144,4 @@ def hexview(code_id):
 
 @bp.route("/debug/<code_id>", methods=["POST"])
 def debug(code_id):
-    command = request.form.get("debug_command", "")
-    for e in DebugCommands:
-        if command == e.value:
-            return e.name + " " + str(code_id)
-    return f"No debug such debug command: {command}", 404
+    return "Not implemented", 404
