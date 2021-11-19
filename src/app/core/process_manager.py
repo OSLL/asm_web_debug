@@ -1,7 +1,13 @@
-import signal
-import subprocess
+import asyncio
 import uuid
 from flask import current_app
+
+import app.core.utils.gdbmi as gdbmi
+
+
+class ProcessManager:
+    def __init__(self):
+        self.processes = {}
 
 
 class UserProcess:
@@ -11,8 +17,11 @@ class UserProcess:
         self.uuid = uuid.uuid4()
         self.gdb = None
         self.program = None
+        self.requests = asyncio.Queue()
+        self.responses = asyncio.Queue()
+        self.events = asyncio.Queue()
 
-    def start_with_debugger(self):
+    async def start_with_debugger(self):
         arch_cfg = current_app.config["ARCHS"][self.arch]
         port = "31415"  # TODO: pick properly
 
@@ -29,29 +38,34 @@ class UserProcess:
             "--interpreter=mi2"
         ]
 
-        self.program = subprocess.Popen(
-            qemu_cmd,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
+        self.program = await asyncio.subprocess.create_subprocess_exec(*qemu_cmd)
+        self.gdb = await asyncio.subprocess.create_subprocess_exec(*gdb_cmd)
 
-        self.gdb = subprocess.Popen(
-            gdb_cmd,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
+    async def gdb_interactor(self):
+        while self.gdb is not None:
+            line = await self.gdb.stdout.readline()
+            if not line:
+                break
+            gdb_response = gdbmi.parse_gdb_response(line.decode())
+            print(gdb_response)
+            if gdb_response is gdbmi.Result:
+                await self.responses.put(gdb_response)
+            else:
+                await self.events.put(gdb_response)
 
-    def gdb_command(self, command):
+    async def gdb_command(self, command):
         if self.gdb is None:
             raise RuntimeError(f"Failed to execute GDB command {command!r}: no debugger attached")
 
-    def terminate(self):
+        await self.requests.put(command)
+        return await self.responses.get()
+
+    async def terminate(self):
         if self.gdb is not None:
-            self.gdb_command("-exec-abort")
-            self.gdb_command("-gdb-exit")
+            await self.gdb_command("-gdb-exit")
+            await self.gdb.wait()
         elif self.program is not None:
-            self.program.send_signal(signal.SIGKILL)
+            await self.program.kill()
+
         self.gdb = None
         self.program = None
