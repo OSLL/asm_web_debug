@@ -4,3 +4,5 @@ geckodriver*
 codes/*
 DEBUG
 .env
+node_modules
+build

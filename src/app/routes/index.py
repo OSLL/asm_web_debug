@@ -11,7 +11,7 @@ from uuid import uuid4
 import os
 import subprocess
 
-from app.core.asmanager import ASManager
+from app.core.compile_manager import CompileManager
 from app.core.db.manager import DBManager
 from app.core.db.utils import code_to_dict
 from app.core.process_manager import UserProcess
@@ -79,7 +79,7 @@ def compile(code_id):
         app.logger.error(e)
 
     # Compiling code from file into file with same name (see ASManager.compile())
-    as_flag, as_logs_stderr, as_logs_stdout = ASManager.compile(
+    as_flag, as_logs_stderr, as_logs_stdout = CompileManager.compile(
         sm.get_code_file_path(code_id), arch
     )
     as_logs = as_logs_stderr + as_logs_stdout
@@ -140,8 +140,3 @@ def hexview(code_id):
             )
         else:
             return "No such code_id", 404
-
-
-@bp.route("/debug/<code_id>", methods=["POST"])
-def debug(code_id):
-    return "Not implemented", 404

@@ -1,32 +1,24 @@
-from flask import Blueprint, render_template, current_app
-from os.path import isfile
-from json import dumps as json_dumps
+import contextlib
 
-debug_bp = Blueprint("debug", __name__)
-bp = debug_bp
+from quart import websocket, Blueprint, current_app
 
+from app.core.process_manager import ProcessManager
 
-@bp.route("/build", methods=["GET"])
-def debug_page():
-    return render_template(
-        "pages/build_info.html",
-        build_info=load_debug_file(current_app.config["BUILD_FILE"]),
-    )
+bp = Blueprint("debug", __name__)
 
 
-def load_debug_file(path):
-    def parse_debug_file(str_list):
-        config = {}
-        for string in str_list:
-            current_app.logger.error(string)
-            key, value = string.strip().split("=", 1)
-            config[key] = value
-        return config
+@bp.websocket("/ws")
+async def debug_ws():
+    process = None
+    with contextlib.AsyncExitStack() as cleanup:
+        async def _do_cleanup():
+            if process is not None:
+                await process.aclose()
+        cleanup.push_async_callback(_do_cleanup)
 
-    if isfile(path):
-        with open(path, "r") as file:
-            return json_dumps(
-                parse_debug_file(file.readlines()), sort_keys=True, indent=4
-            )
-    else:
-        return "No debug file"
+        while True:
+            data = await websocket.receive_json()
+            if data["cmd"] == "start_debug":
+                assert data["arch"] in current_app.config["ARCHS"]
+                assert data["src"] is str
+                process = ProcessManager.start_debugging(data["src"], data["arch"])

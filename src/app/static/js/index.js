@@ -1,4 +1,9 @@
 $(function() {
+    let ws = new WebSocket(
+        ((window.location.protocol === "https:") ? "wss://" : "ws://")
+        + window.location.host + "/debug/ws"
+    );
+
     let hash_saved_code = "";
     let code_id = get_code_id();
 
@@ -238,8 +243,9 @@ $(function() {
             let [code, breakpoints] = getCodeAndBreakpoints();
 
             debugCommand({
-                "command": "start",
-                "code": code,
+                "cmd": "start_debug",
+                "src": code,
+                "arch": "x86_64",
                 "breakpoints": breakpoints
             });
         });
@@ -271,18 +277,7 @@ $(function() {
 
 
     function debugCommand(data) {
-        $.ajax({
-            url: '/debug/' + code_id,
-            type: 'POST',
-            contentType: 'application/json',
-            data: data,
-            success: function(response) {
-                console.log(response);
-            },
-            error: function(response) {
-                console.log(response);
-            },
-        });
+        ws.send(data);
     }
 
 

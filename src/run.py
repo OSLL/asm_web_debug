@@ -1,15 +1,16 @@
-from flask import Flask, flash, abort
+import quart.flask_patch
+from quart import Quart
+from flask import abort
 import flask_login
 from flask_mongoengine import MongoEngine
 from flask_security import Security, MongoEngineUserDatastore
 import os
 
 from app.core.db.desc import Role, User
-from app.core.db.manager import DBManager
 from app.core.logging.log_settings import logging_init
 from app.core.lti_core.lti_utils import create_consumers
 from app.core.source_manager import SourceManager
-from app.routes.debug import debug_bp
+from app.routes.debug import bp as debug_bp
 from app.routes.index import index_bp
 from app.routes.logs import log_bp
 from app.routes.lti import lti_bp
@@ -18,13 +19,13 @@ from config import ConfigManager
 
 
 def create_app():
-    app = Flask(__name__)
+    app = Quart(__name__)
 
     # register blueprints
+    app.register_blueprint(debug_bp)
     app.register_blueprint(index_bp)
     app.register_blueprint(log_bp)
     app.register_blueprint(lti_bp)
-    app.register_blueprint(debug_bp)
     app.register_blueprint(welcome_bp)
 
     # load config
