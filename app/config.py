@@ -7,8 +7,8 @@ from app.core.utils.debug_commands import DebugCommands
 class Config(object):
     HOST = '0.0.0.0'
     PORT = '5000'
-    TEMPLATE_FOLDER ='app/templates'
-    STATIC_FOLDER = 'app/static'
+    TEMPLATE_FOLDER = 'templates'
+    STATIC_FOLDER = 'static'
     CODES_FOLDER = '../codes/'
     ENVIRONMENT_FOLDER = '../environment'
     BUILD_FILE = '../DEBUG'

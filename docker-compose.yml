@@ -3,7 +3,8 @@ version: '2'
 services:
   web:
     build: .
-    restart: always
+    volumes:
+      - ./:/code
     ports:
       - "5100:5000"
     depends_on:
