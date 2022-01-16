@@ -6,3 +6,4 @@ DEBUG
 .env
 .venv
 .vscode
+.mongo_data

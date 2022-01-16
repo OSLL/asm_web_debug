@@ -45,6 +45,7 @@ class DeployConfig(Config):
         'port': 27017
     }
     DEBUG = False
+    PORT = '80'
 
 
 class TestConfig(DeployConfig):
