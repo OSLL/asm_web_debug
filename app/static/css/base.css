@@ -52,3 +52,18 @@
     border: 1px solid #eee;
     word-wrap: break-word;
 }
+
+.build_log {
+    width: 100%;
+    font-family: monospace;
+}
+
+.active-line {
+    background-color: #bcf;
+}
+
+.edit-register {
+    cursor: pointer;
+    color: #00c;
+    text-decoration: underline;
+}

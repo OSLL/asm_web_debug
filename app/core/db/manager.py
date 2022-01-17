@@ -21,7 +21,7 @@ class DBManager:
      
     @staticmethod
     def create_code(code_id, source_code, breakpoints, arch):
-    	#breakpoints accepted as request.form.get('breakpoints') 
+        #breakpoints accepted as request.form.get('breakpoints') 
         b_p = json.loads(breakpoints)
         code_obj = Codes.objects(_id=code_id).first()
         if code_obj:
@@ -36,7 +36,7 @@ class DBManager:
 
     @staticmethod
     def get_codes_older_than(days):
-    	return Codes.objects(created__lte=(datetime.datetime.now()-datetime.timedelta(days=days))).to_json()
+        return Codes.objects(created__lte=(datetime.datetime.now()-datetime.timedelta(days=days))).to_json()
 
     #### log ####
 

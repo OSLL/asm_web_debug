@@ -5,6 +5,7 @@ services:
     build:
       context: ".."
       dockerfile: docker/web.dockerfile
+    restart: always
     volumes:
       - ../:/code:ro
     depends_on:

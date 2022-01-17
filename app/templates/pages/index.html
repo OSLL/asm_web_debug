@@ -8,9 +8,10 @@
 {% endblock %}
 
 {% block content %}
+<!-- {{ code|safe }} -->
     {% set code = code or dict(code='', arch='x86_64', breakpoints=[]) %}
     <div id='task_info_div' style="float: left; width: 60%;">
-        <p>Some info about task. Probably, it can be condition.</p>
+        <p>TODO: problem statement</p>
         <div style="display: block; float: right;">
         	<input type="button" class="btn btn-info" name="Check" value="Check" onclick="buttonClick(this)" />
         	<input type="button" class="btn btn-success" name="My solutions" value="My solutions" onclick="buttonClick(this)" />
@@ -18,10 +19,8 @@
     </div>
 
     <div id='main_div'>
-
         <div id='left_main_div' style="float: left; width: 78%;">
-
-        	<hr></hr>
+        	<hr />
             <div id="lastSave">
                 {% if 'last_update' in code %}
                     {% set time = code['last_update'] %}
@@ -39,12 +38,7 @@
                     <option value={{arch}}>{{arch}}</option>
                 {% endfor %}
             </select>
-            <input type="button" id="Run" class="btn btn-outline-success" name="Run" value="Run"/> 
-            <input type="button" id="Debug" class="btn btn-outline-warning" name="Debug" value="Debug" debug_code="{{config['DEBUG_COMMANDS'].START_DEBUG.value}}"/>
-            <input type="button" id="Continue" class="btn btn-outline-info" name="Continue" value="Continue" debug_code="{{config['DEBUG_COMMANDS'].CONTINUE.value}}" />
-            <input type="button" id="Step_into" class="btn btn-outline-info" name="Step into" value="Step into" debug_code="{{config['DEBUG_COMMANDS'].STEP_INTO.value}}"/>
-            <input type="button" id="Step_over" class="btn btn-outline-info" name="Step over" value="Step over" debug_code="{{config['DEBUG_COMMANDS'].STEP_OVER.value}}"/>
-            <input type="button" id="Step_out" class="btn btn-outline-info" name="Step out" value="Step out" debug_code="{{config['DEBUG_COMMANDS'].STEP_OUT.value}}"/>
+            <div id="debug-buttons"></div>
             <br><br>
                 
             <form><textarea id='code' class='code' >{{ code['code'] }}</textarea></form>
@@ -53,8 +47,7 @@
             <input type="button" id="Compile" class="btn btn-outline-secondary" name="Compile" value="Compile"/>
             <br><br>
             
-            <textarea id='build_log' class='build_log' readonly>Some error output.</textarea>
-
+            <textarea id='build_log' class='build_log' readonly></textarea>
         </div>
 
         <div id='right_main_div' style="float: right; width: 20%;">
@@ -63,8 +56,6 @@
                 <table id='register_table' class="table index_table">
                     <thead>
                         <tr>
-                            <td>Register</td>
-                            <td>Value</td>
                             <td>Register</td>
                             <td>Value</td>
                         </tr>
@@ -99,7 +90,5 @@
     <script src="static/js/libs/shell.min.js"></script>
     <script src="static/js/libs/jquery.md5.min.js"></script>
 
-    <script src="static/js/index.js"></script>
-    <script src="static/js/build_log.js"></script>
-    <script src="static/js/editor.js"></script>
+    <script src="static/js/ide.js"></script>
 {% endblock %}

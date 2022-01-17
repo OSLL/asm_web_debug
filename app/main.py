@@ -7,7 +7,6 @@ import os
 from app.core.db.desc import Role, User
 from app.core.logging.log_settings import logging_init
 from app.core.lti_core.lti_utils import create_consumers
-from app.core.source_manager import SourceManager
 from app.routes.debug import debug_bp
 from app.routes.index import index_bp
 from app.routes.logs import log_bp
@@ -61,9 +60,6 @@ def create_app():
 
 
 def run_app(app):
-    # init SourceManager 
-    SourceManager.init(app.config['CODES_FOLDER'])
-    
     # init logging
     logging_init(app)
 
