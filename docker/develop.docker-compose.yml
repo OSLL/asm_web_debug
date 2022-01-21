@@ -25,7 +25,7 @@ services:
       context: ".."
       dockerfile: docker/nginx.dockerfile
     ports:
-      - 8080:80
+      - 5100:80
     depends_on:
       - web
       - runner

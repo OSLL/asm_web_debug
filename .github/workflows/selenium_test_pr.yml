@@ -17,9 +17,9 @@ jobs:
       - name: Create .env
         run: echo "AWI_SECRET_KEY=secret_key" > .env
       - name: Build docker
-        run: docker-compose build --build-arg RUNMODE=test
+        run: docker-compose -f docker/develop.docker-compose.yml -p asm_web_debug build --build-arg RUNMODE=test
       - name: Run docker
-        run: docker-compose up -d
+        run: docker-compose -f docker/develop.docker-compose.yml -p asm_web_debug up -d
       - name: Check service port 
         run: nc -vz localhost 5100
       - name: Run tests

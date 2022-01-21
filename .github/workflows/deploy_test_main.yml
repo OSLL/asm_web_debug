@@ -17,13 +17,13 @@ jobs:
           sudo sh ./scripts/setup_apache_config.sh asm.moevm.info.conf
 
           # build test images
-          docker-compose --project-name asmtestbuild build
+          #docker-compose --project-name asmtestbuild build
           # stop and remove current containers/images
-          docker-compose down --rmi local
+          #docker-compose down --rmi local
           # rename images if ok
-          docker image tag asmtestbuild_web:latest asm_web_debug_web:latest
+          #docker image tag asmtestbuild_web:latest asm_web_debug_web:latest
 
-          docker-compose up -d
+          docker-compose -f docker/develop.docker-compose.yml -p asm_web_debug up --build
       - name: Change hosts
         run: sudo echo "127.0.0.1 asm.moevm.info" | sudo tee -a /etc/hosts
       - name: Sleep for 10s
