@@ -23,7 +23,7 @@ jobs:
           # rename images if ok
           #docker image tag asmtestbuild_web:latest asm_web_debug_web:latest
 
-          docker-compose -f docker/develop.docker-compose.yml -p asm_web_debug up --build
+          docker-compose -f docker/develop.docker-compose.yml -p asm_web_debug up --build -d
       - name: Change hosts
         run: sudo echo "127.0.0.1 asm.moevm.info" | sudo tee -a /etc/hosts
       - name: Sleep for 10s
