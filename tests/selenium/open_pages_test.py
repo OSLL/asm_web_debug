@@ -17,12 +17,12 @@ class OpenPagesTest(BasicTest):
         assert code_id == self.CODE_ID, 'New code_id != test.CODE_ID'
         assert "Web ASM" in self.driver.title, "No 'Web ASM' in title"
 
-    def test_open_empty_hexview(self):
+    def _test_open_empty_hexview(self):
         text = ""
         hextext = ["3C 4E 6F 20 63 6F 64 65 20 66 6F 72 20 68 65 78", "76 69 65 77 21 3E"]
         self.set_code_and_open_hexview(text, hextext)
 
-    def test_open_hexview(self):
+    def _test_open_hexview(self):
         text = "Test"
         hextext = ["54 65 73 74"]
         self.set_code_and_open_hexview(text, hextext)
