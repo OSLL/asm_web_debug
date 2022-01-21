@@ -14,7 +14,7 @@ jobs:
           python-version: '3.10'
       - name: Install requirements
         run: |
-          python3.10 -m pip install poetry
+          python3.10 -m pip install poetry selenium
           poetry install --no-interaction --no-ansi
       - name: Create .env
         run: echo "AWI_SECRET_KEY=secret_key" > .env
