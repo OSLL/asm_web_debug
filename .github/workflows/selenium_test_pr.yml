@@ -26,7 +26,7 @@ jobs:
         run: nc -vz localhost 5100
       - name: Run tests
         run: |
-          cd src/tests/selenium
+          cd tests/selenium
           PATH=/$PATH xvfb-run python3.10 main.py http://127.0.0.1:5100
       - name: Check logs 
         run: docker-compose -f docker/develop.docker-compose.yml logs
