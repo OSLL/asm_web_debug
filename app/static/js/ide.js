@@ -47,6 +47,14 @@
         }
     });
 
+    function showAlert(content, kind) {
+        const $alert = $("#ajax-alert");
+        $alert.html(content);
+        $alert.show();
+        $alert.removeClass().addClass(`alert alert-${kind}`);
+        $alert.delay(3000).fadeOut();
+    }
+
     function initEditor() {
         codeMirror = CodeMirror.fromTextArea($("#code")[0], {
             lineNumbers: true,
@@ -157,7 +165,7 @@
                 arch: $("#arch_select").val()
             },
             success: () => {
-                console.log("saved");
+                showAlert("Source code was saved", "success");
             }
         })
     }
@@ -183,6 +191,7 @@
             if (!msg.successful) {
                 $output.val(msg.stderr);
                 setState(State.stopped);
+                showAlert("Compilation failed", "danger");
             }
         } else if (msg.type === "registers") {
             $registerTable.html("");
@@ -207,6 +216,21 @@
         } else if (msg.type === "output") {
             $output.val($output.val() + msg.data);
         }
+    });
+
+    $("#hex-view").on("click", () => {
+        const $form = $("#hidden_form");
+        $form.trigger("reset");
+        $form.attr("method", "POST");
+        $form.attr("action", `/hexview/${codeId}`);
+        $form.attr("target", "_blank");
+
+        const $input = $("#hidden_textarea");
+        $input.attr("type", "text");
+        $input.attr("name", "hexview");
+        $input.val(doc.getValue());
+
+        $form.submit();
     });
 
     initEditor();
