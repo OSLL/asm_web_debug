@@ -3,7 +3,7 @@
 # Run
 - Bash
 ```
-./run_develop.sh
+./manage.py --port 8080
 ```
 Will run in development mode with live reload enabled on port 8080.
 

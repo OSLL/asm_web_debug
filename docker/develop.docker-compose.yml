@@ -25,7 +25,7 @@ services:
       context: ".."
       dockerfile: docker/nginx.dockerfile
     ports:
-      - 8080:80
+      - "${APP_PORT}:80"
     depends_on:
       - web
       - runner
@@ -36,4 +36,7 @@ services:
     image: "mongo:4.4.4-bionic"
     restart: always
     volumes:
-      - ../.mongo_data:/data
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:

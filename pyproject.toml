@@ -14,6 +14,7 @@ lti = "^0.9.5"
 aiohttp = {extras = ["speedups"], version = "^3.8.1"}
 
 [tool.poetry.dev-dependencies]
+selenium = "^4.1.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
