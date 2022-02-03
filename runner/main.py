@@ -5,6 +5,7 @@ from aiohttp import web, WSCloseCode
 
 from runner.routes import setup_routes
 from runner.settings import config
+import runner.checkers # register all checkers
 
 
 async def on_shutdown(app):

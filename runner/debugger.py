@@ -1,3 +1,4 @@
+import logging
 from runner import gdbmi
 
 from typing import Optional, AsyncIterator
@@ -51,6 +52,7 @@ class Debugger:
             gdb_response = gdbmi.parse_gdb_response(line.decode())
             if gdb_response is None:
                 continue
+            logging.debug(gdb_response)
 
             if type(gdb_response) is gdbmi.ExecAsync:
                 self.inferior_running = gdb_response.status == "running"
@@ -78,8 +80,8 @@ class Debugger:
 
         self.gdb_interrupt()
         self.gdb.stdin.write("-gdb-exit\n".encode())
+        self.inferior_output_task.cancel()
         await self.interactor_task
-        await self.inferior_output_task
         await self.gdb.wait()
         self.gdb = None
         self.interactor_task = None
@@ -87,7 +89,8 @@ class Debugger:
     def gdb_interrupt(self):
         self.gdb.send_signal(signal.SIGINT)
 
-    async def gdb_command(self, cmd) -> dict:
+    async def gdb_command(self, cmd: str) -> dict:
+        logging.debug(cmd)
         if self.inferior_running:
             need_resume = True
             self.gdb_interrupt()

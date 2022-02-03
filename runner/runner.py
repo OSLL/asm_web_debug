@@ -1,10 +1,11 @@
 import asyncio.subprocess
+import binascii
+from dataclasses import dataclass
 import pathlib
 import shutil
-import signal
 import tempfile
 from collections import namedtuple
-from typing import Dict, Iterable, List, Optional, TypeAlias
+from typing import Any, Dict, Iterable, List, Optional, Tuple, TypeAlias
 
 from runner import gdbmi
 from runner.debugger import Debugger
@@ -28,6 +29,7 @@ class RunningProgram:
         self.arch = arch
         self.debugger = Debugger()
         self.reg_name_to_id = None
+        self.set_stdin("")
 
     @property
     def source_path(self) -> pathlib.Path:
@@ -41,7 +43,7 @@ class RunningProgram:
     def stdin_path(self) -> pathlib.Path:
         return self.workdir / "input"
 
-    async def compile(self, source_code):
+    async def compile(self, source_code) -> CompilationResult:
         with open(self.source_path, "w") as f:
             f.write(source_code)
 
@@ -91,8 +93,12 @@ class RunningProgram:
     async def start_program(self) -> None:
         await self.debugger.gdb_command(f"-exec-run")
 
-    async def add_breakpoint(self, line: int) -> BreakpointId:
-        result = await self.debugger.gdb_command(f"-break-insert --source {self.source_path} --line {line}")
+    async def add_breakpoint(self, line_or_function: int | str) -> BreakpointId:
+        if type(line_or_function) is int:
+            cmd = f"-break-insert --source {self.source_path} --line {line_or_function}"
+        else:
+            cmd = f"-break-insert --source {self.source_path} --function {line_or_function}"
+        result = await self.debugger.gdb_command(cmd)
         return int(result["bkpt"]["number"])
 
     async def remove_breakpoint(self, breakpoint_id: BreakpointId) -> None:
@@ -101,7 +107,7 @@ class RunningProgram:
     async def set_register_value(self, reg: RegisterName, value: str) -> None:
         await self.debugger.gdb_command(f"-gdb-set ${reg}={value}")
 
-    async def get_register_values(self, regs: Iterable[RegisterName]) -> Dict[RegisterName, str]:
+    async def get_register_values(self, regs: Iterable[RegisterName]) -> List[Tuple[RegisterName, str]]:
         if self.reg_name_to_id is None:
             result = await self.debugger.gdb_command("-data-list-register-names")
             self.reg_name_to_id = {}
@@ -115,14 +121,24 @@ class RunningProgram:
         result = await self.debugger.gdb_command(f"-data-list-register-values N {' '.join(map(str, reg_ids))}")
         reg_mapping = []
         for val, reg in zip(result["register-values"], regs):
-            reg_mapping.append([reg, val["value"]])
+            reg_mapping.append((reg, val["value"]))
         return reg_mapping
 
     async def get_register_value(self, reg: RegisterName) -> str:
         vals = await self.get_register_values([reg])
-        if reg not in vals:
+        if not vals:
             raise ValueError(f"Invalid register: {reg}")
-        return vals[reg]
+        return vals[0][1]
+
+    async def write_memory_region(self, addr: Any, data: bytes, count: Optional[int] = None) -> None:
+        await self.debugger.gdb_command(f"-data-write-memory-bytes {addr} {binascii.hexlify(data).decode()} {count if count is not None else ''}")
+
+    async def read_memory_region(self, addr: Any, count: int) -> bytes:
+        gdb_response = await self.debugger.gdb_command(f"-data-read-memory-bytes {addr} {count}")
+        result = b""
+        for chunk in gdb_response["memory"]:
+            result += binascii.unhexlify(chunk["contents"])
+        return result
 
     async def interrupt_execution(self) -> None:
         self.debugger.gdb_interrupt()
@@ -138,3 +154,20 @@ class RunningProgram:
 
     async def step_out(self) -> None:
         await self.debugger.gdb_command("-exec-finish")
+
+    async def wait_until_stopped(self) -> Optional[gdbmi.ExecAsync]:
+        async for event in self.debugger.gdb_notifications_iterator():
+            if type(event) is gdbmi.ExecAsync and event.status == "stopped":
+                return event
+
+    async def continue_until(self, line_or_function: int | str) -> None:
+        breakpoint_id = await self.add_breakpoint(line_or_function)
+        while True:
+            await self.continue_execution()
+            event = await self.wait_until_stopped()
+            if event is None:
+                return
+
+            if event.values["reason"] == "breakpoint-hit" and event.values["bkptno"] == str(breakpoint_id):
+                break
+        await self.remove_breakpoint(breakpoint_id)
