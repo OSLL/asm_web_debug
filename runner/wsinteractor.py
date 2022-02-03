@@ -1,12 +1,13 @@
 import asyncio
-import base64
 import json
-from typing import Optional, List
+from typing import Dict, Optional, List
 
 from aiohttp import web, WSMsgType
 
 from runner import gdbmi
-from runner.runner import RunningProgram
+from runner.debugger import DebuggerError
+from runner.runner import BreakpointId, RunningProgram
+from runner.settings import config
 
 
 async def run_interactor(ws: web.WebSocketResponse):
@@ -19,11 +20,13 @@ async def run_interactor(ws: web.WebSocketResponse):
 
 class WSInteractor:
     ws: web.WebSocketResponse
-    runner: Optional[RunningProgram]
+    running_program: Optional[RunningProgram]
+    breakpoints: Dict[int, BreakpointId]
 
     def __init__(self, ws: web.WebSocketResponse):
         self.ws = ws
-        self.runner = None
+        self.running_program = None
+        self.breakpoints = {}
 
     async def handle_incoming_messages(self):
         async for msg in self.ws:
@@ -32,17 +35,18 @@ class WSInteractor:
             try:
                 json_msg = json.loads(msg.data)
                 await self.handle_message(json_msg)
-            except ValueError as e:
+            except (ValueError, DebuggerError) as e:
                 await self.ws.send_json({
                     "type": "errror",
                     "message": str(e)
                 })
 
     async def start_program(self, source: str, stdin: str, breakpoints: List[int]):
-        if self.runner:
-            await self.runner.close()
-        self.runner = RunningProgram()
-        result = await self.runner.compile(source, "x86_64")
+        if self.running_program:
+            await self.running_program.close()
+        self.breakpoints = {}
+        self.running_program = RunningProgram("x86_64")
+        result = await self.running_program.compile(source)
         await self.ws.send_json({
             "type": "compilation_result",
             "successful": result.successful,
@@ -53,26 +57,23 @@ class WSInteractor:
         if not result.successful:
             return
 
-        self.runner.set_stdin(stdin)
-        await self.runner.start_gdb()
+        self.running_program.set_stdin(stdin)
+        await self.running_program.start_debugger()
         asyncio.create_task(self.handle_gdb_events())
-        asyncio.create_task(self.handle_program_output())
 
-        await self.runner.attach_program()
         for line in breakpoints:
-            await self.runner.add_breakpoint(line)
-        await self.runner.start_program()
+            self.breakpoints[line] = await self.running_program.add_breakpoint(line)
+
+        await self.running_program.start_program()
 
     async def terminate_program(self):
-        if self.runner:
-            await self.runner.close()
-            self.runner = None
-            await self.ws.send_json({
-                "type": "finished"
-            })
+        await self.close()
+        await self.ws.send_json({
+            "type": "finished"
+        })
 
     async def send_registers_state(self):
-        registers = await self.runner.get_register_values()
+        registers = await self.running_program.get_register_values(config.archs[self.running_program.arch].display_registers)
         await self.ws.send_json({
             "type": "registers",
             "data": registers
@@ -99,54 +100,58 @@ class WSInteractor:
                     raise ValueError("Expected 'breakpoints' contents to be ints")
             await self.start_program(source, stdin, breakpoints)
 
-        if not self.runner:
+        if not self.running_program:
             return
 
         if msg["type"] == "kill":
             await self.terminate_program()
 
         if msg["type"] == "continue":
-            await self.runner.gdb_command("-exec-continue")
+            await self.running_program.continue_execution()
 
         if msg["type"] == "pause":
-            self.runner.gdb_interrupt()
+            await self.running_program.interrupt_execution()
 
         if msg["type"] == "step_into":
-            await self.runner.gdb_command("-exec-next-instruction")
+            await self.running_program.step_into()
 
         if msg["type"] == "step_over":
-            await self.runner.gdb_command("-exec-step-instruction")
+            await self.running_program.step_over()
 
         if msg["type"] == "step_out":
-            await self.runner.gdb_command("-exec-finish")
+            await self.running_program.step_out()
 
         if msg["type"] == "add_breakpoint":
             line = msg.get("line")
             if type(line) is not int:
                 raise ValueError("Expected 'line' to be int")
-            await self.runner.add_breakpoint(line)
+            await self.running_program.add_breakpoint(line)
 
         if msg["type"] == "remove_breakpoint":
             line = msg.get("line")
             if type(line) is not int:
                 raise ValueError("Expected 'line' to be int")
-            await self.runner.remove_breakpoint(line)
+            if line not in self.breakpoints:
+                raise ValueError("Invalid breakpoint")
+            breakpoint_id = self.breakpoints[line]
+            del self.breakpoints[line]
+            await self.running_program.remove_breakpoint(breakpoint_id)
 
         if msg["type"] == "get_registers":
             await self.send_registers_state()
 
         if msg["type"] == "update_register":
             reg = msg.get("reg")
-            if type(reg) is not str:
-                raise ValueError("Expected 'reg' to be a string")
+            if reg not in config.archs[self.running_program.arch].display_registers:
+                raise ValueError("Expected 'reg' to be a valid register")
             value = msg.get("value")
             if type(value) is not str:
                 raise ValueError("Expected 'value' to be a string")
-            await self.runner.set_register_value(reg, value)
+            await self.running_program.set_register_value(reg, value)
             await self.send_registers_state()
 
     async def handle_gdb_events(self):
-        async for event in self.runner.gdb_events_iterator():
+        async for event in self.running_program.debugger.gdb_notifications_iterator():
             if type(event) is gdbmi.ExecAsync:
                 if event.status == "running":
                     await self.ws.send_json({
@@ -170,17 +175,16 @@ class WSInteractor:
                         "line": int(event.values["frame"]["line"])
                     })
 
-    async def handle_program_output(self):
-        async for output in self.runner.program_output_iterator():
-            await self.ws.send_json({
-                "type": "output",
-                "data": output
-            })
+            if type(event) is gdbmi.TargetOutput:
+                await self.ws.send_json({
+                    "type": "output",
+                    "data": event.line
+                })
 
     async def run(self):
         await self.handle_incoming_messages()
 
     async def close(self):
-        if self.runner:
-            await self.runner.close()
-            self.runner = None
+        if self.running_program:
+            await self.running_program.close()
+            self.running_program = None
