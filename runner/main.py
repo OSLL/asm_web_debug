@@ -23,8 +23,8 @@ def init_app() -> web.Application:
     return app
 
 
-def main():
-    logging.basicConfig(level=logging.DEBUG)
+def main() -> None:
+    logging.basicConfig(level=logging.os.environ.get('LOGLEVEL', 'INFO').upper())
 
     app = init_app()
     web.run_app(app, host=config.host, port=config.port)

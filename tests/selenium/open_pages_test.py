@@ -34,12 +34,12 @@ class OpenPagesTest(BasicTest):
 
     def set_code_and_open_hexview(self, text, hextext_list):
         self.open_code_page()
-        
+
         # send empty string to textarea
         self.set_code(text)
 
         # go to hexview
-        hexview_button = self.driver.find_element_by_id('HexView')
+        hexview_button = self.driver.find_element_by_id('hex-view')
         hexview_button.click()
 
         # set active tab to hexview
@@ -48,10 +48,9 @@ class OpenPagesTest(BasicTest):
         # check code_id in hex
         code_id = self.get_code_id_from_current_url()
         assert code_id == self.CODE_ID, 'Hexview code_id != test.CODE_ID'
-        
+
         assert all([text in self.driver.page_source for text in hextext_list]), f"No '{hextext_list}' in hexview"
 
         # set active tab to first tab
         self.driver.close()
         self.driver.switch_to.window(self.driver.window_handles[0])
-        

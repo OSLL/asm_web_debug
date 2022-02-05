@@ -5,9 +5,9 @@ services:
     build:
       context: ".."
       dockerfile: docker/web.dockerfile
+      args:
+        RUNMODE: deploy
     restart: always
-    volumes:
-      - ../:/code:ro
     depends_on:
       - mongo
     env_file:
@@ -17,10 +17,7 @@ services:
     build:
       context: ".."
       dockerfile: docker/runner.dockerfile
-    volumes:
-      - ../:/code:ro
-    environment:
-      - LOGLEVEL=DEBUG
+    restart: always
 
   nginx:
     build:
@@ -31,8 +28,7 @@ services:
     depends_on:
       - web
       - runner
-    volumes:
-      - ../app/static:/static:ro
+    restart: always
 
   mongo:
     image: "mongo:4.4.4-bionic"

@@ -9,3 +9,8 @@ bp = welcome_bp
 @bp.route('/welcome')
 def index():
     return render_template('pages/welcome.html')
+
+
+@bp.route("/_health")
+def health_check():
+    return "ok"

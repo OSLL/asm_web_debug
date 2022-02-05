@@ -2,10 +2,10 @@ name: Selenium Test on PR
 
 on: pull_request
 
-    
+
 jobs:
   test:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python 3.10
@@ -16,16 +16,9 @@ jobs:
         run: |
           python3 -m pip install poetry
           poetry install --no-interaction --no-ansi
-      - name: Create .env
-        run: echo "AWI_SECRET_KEY=secret_key" > .env
       - name: Run web server
-        run: ./manage.py runserver -d --port 5100
-      - name: Check service port 
-        run: nc -vz localhost 5100
+        run: ./manage.py run -d --port 5100
       - name: Run tests
         run: |
           cd tests/selenium
-          PATH=/$PATH xvfb-run poetry run python main.py http://127.0.0.1:5100
-      - name: Check logs 
-        run: docker-compose -f docker/develop.docker-compose.yml logs
-        if: always()
+          xvfb-run poetry run ./scripts/run_tests.sh

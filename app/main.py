@@ -1,8 +1,10 @@
+import os
+
 from flask import Flask, abort
 import flask_login
 from flask_mongoengine import MongoEngine
 from flask_security import Security, MongoEngineUserDatastore
-import os
+import waitress
 
 from app.core.db.desc import Role, User
 from app.core.logging.log_settings import logging_init
@@ -34,13 +36,13 @@ def create_app():
     app.static_folder = app.config['STATIC_FOLDER']
 
     db = MongoEngine(app)
-    app.user_datastore = MongoEngineUserDatastore(db, User, Role)    
+    app.user_datastore = MongoEngineUserDatastore(db, User, Role)
     app.security = Security(app, app.user_datastore)
     app.login_manager = flask_login.LoginManager(app)
-    
-    # TODO: do smth with role_requiered and etc 
+
+    # TODO: do smth with role_requiered and etc
     app.security.unauthorized_handler(lambda fn=None, params=None: abort(404))
-    
+
     @app.before_first_request
     def init_roles_and_user():
         if app.config['ANON_ACCESS']:
@@ -51,7 +53,7 @@ def create_app():
 
     @app.login_manager.user_loader
     def load_user(user_id):
-        try: 
+        try:
             return User.objects.get(_id=user_id)
         except User.DoesNotExist:
             return None
@@ -67,7 +69,10 @@ def run_app(app):
     create_consumers(app.config['LTI_CONSUMERS'])
 
     # run app
-    app.run(host=app.config['HOST'], port=app.config['PORT'])
+    if app.config["DEBUG"]:
+        app.run(host=app.config['HOST'], port=app.config['PORT'])
+    else:
+        waitress.serve(app, host=app.config['HOST'], port=app.config['PORT'])
 
 
 def main():

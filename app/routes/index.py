@@ -48,8 +48,9 @@ def save_code(code_id):
     arch =  request.form.get('arch', 'x86_64')
 
     DBManager.create_code(code_id=code_id, source_code=source_code, breakpoints=breakpoints, arch=arch)
-    
+
     return Response(success_save=True)
+
 
 @bp.route('/hexview/<code_id>', methods = ["GET", "POST"])
 def hexview(code_id):
