@@ -78,7 +78,6 @@ class Debugger:
         if self.gdb is None:
             return
 
-        self.gdb_interrupt()
         self.gdb.stdin.write("-gdb-exit\n".encode())
         self.inferior_output_task.cancel()
         await self.interactor_task
@@ -86,23 +85,11 @@ class Debugger:
         self.gdb = None
         self.interactor_task = None
 
-    def gdb_interrupt(self):
-        self.gdb.send_signal(signal.SIGINT)
-
     async def gdb_command(self, cmd: str) -> dict:
         logging.debug(cmd)
-        if self.inferior_running:
-            need_resume = True
-            self.gdb_interrupt()
-        else:
-            need_resume = False
 
         self.gdb.stdin.write(f"{cmd}\n".encode())
         result = await self.gdb_results.get()
-
-        if need_resume:
-            self.gdb.stdin.write("-exec-continue\n".encode())
-            await self.gdb_results.get()
 
         if result.status == "error":
             raise DebuggerError(result.values)

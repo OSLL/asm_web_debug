@@ -1,34 +1,32 @@
-from dataclasses import dataclass
 from typing import Dict
 
-from runner.checkerlib import Checker
+from runner.checkerlib import Checker, WrongAnswerError
 
 
 class SimpleChecker(Checker):
-    @dataclass
-    class Config:
-        initial_register_values: Dict[str, str]
-        expected_register_values: Dict[str, str]
+    initial_register_values: Dict[str, str]
+    expected_register_values: Dict[str, str]
 
-    async def run(self, config: "Config") -> None:
-        program = await self.start(f"""
+    SOURCE_TEMPLATE = """
 .global _start
 .text
 
 _start:
-    {self.source_code}
+    {}
 
 nop
 
 _end_of_program:
     ret
-""")
+"""
 
-        for register, value in config.initial_register_values.items():
-            await program.set_register_value(register, value)
+    async def check(self) -> None:
+        for register, value in self.initial_register_values.items():
+            await self.program.set_register_value(register, value)
 
-        await program.continue_until("_end_of_program")
+        await self.program.continue_until("_end_of_program")
 
-        for register, expected_value in config.expected_register_values.items():
-            value = await program.get_register_value(register)
-            assert value == expected_value
+        for register, expected_value in self.expected_register_values.items():
+            value = await self.program.get_register_value(register)
+            if value != expected_value:
+                raise WrongAnswerError(f"{register} has value {value}, expected {expected_value}")

@@ -5,7 +5,7 @@ import pathlib
 import shutil
 import tempfile
 from collections import namedtuple
-from typing import Any, Dict, Iterable, List, Optional, Tuple, TypeAlias
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Type, TypeAlias
 
 from runner import gdbmi
 from runner.debugger import Debugger
@@ -23,6 +23,7 @@ class RunningProgram:
     arch: str
     debugger: Debugger
     reg_name_to_id: Optional[Dict[RegisterName, int]]
+    event_subscribers: List[Callable[[gdbmi.AnyNotification], None]]
 
     def __init__(self, arch: str) -> None:
         self.workdir = pathlib.Path(tempfile.mkdtemp(prefix="asmwebide_runner_"))
@@ -30,6 +31,8 @@ class RunningProgram:
         self.debugger = Debugger()
         self.reg_name_to_id = None
         self.set_stdin("")
+        self.exception_on_stop = None
+        self.event_subscribers = []
 
     @property
     def source_path(self) -> pathlib.Path:
@@ -79,6 +82,7 @@ class RunningProgram:
 
     async def start_debugger(self) -> None:
         await self.debugger.start(config.archs[self.arch].gdb)
+        await self.debugger.gdb_command(f"-gdb-set mi-async on")
         await self.debugger.gdb_command(f"-file-exec-and-symbols {self.executable_path}")
         await self.debugger.gdb_command(f"-exec-arguments >&2 <{self.stdin_path}")
 
@@ -107,7 +111,7 @@ class RunningProgram:
     async def set_register_value(self, reg: RegisterName, value: str) -> None:
         await self.debugger.gdb_command(f"-gdb-set ${reg}={value}")
 
-    async def get_register_values(self, regs: Iterable[RegisterName]) -> List[Tuple[RegisterName, str]]:
+    async def get_register_values(self, regs: Iterable[RegisterName], format: str = "N") -> List[Tuple[RegisterName, str]]:
         if self.reg_name_to_id is None:
             result = await self.debugger.gdb_command("-data-list-register-names")
             self.reg_name_to_id = {}
@@ -118,13 +122,13 @@ class RunningProgram:
         for reg_name in regs:
             reg_ids.append(self.reg_name_to_id[reg_name])
 
-        result = await self.debugger.gdb_command(f"-data-list-register-values N {' '.join(map(str, reg_ids))}")
+        result = await self.debugger.gdb_command(f"-data-list-register-values {format} {' '.join(map(str, reg_ids))}")
         reg_mapping = []
         for val, reg in zip(result["register-values"], regs):
             reg_mapping.append((reg, val["value"]))
         return reg_mapping
 
-    async def get_register_value(self, reg: RegisterName) -> str:
+    async def get_register_value(self, reg: RegisterName, format:str = "N") -> str:
         vals = await self.get_register_values([reg])
         if not vals:
             raise ValueError(f"Invalid register: {reg}")
@@ -141,7 +145,7 @@ class RunningProgram:
         return result
 
     async def interrupt_execution(self) -> None:
-        self.debugger.gdb_interrupt()
+        await self.debugger.gdb_command("-exec-interrupt")
 
     async def continue_execution(self) -> None:
         await self.debugger.gdb_command("-exec-continue")
@@ -155,8 +159,10 @@ class RunningProgram:
     async def step_out(self) -> None:
         await self.debugger.gdb_command("-exec-finish")
 
-    async def wait_until_stopped(self) -> Optional[gdbmi.ExecAsync]:
+    async def wait_until_stopped(self) -> gdbmi.ExecAsync:
         async for event in self.debugger.gdb_notifications_iterator():
+            for fn in self.event_subscribers:
+                fn(event)
             if type(event) is gdbmi.ExecAsync and event.status == "stopped":
                 return event
 
@@ -165,8 +171,6 @@ class RunningProgram:
         while True:
             await self.continue_execution()
             event = await self.wait_until_stopped()
-            if event is None:
-                return
 
             if event.values["reason"] == "breakpoint-hit" and event.values["bkptno"] == str(breakpoint_id):
                 break
