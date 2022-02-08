@@ -19,11 +19,9 @@ class Config(object):
     }
     SECRET_KEY = ''
     DEBUG = True
-    ANON_ACCESS = False
-    ANON_USER_ID = 'a334-4276-8b34'
     LTI_CONSUMERS = {}
     USER_ROLES = ('user', 'teacher', 'admin')
-    
+
 
     @classmethod
     def load_data_from_env(cls):
@@ -47,7 +45,6 @@ class DeployConfig(Config):
 
 
 class TestConfig(DeployConfig):
-    ANON_ACCESS = True
     DEBUG = True
 
 
@@ -56,7 +53,7 @@ class DefaultConfig(Config):
 
 
 class ConfigManager:
-        
+
     config = {
         'default': DefaultConfig,
         'deploy': DeployConfig,

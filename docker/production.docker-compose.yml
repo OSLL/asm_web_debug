@@ -5,13 +5,13 @@ services:
     build:
       context: ".."
       dockerfile: docker/web.dockerfile
-      args:
-        RUNMODE: deploy
     restart: always
     depends_on:
       - mongo
     env_file:
       - ../.env
+    environment:
+      - RUNMODE=deploy
 
   runner:
     build:

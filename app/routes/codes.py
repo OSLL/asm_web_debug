@@ -12,8 +12,7 @@ from app.response import Response
 
 
 
-index_bp = Blueprint('index', __name__)
-bp = index_bp
+bp = Blueprint('codes', __name__)
 
 @bp.before_request
 def check_login():
@@ -22,18 +21,11 @@ def check_login():
         app.logger.debug(f"{current_user.to_json()}")
         return
     else:
-        if app.config['ANON_ACCESS']:
-            login_user(app.user_datastore.find_user(_id=app.config['ANON_USER_ID']))
-            app.logger.debug('Anon access to service')
-            return
-        else:
-            abort(401, description="Not authenticated")
+        abort(403, description="Not authenticated")
 
 
 @bp.route('/<code_id>')
 def index_id(code_id):
-    if code_id not in current_user.tasks and not app.config['ANON_ACCESS']:
-        abort(404, description=f"Don't have access to code {code_id}")
     code = DBManager.get_code(code_id=code_id)
     if code:
         return render_template('pages/index.html', code=code_to_dict(code))

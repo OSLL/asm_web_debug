@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+<form method="POST" action="{{ url_for('auth.login') }}">
+{% if error %}
+    <p>{{ error }}</p>
+{% endif %}
+    {{ form.hidden_tag() }}
+    {{ form.username.label }} {{ form.username }}<br />
+    {{ form.password.label }} {{ form.password }}<br />
+    <button type="submit">log in</button>
+</form>
+{% endblock %}

@@ -20,7 +20,8 @@ def parse_args():
     parser_run.add_argument("-d", "--detach", action="store_true", help="Run in the background")
     parser_run.add_argument("--prod", action="store_true", help="Run in production mode")
 
-    parser_stop = subparsers.add_parser("stop", help="Stop development server started in detach mode")
+    subparsers.add_parser("stop", help="Stop development server started in detach mode")
+    subparsers.add_parser("shell", help="Run shell")
 
     parser_restart = subparsers.add_parser("restart", help="Restart services")
     parser_restart.add_argument("service", nargs="+")
@@ -52,6 +53,9 @@ def stop_docker_compose():
 def restart_docker_compose_services(config_path, services):
     subprocess.run(["docker-compose", "-f", config_path, "-p", name, "up", "--no-deps", "--build", "-d"] + services)
 
+def run_shell(config_path):
+    subprocess.run(["docker-compose", "-f", config_path, "-p", name, "run", "web", "poetry", "run", "bash"])
+
 def main():
     args = parse_args()
 
@@ -68,6 +72,9 @@ def main():
 
     if args.command == "restart":
         restart_docker_compose_services("docker/develop.docker-compose.yml", args.service)
+
+    if args.command == "shell":
+        run_shell("docker/develop.docker-compose.yml")
 
 
 

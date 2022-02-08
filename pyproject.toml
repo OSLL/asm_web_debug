@@ -8,11 +8,13 @@ authors = []
 python = "^3.10"
 Flask = "^2.0.2"
 flask-mongoengine = "^1.0.0"
-Flask-Security = "^3.0.0"
 Flask-Login = "^0.5.0"
 lti = "^0.9.5"
 aiohttp = {extras = ["speedups"], version = "^3.8.1"}
 waitress = "^2.0.0"
+Flask-WTF = "^1.0.0"
+passlib = "^1.7.4"
+Flask-Admin = "^1.6.0"
 
 [tool.poetry.dev-dependencies]
 selenium = "^4.1.0"

@@ -12,6 +12,8 @@ services:
       - mongo
     env_file:
       - ../.env
+    environment:
+      - RUNMODE=test
 
   runner:
     build:

@@ -1,8 +1,9 @@
 from datetime import datetime, timedelta
-from flask import Blueprint, make_response, render_template, request, current_app, abort
-from flask_security import roles_accepted
 from uuid import uuid4
 from urllib.parse import unquote
+
+from flask import Blueprint, make_response, render_template, request, current_app, abort
+from flask_login import current_user
 
 from app.core.db.manager import DBManager
 
@@ -11,14 +12,23 @@ log_bp = Blueprint('logs', __name__, url_prefix='/logs')
 bp = log_bp
 
 
+def require_admin(f):
+    def decorator(*args, **kwargs):
+        if not current_user.is_authenticated or not current_user.is_admin:
+            abort(403)
+        return f(*args, **kwargs)
+    decorator.__name__ = f.__name__
+    return decorator
+
+
 @bp.route('/', methods=['GET', 'POST'])
-@roles_accepted('teacher', 'admin')
+@require_admin
 def logs_page():
     return render_template('pages/logs.html')
 
 
 @bp.route('/<log_id>', methods=['GET', 'POST'])
-@roles_accepted('teacher', 'admin')
+@require_admin
 def log_page(log_id):
     log = DBManager.get_log_by_id(log_id)
     if log:
@@ -29,7 +39,7 @@ def log_page(log_id):
 
 
 @bp.route('/get_filtered', methods=['GET', 'POST'])
-@roles_accepted('teacher', 'admin')
+@require_admin
 def filter_logs():
     try:
         pathname = unquote(request.args.get('pathname', ''))
@@ -48,7 +58,7 @@ def filter_logs():
                 time = datetime.strptime(time, "%Y-%m-%d")
             except:
                 pass
-            else: 
+            else:
                 query["time__gte"] = time
                 query["time__lte"] = time + timedelta(days=1)
         if pathname:

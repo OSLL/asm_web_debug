@@ -1,4 +1,4 @@
-from flask import Blueprint, abort, request, make_response, render_template, url_for, redirect 
+from flask import Blueprint, abort, request, make_response, render_template, url_for, redirect
 
 from app.core.db.manager import DBManager
 
@@ -9,7 +9,6 @@ from app.core.db.desc import Consumers, User
 
 from flask import current_app as app
 import flask_login
-from flask_security.datastore import UserDatastore
 from uuid import uuid4
 
 
@@ -33,7 +32,7 @@ def lti_route():
         user = DBManager.get_user(user_id)
         if user:
             user.tasks[task_id] = { 'passback': params_for_passback }
-            user.roles = [] 
+            user.roles = []
             user.save()
         else:
             app.user_datastore.create_user(_id=user_id, username=username,

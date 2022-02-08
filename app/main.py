@@ -1,55 +1,46 @@
 import os
 
 from flask import Flask, abort
-import flask_login
+from flask_login import LoginManager
 from flask_mongoengine import MongoEngine
-from flask_security import Security, MongoEngineUserDatastore
 import waitress
 
-from app.core.db.desc import Role, User
+from app.core.db.desc import User
 from app.core.logging.log_settings import logging_init
 from app.core.lti_core.lti_utils import create_consumers
+from app.routes.admin import init_admin
 from app.routes.debug import debug_bp
-from app.routes.index import index_bp
+from app.routes.codes import bp as codes_bp
 from app.routes.logs import log_bp
 from app.routes.lti import lti_bp
 from app.routes.welcome import welcome_bp
+from app.routes.auth import bp as auth_bp
 from app.config import ConfigManager
 
 
 def create_app():
     app = Flask(__name__)
 
+    # load config
+    runmode = os.environ.get('RUNMODE')
+    app.config.from_object(ConfigManager.get_config(runmode))
+
+    app.db = MongoEngine(app)
+    init_admin(app)
+
     # register blueprints
-    app.register_blueprint(index_bp)
+    app.register_blueprint(codes_bp)
     app.register_blueprint(log_bp)
     app.register_blueprint(lti_bp)
     app.register_blueprint(debug_bp)
     app.register_blueprint(welcome_bp)
-
-    # load config
-    runmode = os.environ.get('RUNMODE')
-    app.config.from_object(ConfigManager.get_config(runmode))
+    app.register_blueprint(auth_bp)
 
     # setup app folders
     app.template_folder = app.config['TEMPLATE_FOLDER']
     app.static_folder = app.config['STATIC_FOLDER']
 
-    db = MongoEngine(app)
-    app.user_datastore = MongoEngineUserDatastore(db, User, Role)
-    app.security = Security(app, app.user_datastore)
-    app.login_manager = flask_login.LoginManager(app)
-
-    # TODO: do smth with role_requiered and etc
-    app.security.unauthorized_handler(lambda fn=None, params=None: abort(404))
-
-    @app.before_first_request
-    def init_roles_and_user():
-        if app.config['ANON_ACCESS']:
-            app.user_datastore.create_user(_id=app.config['ANON_USER_ID'], username='anon_username')
-        for role in app.config['USER_ROLES']:
-            if not app.user_datastore.find_role(role):
-                app.user_datastore.create_role(name=role)
+    app.login_manager = LoginManager(app)
 
     @app.login_manager.user_loader
     def load_user(user_id):

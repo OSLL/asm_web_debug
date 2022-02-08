@@ -1,13 +1,26 @@
-import datetime 
+import json
+import datetime
+from typing import Optional
+
 from flask import current_app
 from flask_mongoengine import MongoEngine
 from pymongo import DESCENDING, ASCENDING
-import json
+from passlib.hash import pbkdf2_sha256
 
 from app.core.db.desc import Codes, User, Logs, Consumers
 
 
 class DBManager:
+
+    @staticmethod
+    def get_user_by_username_and_password(username: str, password: str) -> Optional[User]:
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            return None
+
+        if pbkdf2_sha256.verify(password, user.password):
+            return user
 
     #### code ####
 
@@ -18,10 +31,10 @@ class DBManager:
         except Codes.DoesNotExist:
             current_app.logger.debug(f'Code not found: {code_id}')
             return None
-     
+
     @staticmethod
     def create_code(code_id, source_code, breakpoints, arch):
-        #breakpoints accepted as request.form.get('breakpoints') 
+        #breakpoints accepted as request.form.get('breakpoints')
         b_p = json.loads(breakpoints)
         code_obj = Codes.objects(_id=code_id).first()
         if code_obj:
@@ -67,7 +80,7 @@ class DBManager:
 
     @staticmethod
     def get_filter_logs(query={}, limit=None, offset=None, sort=None, order=None):
-        logs = Logs.objects(**query).order_by('-time') 
+        logs = Logs.objects(**query).order_by('-time')
         count = logs.count()
         if limit is not None and offset is not None:
             logs = logs.skip(offset).limit(limit)
@@ -100,8 +113,8 @@ class DBManager:
             consumer_obj.timestamps.append([timestamp, nonce])
             consumer_obj.save()
         except Consumers.DoesNotExist:
-            pass 
-    
+            pass
+
     @staticmethod
     def has_timestamp_and_nonce(id_key, timestamp, nonce):
         try:
