@@ -7,7 +7,7 @@ from flask_mongoengine import MongoEngine
 from pymongo import DESCENDING, ASCENDING
 from passlib.hash import pbkdf2_sha256
 
-from app.core.db.desc import Codes, User, Logs, Consumers
+from app.core.db.desc import Code, User, Logs, Consumers
 
 
 class DBManager:
@@ -27,8 +27,8 @@ class DBManager:
     @staticmethod
     def get_code(code_id):
         try:
-            return Codes.objects.get(_id=code_id)
-        except Codes.DoesNotExist:
+            return Code.objects.get(_id=code_id)
+        except Code.DoesNotExist:
             current_app.logger.debug(f'Code not found: {code_id}')
             return None
 
@@ -36,7 +36,7 @@ class DBManager:
     def create_code(code_id, source_code, breakpoints, arch):
         #breakpoints accepted as request.form.get('breakpoints')
         b_p = json.loads(breakpoints)
-        code_obj = Codes.objects(_id=code_id).first()
+        code_obj = Code.objects(_id=code_id).first()
         if code_obj:
             code_obj.last_update = datetime.datetime.now()
             code_obj.code = source_code
@@ -44,12 +44,12 @@ class DBManager:
             code_obj.arch = arch
             code_obj.save()
         else:
-            code_obj = Codes(_id=code_id, code=source_code, breakpoints=b_p, arch=arch)
+            code_obj = Code(_id=code_id, code=source_code, breakpoints=b_p, arch=arch)
             code_obj.save()
 
     @staticmethod
     def get_codes_older_than(days):
-        return Codes.objects(created__lte=(datetime.datetime.now()-datetime.timedelta(days=days))).to_json()
+        return Code.objects(created__lte=(datetime.datetime.now()-datetime.timedelta(days=days))).to_json()
 
     #### log ####
 

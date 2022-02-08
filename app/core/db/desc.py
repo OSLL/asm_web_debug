@@ -24,7 +24,18 @@ class User(me.Document, UserMixin):
         return str(self.username)
 
 
-class Codes(me.Document):
+class Problem(me.Document):
+    _id = me.StringField(primary_key=True, default=lambda: str(uuid.uuid4()))
+    title = me.StringField(max_length=256)
+    statement = me.StringField()
+    checker_name = me.StringField()
+    checker_config = me.StringField()
+
+    def __str__(self):
+        return str(self.title)
+
+
+class Code(me.Document):
     _id = me.StringField(primary_key=True, default=lambda: str(uuid.uuid4()))
     created = me.DateTimeField(default=datetime.datetime.now)
     last_update = me.DateTimeField(default=datetime.datetime.now)
@@ -32,6 +43,7 @@ class Codes(me.Document):
     breakpoints = me.ListField(me.IntField())
     arch = me.StringField()
     owner = me.ReferenceField(User)
+    problem = me.ReferenceField(Problem)
 
 
 class Logs(me.Document):

@@ -1,9 +1,6 @@
-import logging
+import json
 from flask import Blueprint, render_template, request, current_app as app, redirect, abort
-from flask_login import current_user, login_user
-from uuid import uuid4
-import os
-import subprocess
+from flask_login import current_user
 
 from app.core.db.manager import DBManager
 from app.core.db.utils import code_to_dict
@@ -19,7 +16,6 @@ def check_login():
     if current_user.is_authenticated:
         app.logger.info(f"Authenticated user: {current_user.username}")
         app.logger.debug(f"{current_user.to_json()}")
-        return
     else:
         abort(403, description="Not authenticated")
 
@@ -28,9 +24,18 @@ def check_login():
 def index_id(code_id):
     code = DBManager.get_code(code_id=code_id)
     if code:
-        return render_template('pages/index.html', code=code_to_dict(code))
+        checker_name = ""
+        if code.problem:
+            checker_name = code.problem.checker_name
+        ide_init = f"IDE({json.dumps(checker_name)});"
+        return render_template(
+            'pages/ide.html',
+            code=code_to_dict(code),
+            problem=code.problem,
+            ide_init=ide_init
+        )
     else:
-        return render_template('pages/index.html')
+        return render_template('pages/ide.html')
 
 
 @bp.route('/save/<code_id>', methods = ["POST"])

@@ -5,6 +5,7 @@ from typing import Dict, Optional, List
 from aiohttp import web, WSMsgType
 
 from runner import gdbmi
+from runner.checkerlib import BaseChecker
 from runner.debugger import DebuggerError
 from runner.runner import BreakpointId, RunningProgram
 from runner.settings import config
@@ -98,6 +99,10 @@ class WSInteractor:
             for b in breakpoints:
                 if type(b) is not int:
                     raise ValueError("Expected 'breakpoints' contents to be ints")
+            checker_name = msg.get("checker_name")
+            checker_class = BaseChecker._all_checkers.get(checker_name)
+            if checker_class is not None:
+                source = checker_class(arch="x86_64", source_code=source).get_source_for_interactive_debugger()
             await self.start_program(source, stdin, breakpoints)
 
         if not self.running_program:
@@ -150,6 +155,12 @@ class WSInteractor:
             await self.running_program.set_register_value(reg, value)
             await self.send_registers_state()
 
+    async def send_output(self, output: str) -> None:
+        await self.ws.send_json({
+            "type": "output",
+            "data": output
+        })
+
     async def handle_gdb_events(self):
         async for event in self.running_program.debugger.gdb_notifications_iterator():
             if type(event) is gdbmi.ExecAsync:
@@ -165,21 +176,19 @@ class WSInteractor:
                         exitcode = int(event.values.get("exit-code", "0"), 8)
                         status = f"\n[process exited with exit code {exitcode}]"
                     await self.terminate_program()
-                    await self.ws.send_json({
-                        "type": "output",
-                        "data": status
-                    })
+                    await self.send_output(status)
                 elif event.status == "stopped" and event.values["reason"] in ["breakpoint-hit", "end-stepping-range", "function-finished", "location-reached", "signal-received"]:
+                    if "line" in event.values["frame"]:
+                        line = int(event.values["frame"]["line"])
+                    else:
+                        line = -1
                     await self.ws.send_json({
                         "type": "paused",
-                        "line": int(event.values["frame"]["line"])
+                        "line": line
                     })
 
             if type(event) is gdbmi.TargetOutput:
-                await self.ws.send_json({
-                    "type": "output",
-                    "data": event.line
-                })
+                await self.send_output(event.line)
 
     async def run(self):
         await self.handle_incoming_messages()

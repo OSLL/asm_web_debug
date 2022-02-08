@@ -19,12 +19,20 @@ from app.routes.auth import bp as auth_bp
 from app.config import ConfigManager
 
 
+def init_checkers(app):
+    import runner.checkers
+    from runner.checkerlib import BaseChecker
+    app.config["CHECKERS"] = BaseChecker._all_checkers
+
+
 def create_app():
     app = Flask(__name__)
 
     # load config
     runmode = os.environ.get('RUNMODE')
     app.config.from_object(ConfigManager.get_config(runmode))
+
+    init_checkers(app)
 
     app.db = MongoEngine(app)
     init_admin(app)

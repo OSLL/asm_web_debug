@@ -1,4 +1,4 @@
-(function() {
+function IDE(checkerName) {
     const State = Object.freeze({
         stopped: {
             id: "stopped",
@@ -14,6 +14,12 @@
                 { name: "Step into", id: "step_into" },
                 { name: "Step over", id: "step_over" },
                 { name: "Step out", id: "step_out" },
+            ]
+        },
+        over: {
+            id: "over",
+            buttons: [
+                { name: "Stop", id: "kill", style: "danger" }
             ]
         },
         running: {
@@ -42,7 +48,7 @@
     $(document).bind('keydown', function(e) {
         // capture Ctrl+S for data saving
         if (e.ctrlKey && e.which === 83) {
-            e.preventDefault();	
+            e.preventDefault();
             saveCode();
         }
     });
@@ -116,13 +122,14 @@
 
     function onDebugButtonClick(id) {
         if (id === "run") {
-            setState(State.running);
+            setState(State.over);
             $output.val("");
             sendMessage({
                 "type": "run",
                 "source": doc.getValue(),
                 "input": "",
-                "breakpoints": getBreakpoints()
+                "breakpoints": getBreakpoints(),
+                "checker_name": checkerName
             });
         } else {
             sendMessage({
@@ -183,7 +190,11 @@
             setState(State.stopped);
         } else if (msg.type === "paused") {
             activeLine = msg.line;
-            setState(State.paused);
+            if (activeLine === -1) {
+                setState(State.over)
+            } else {
+                setState(State.paused);
+            }
             sendMessage({
                 "type": "get_registers"
             });
@@ -235,4 +246,4 @@
 
     initEditor();
     setState(State.stopped);
-})();
+};

@@ -1,4 +1,5 @@
 import abc
+import pathlib
 from typing import Dict, Optional, Type
 from runner import gdbmi
 from runner.debugger import DebuggerError
@@ -25,7 +26,8 @@ class BaseChecker(abc.ABC):
 
     def __init_subclass__(cls, **kwargs) -> None:
         super().__init_subclass__(**kwargs)
-        cls._all_checkers[cls.__name__] = cls
+        if cls.__name__ != "Checker":
+            cls._all_checkers[cls.__name__] = cls
 
     def __init__(self, arch: str, source_code: str) -> None:
         self.arch = arch
@@ -81,15 +83,26 @@ class BaseChecker(abc.ABC):
         finally:
             await checker.close()
 
+    def get_source_for_interactive_debugger(self) -> str:
+        return self.source_code
+
 
 class Checker(BaseChecker):
-    SOURCE_TEMPLATE: str = "{}"
+    source_prefix = ""
+    source_suffix = ""
     program: RunningProgram
 
     async def check_before_run(self) -> None: pass
     async def check(self) -> None: pass
 
+    def get_source_for_interactive_debugger(self) -> str:
+        return f"""{self.source_prefix}
+#line 1
+{self.source_code}
+{self.source_suffix}
+"""
+
     async def run(self) -> None:
         await self.check_before_run()
-        self.program = await self.start(self.SOURCE_TEMPLATE.format(self.source_code))
+        self.program = await self.start(self.get_source_for_interactive_debugger())
         await self.check()

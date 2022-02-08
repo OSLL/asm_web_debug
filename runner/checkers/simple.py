@@ -7,13 +7,14 @@ class SimpleChecker(Checker):
     initial_register_values: Dict[str, str]
     expected_register_values: Dict[str, str]
 
-    SOURCE_TEMPLATE = """
+    source_prefix = """
 .global _start
 .text
 
 _start:
-    {}
+"""
 
+    source_suffix = """
 nop
 
 _end_of_program:

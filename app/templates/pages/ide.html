@@ -8,19 +8,23 @@
 {% endblock %}
 
 {% block content %}
-<!-- {{ code|safe }} -->
     {% set code = code or dict(code='', arch='x86_64', breakpoints=[]) %}
+
+{% if problem %}
     <div id='task_info_div' style="float: left; width: 60%;">
-        <p>TODO: problem statement</p>
+        <h4>{{ problem.title }}</h4>
+        <p>{{ problem.statement }}</p>
         <div style="display: block; float: right;">
         	<input type="button" class="btn btn-info" name="Check" value="Check" onclick="buttonClick(this)" />
         	<input type="button" class="btn btn-success" name="My solutions" value="My solutions" onclick="buttonClick(this)" />
         </div>
     </div>
-
+{% endif %}
     <div id='main_div'>
         <div id='left_main_div' style="float: left; width: 78%;">
+        {% if problem %}
         	<hr />
+        {% endif %}
             <div id="lastSave">
                 {% if 'last_update' in code %}
                     {% set time = code['last_update'] %}
@@ -40,13 +44,13 @@
             </select>
             <div id="debug-buttons"></div>
             <br><br>
-                
+
             <form><textarea id='code' class='code' >{{ code['code'] }}</textarea></form>
 
             <br>
             <button id="hex-view" class="btn btn-outline-secondary">Open binary in HEX view</button>
             <br><br>
-            
+
             <textarea id='build_log' class='build_log' readonly></textarea>
         </div>
 
@@ -91,4 +95,12 @@
     <script src="static/js/libs/jquery.md5.min.js"></script>
 
     <script src="static/js/ide.js"></script>
+
+    <script type="text/javascript">
+    {% if ide_init %}
+        {{ ide_init | safe }}
+    {% else %}
+        IDE();
+    {% endif %}
+    </script>
 {% endblock %}
