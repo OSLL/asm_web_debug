@@ -1,3 +1,4 @@
+import logging
 from os import environ as os_environ
 
 from app.core.lti_core.lti_utils import parse_consumer_info
@@ -63,10 +64,9 @@ class ConfigManager:
     @classmethod
     def get_config(cls, config_type):
         if config_type in cls.config:
-            print(f"Using {config_type} config")
             config = cls.config[config_type]
         else:
-            print(f"No such config: '{config_type}'. Using default config")
+            logging.warn(f"No such config: '{config_type}'. Using default config")
             config = cls.config['default']
 
         try:

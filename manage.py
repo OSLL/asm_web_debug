@@ -22,6 +22,7 @@ def parse_args():
 
     subparsers.add_parser("stop", help="Stop development server started in detach mode")
     subparsers.add_parser("shell", help="Run shell")
+    subparsers.add_parser("create-admin", help="Create admin user")
 
     parser_restart = subparsers.add_parser("restart", help="Restart services")
     parser_restart.add_argument("service", nargs="+")
@@ -53,8 +54,8 @@ def stop_docker_compose():
 def restart_docker_compose_services(config_path, services):
     subprocess.run(["docker-compose", "-f", config_path, "-p", name, "up", "--no-deps", "--build", "-d"] + services)
 
-def run_shell(config_path):
-    subprocess.run(["docker-compose", "-f", config_path, "-p", name, "run", "web", "poetry", "run", "bash"])
+def run_command(config_path, command):
+    subprocess.run(["docker-compose", "-f", config_path, "-p", name, "run", "web"] + command)
 
 def main():
     args = parse_args()
@@ -74,8 +75,10 @@ def main():
         restart_docker_compose_services("docker/develop.docker-compose.yml", args.service)
 
     if args.command == "shell":
-        run_shell("docker/develop.docker-compose.yml")
+        run_command("docker/develop.docker-compose.yml", ["poetry", "run", "bash"])
 
+    if args.command == "create-admin":
+        run_command("docker/develop.docker-compose.yml", ["poetry", "run", "python", "-m", "app", "create-admin"])
 
 
 if __name__ == "__main__":

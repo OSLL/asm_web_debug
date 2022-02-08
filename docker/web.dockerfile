@@ -8,4 +8,4 @@ RUN poetry install --no-interaction --no-ansi --no-dev
 
 COPY . /code
 
-CMD poetry run python -m app
+CMD poetry run python -m app run

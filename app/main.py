@@ -4,6 +4,7 @@ from flask import Flask, abort
 from flask_login import LoginManager
 from flask_mongoengine import MongoEngine
 import waitress
+import click
 
 from app.core.db.desc import User
 from app.core.logging.log_settings import logging_init
@@ -52,7 +53,14 @@ def create_app():
     return app
 
 
-def run_app(app):
+@click.group()
+def main(): pass
+
+
+@main.command()
+def run():
+    app = create_app()
+
     # init logging
     logging_init(app)
 
@@ -66,6 +74,12 @@ def run_app(app):
         waitress.serve(app, host=app.config['HOST'], port=app.config['PORT'])
 
 
-def main():
+@main.command()
+@click.option("--username", prompt=True)
+@click.option("--password", prompt=True, hide_input=True, confirmation_prompt=True)
+def create_admin(username, password):
     app = create_app()
-    run_app(app)
+    with app.app_context():
+        user = User(username=username, is_admin=True)
+        user.set_password(password)
+        user.save()

@@ -7,6 +7,11 @@
 ```
 Will run in development mode with live reload enabled on port 8080.
 
+To create an administrator user run:
+```
+./manage.py create-admin
+```
+
 # Tests
 - For headless run:
 ```
