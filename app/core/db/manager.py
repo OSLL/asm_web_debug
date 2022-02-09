@@ -33,18 +33,15 @@ class DBManager:
             return None
 
     @staticmethod
-    def create_code(code_id, source_code, breakpoints, arch):
-        #breakpoints accepted as request.form.get('breakpoints')
-        b_p = json.loads(breakpoints)
+    def create_code(code_id, source_code, arch):
         code_obj = Code.objects(_id=code_id).first()
         if code_obj:
             code_obj.last_update = datetime.datetime.now()
             code_obj.code = source_code
-            code_obj.breakpoints = b_p
             code_obj.arch = arch
             code_obj.save()
         else:
-            code_obj = Code(_id=code_id, code=source_code, breakpoints=b_p, arch=arch)
+            code_obj = Code(_id=code_id, code=source_code, arch=arch)
             code_obj.save()
 
     @staticmethod

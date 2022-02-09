@@ -36,6 +36,7 @@ function IDE(checkerName) {
     const $debugButtons = $("#debug-buttons");
     const $output = $("#build_log");
     const $registerTable = $("#register_body");
+    const $submitButton = $("#submit_button")
 
     const ws = new WebSocket(`${(window.location.protocol === "https") ? "wss" : "ws"}://${window.location.host}/ws_ide`);
 
@@ -45,11 +46,12 @@ function IDE(checkerName) {
     let codeMirror = null;
     let doc = null;
 
-    $(document).bind('keydown', function(e) {
+    $(document).bind('keydown', async function(e) {
         // capture Ctrl+S for data saving
         if (e.ctrlKey && e.which === 83) {
             e.preventDefault();
-            saveCode();
+            await saveCode();
+            showAlert("Source code was saved", "success");
         }
     });
 
@@ -161,21 +163,30 @@ function IDE(checkerName) {
         }
     }
 
-    function saveCode() {
-        $.ajax({
-            url: "/save/" + codeId,
-            type: "POST",
-            dataType: "json",
-            data: {
-                code: doc.getValue(),
-                breakpoints: JSON.stringify(getBreakpoints()),
-                arch: $("#arch_select").val()
-            },
-            success: () => {
-                showAlert("Source code was saved", "success");
-            }
-        })
+    async function saveCode() {
+        const data = new FormData();
+        data.append("code", doc.getValue());
+        data.append("arch", $("#arch_select").val());
+
+        await fetch("/save/" + codeId, {
+            method: "POST",
+            body: data
+        });
     }
+
+    $submitButton.on("click", async function submitCode() {
+        $submitButton.prop("disabled", true);
+        await saveCode();
+
+        const result = await fetch("/submit/" + codeId, {
+            method: "POST"
+        });
+        const data = await result.json();
+
+        showAlert(data.comment, data.is_correct ? "success" : "danger");
+
+        $submitButton.prop("disabled", false);
+    });
 
     function sendMessage(msg) {
         ws.send(JSON.stringify(msg));

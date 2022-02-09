@@ -40,10 +40,19 @@ class Code(me.Document):
     created = me.DateTimeField(default=datetime.datetime.now)
     last_update = me.DateTimeField(default=datetime.datetime.now)
     code = me.StringField()
-    breakpoints = me.ListField(me.IntField())
     arch = me.StringField()
     owner = me.ReferenceField(User)
     problem = me.ReferenceField(Problem)
+
+
+class Submission(me.Document):
+    _id = me.StringField(primary_key=True, default=lambda: str(uuid.uuid4()))
+    user = me.ReferenceField(User)
+    problem = me.ReferenceField(Problem)
+    arch = me.StringField()
+    code = me.StringField()
+    is_correct = me.BooleanField()
+    comment = me.StringField()
 
 
 class Logs(me.Document):

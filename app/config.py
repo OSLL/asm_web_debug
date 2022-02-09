@@ -12,7 +12,7 @@ class Config(object):
     CODES_FOLDER = '../codes/'
     ENVIRONMENT_FOLDER = '../environment'
     BUILD_FILE = '../DEBUG'
-    ARCHS = ('x86_64', 'ARM', 'AVR')
+    ARCHS = ('x86_64',)
     MONGODB_SETTINGS = {
         'db': 'database',
         'host': '127.0.0.1',
@@ -21,7 +21,7 @@ class Config(object):
     SECRET_KEY = ''
     DEBUG = True
     LTI_CONSUMERS = {}
-    USER_ROLES = ('user', 'teacher', 'admin')
+    RUNNER_API = "http://runner/runner_api"
 
 
     @classmethod
