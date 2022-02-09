@@ -52,12 +52,9 @@ class BaseChecker(abc.ABC):
                 reason = event.values["reason"]
                 if reason in ("signal-received", "exited-signalled") and event.values["signal-name"] != "SIGINT":
                     raise SignalledError(event.values["signal-name"])
-        running_program.event_subscribers.append(on_event)
 
-        breakpoint_id = await running_program.add_breakpoint("_start")
-        await running_program.start_program()
-        await running_program.wait_until_stopped()
-        await running_program.remove_breakpoint(breakpoint_id)
+        running_program.event_subscribers.append(on_event)
+        await running_program.restart()
 
         return running_program
 

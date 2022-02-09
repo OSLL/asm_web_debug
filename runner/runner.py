@@ -166,12 +166,19 @@ class RunningProgram:
             if type(event) is gdbmi.ExecAsync and event.status == "stopped":
                 return event
 
-    async def continue_until(self, line_or_function: int | str) -> None:
+    async def continue_until(self, line_or_function: int | str, restart_program: bool = False) -> None:
         breakpoint_id = await self.add_breakpoint(line_or_function)
         while True:
-            await self.continue_execution()
+            if restart_program:
+                await self.start_program()
+                restart_program = False
+            else:
+                await self.continue_execution()
             event = await self.wait_until_stopped()
 
             if event.values["reason"] == "breakpoint-hit" and event.values["bkptno"] == str(breakpoint_id):
                 break
         await self.remove_breakpoint(breakpoint_id)
+
+    async def restart(self) -> None:
+        await self.continue_until("_start", restart_program=True)

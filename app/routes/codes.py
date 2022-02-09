@@ -75,6 +75,8 @@ def submit_code(code_id):
             error_message = "Wrong answer"
         elif error_type == "SignalledError":
             error_message = "Unexpected signal received"
+        else:
+            error_message = error_type
         comment = f"{error_message}: {result['message']}"
     else:
         comment = "Solution accepted"

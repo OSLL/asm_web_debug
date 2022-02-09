@@ -1,1 +1,1 @@
-from . import simple
+from . import simple, string_length
