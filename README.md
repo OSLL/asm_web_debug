@@ -3,17 +3,9 @@
 # Run
 - Bash
 ```
-./scripts/local_start.sh
+./manage.py run --port 8080
 ```
-Will run in default mode when no arguments are provided, to run in deploy use:
-```
-./scripts/local_start.sh deploy
-```
-- Docker
-```
-docker-compose build
-docker-compose up
-```
+Will run in development mode with live reload enabled on port 8080.
 
 # Tests
 - For headless run:

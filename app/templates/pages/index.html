@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Web ASM{% endblock %}
+
+{% block head %}
+    <link href="static/css/libs/codemirror.min.css" rel="stylesheet" type="text/css" />
+    <link href="static/css/libs/eclipse.css" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block content %}
+<!-- {{ code|safe }} -->
+    {% set code = code or dict(code='', arch='x86_64', breakpoints=[]) %}
+    <div id='task_info_div' style="float: left; width: 60%;">
+        <p>TODO: problem statement</p>
+        <div style="display: block; float: right;">
+        	<input type="button" class="btn btn-info" name="Check" value="Check" onclick="buttonClick(this)" />
+        	<input type="button" class="btn btn-success" name="My solutions" value="My solutions" onclick="buttonClick(this)" />
+        </div>
+    </div>
+
+    <div id='main_div'>
+        <div id='left_main_div' style="float: left; width: 78%;">
+        	<hr />
+            <div id="lastSave">
+                {% if 'last_update' in code %}
+                    {% set time = code['last_update'] %}
+                    Последнее сохранение:
+                    <span id='lastSavedTime'>
+                        <script language="javascript" type="text/javascript">
+                            document.write(new Date({{time}}*1000))
+                        </script>
+                    </span>
+                {% endif %}
+                </div><br>
+            <div id='ajax-alert'></div>
+            <select id='arch_select' name='arch'>
+                {% for arch in config['ARCHS'] %}
+                    <option value={{arch}}>{{arch}}</option>
+                {% endfor %}
+            </select>
+            <div id="debug-buttons"></div>
+            <br><br>
+                
+            <form><textarea id='code' class='code' >{{ code['code'] }}</textarea></form>
+
+            <br>
+            <button id="hex-view" class="btn btn-outline-secondary">Open binary in HEX view</button>
+            <br><br>
+            
+            <textarea id='build_log' class='build_log' readonly></textarea>
+        </div>
+
+        <div id='right_main_div' style="float: right; width: 20%;">
+            <div id='register_table_div'>
+                <b>Регистры</b>
+                <table id='register_table' class="table index_table">
+                    <thead>
+                        <tr>
+                            <td>Register</td>
+                            <td>Value</td>
+                        </tr>
+                    </thead>
+                    <tbody id="register_body"></tbody>
+                </table>
+            </div>
+
+            <div id='stack_table_div'>
+                <b>Стек</b>
+                <table id='stack_table' class="table index_table">
+                    <thead>
+                        <tr>
+                            <td>Stack</td>
+                            <td>Stack frame</td>
+                        </tr>
+                    </thead>
+                    <tbody id="stack_body"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <form id="hidden_form" hidden><textarea id="hidden_textarea"></textarea></form>
+{% endblock %}
+
+
+{% block script %}
+    <script src="static/js/libs/codemirror.min.js"></script>
+    <script src="static/js/libs/gas.min.js"></script>
+    <script src="static/js/libs/shell.min.js"></script>
+    <script src="static/js/libs/jquery.md5.min.js"></script>
+
+    <script src="static/js/ide.js"></script>
+{% endblock %}

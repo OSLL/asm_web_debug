@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "asm_web_debug"
+version = "0.1.0"
+description = ""
+authors = []
+
+[tool.poetry.dependencies]
+python = "^3.10"
+Flask = "^2.0.2"
+flask-mongoengine = "^1.0.0"
+Flask-Security = "^3.0.0"
+Flask-Login = "^0.5.0"
+lti = "^0.9.5"
+aiohttp = {extras = ["speedups"], version = "^3.8.1"}
+waitress = "^2.0.0"
+
+[tool.poetry.dev-dependencies]
+selenium = "^4.1.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
