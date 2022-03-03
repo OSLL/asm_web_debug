@@ -1,5 +1,6 @@
 import json
 import datetime
+import logging
 from typing import Optional
 
 from flask import current_app
@@ -7,7 +8,7 @@ from flask_mongoengine import MongoEngine
 from pymongo import DESCENDING, ASCENDING
 from passlib.hash import pbkdf2_sha256
 
-from app.core.db.desc import Code, User, Logs, Consumers
+from app.core.db.desc import Code, Problem, User, Logs, Consumers
 
 
 class DBManager:
@@ -22,6 +23,13 @@ class DBManager:
         if pbkdf2_sha256.verify(password, user.password):
             return user
 
+    @staticmethod
+    def get_problem(problem_id):
+        try:
+            return Problem.objects.get(_id=problem_id)
+        except Problem.DoesNotExist:
+            return None
+
     #### code ####
 
     @staticmethod
@@ -29,7 +37,6 @@ class DBManager:
         try:
             return Code.objects.get(_id=code_id)
         except Code.DoesNotExist:
-            current_app.logger.debug(f'Code not found: {code_id}')
             return None
 
     @staticmethod

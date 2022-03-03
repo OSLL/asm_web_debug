@@ -39,8 +39,8 @@ class Code(me.Document):
     _id = me.StringField(primary_key=True, default=lambda: str(uuid.uuid4()))
     created = me.DateTimeField(default=datetime.datetime.now)
     last_update = me.DateTimeField(default=datetime.datetime.now)
-    code = me.StringField()
-    arch = me.StringField()
+    code = me.StringField(default="")
+    arch = me.StringField(default="x86_64")
     owner = me.ReferenceField(User)
     problem = me.ReferenceField(Problem)
 

@@ -1,3 +1,4 @@
+import logging
 from flask import Blueprint, abort, request, make_response, render_template, url_for, redirect
 
 from app.core.db.manager import DBManager
@@ -5,7 +6,7 @@ from app.core.db.manager import DBManager
 from app.core.lti_core.lti_validator import LTIRequestValidator
 from app.core.lti_core.lti_utils import extract_passback_params, get_custom_params, get_role
 from app.core.lti_core.check_request import check_request
-from app.core.db.desc import Consumers, User
+from app.core.db.desc import Code, Consumers, User
 
 from flask import current_app as app
 import flask_login
@@ -18,7 +19,6 @@ bp = lti_bp
 
 @bp.route('/lti', methods=['POST'])
 def lti_route():
-    app.logger.debug('checking')
     if check_request(request):
         temporary_user_params = request.form
         username = temporary_user_params.get('ext_user_username')
@@ -26,22 +26,25 @@ def lti_route():
         params_for_passback = extract_passback_params(temporary_user_params)
         custom_params = get_custom_params(temporary_user_params)
         role = get_role(temporary_user_params)
-        task_id = custom_params.get('task_id',
-            f"{temporary_user_params.get('user_id')}-{temporary_user_params.get('resource_link_id')}")
+
+        problem_id = custom_params.get("problem_id", "").strip()
+        code_id = f"{user_id}--{problem_id}"
 
         user = DBManager.get_user(user_id)
-        if user:
-            user.tasks[task_id] = { 'passback': params_for_passback }
-            user.roles = []
-            user.save()
-        else:
-            app.user_datastore.create_user(_id=user_id, username=username,
-                tasks={ task_id: {'passback': params_for_passback} })
-            user = app.user_datastore.find_user(_id=user_id)
-        app.user_datastore.add_role_to_user(user, role)
+
+        if not user:
+            user = User(_id=user_id, username=username)
+        user.is_admin = role == "teacher"
+        user.save()
 
         flask_login.login_user(User.objects.get(_id=user_id), remember=True)
 
-        return redirect(url_for('index.index_id', code_id=task_id))
+        code = DBManager.get_code(code_id)
+        if not code:
+            code = Code(_id=code_id, owner=user)
+        code.problem = DBManager.get_problem(problem_id)
+        code.save()
+
+        return redirect(url_for('codes.index_id', code_id=code_id))
     else:
         abort(404)

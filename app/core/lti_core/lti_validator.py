@@ -6,14 +6,14 @@ from app.core.db.manager import DBManager
 
 
 class LTIRequestValidator(RequestValidator):
-   
+
     @property
     def client_key_length(self):
         return 15, 30
 
     @property
     def nonce_length(self):
-        return 20, 40  
+        return 20, 40
 
     @property
     def enforce_ssl(self):
@@ -33,8 +33,3 @@ class LTIRequestValidator(RequestValidator):
         else:
             current_app.logger.error('timestamp and nonce are invalid!')
             return False
-
-
-    @property
-    def dummy_client(self):
-        return 'dummy_client'
