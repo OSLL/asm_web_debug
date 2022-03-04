@@ -125,3 +125,10 @@ def hexview(code_id):
             return render_template('pages/hexview.html', result=hexdump(code.code or error_msg))
         else:
             return 'No such code_id', 404
+
+
+@bp.route("/submissions/<code_id>")
+def submissions(code_id):
+    submissions = list(Submission.objects(user=current_user))
+    submissions.sort(key=lambda x: x.timestamp, reverse=True)
+    return render_template("pages/submissions.html", submissions=submissions)

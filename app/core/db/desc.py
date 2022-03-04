@@ -1,5 +1,6 @@
 import datetime
 from email.policy import default
+from sqlite3 import Timestamp
 import uuid
 import mongoengine as me
 from flask_login import UserMixin
@@ -53,6 +54,7 @@ class Submission(me.Document):
     code = me.StringField()
     is_correct = me.BooleanField()
     comment = me.StringField()
+    timestamp = me.DateTimeField(default=datetime.datetime.now)
 
 
 class Logs(me.Document):

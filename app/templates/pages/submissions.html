@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}My submissions{% endblock %}
+
+{% block content %}
+
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">Time</th>
+            <th scope="col">Arch</th>
+            <th scope="col">Comment</th>
+            <th scope="col"></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for submission in submissions %}
+        <tr {% if submission.is_correct %}
+            class="table-success"
+            {% else %}
+            class="table-danger"
+            {% endif %}
+        >
+            <td>{{ submission.timestamp }}</td>
+            <td>{{ submission.arch }}</td>
+            <td>{{ submission.comment }}</td>
+            <td>
+                <a href="#">View source</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}
