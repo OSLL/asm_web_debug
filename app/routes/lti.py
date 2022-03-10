@@ -1,5 +1,6 @@
 import logging
 from flask import Blueprint, abort, request, make_response, render_template, url_for, redirect
+from itsdangerous import json
 
 from app.core.db.manager import DBManager
 
@@ -43,6 +44,7 @@ def lti_route():
         if not code:
             code = Code(_id=code_id, owner=user)
         code.problem = DBManager.get_problem(problem_id)
+        code.passback_params = json.dumps(params_for_passback)
         code.save()
 
         return redirect(url_for('codes.index_id', code_id=code_id))

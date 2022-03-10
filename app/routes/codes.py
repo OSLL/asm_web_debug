@@ -8,6 +8,7 @@ import requests
 from app.core.db.desc import Submission
 from app.core.db.manager import DBManager
 from app.core.db.utils import code_to_dict
+from app.core.lti_core.lti_utils import LTIError, report_outcome_score
 from app.core.utils.hex import hexdump
 from app.response import Response
 
@@ -68,6 +69,7 @@ def submit_code(code_id):
     is_correct = result["ok"]
 
     if not is_correct:
+        score = 0.0
         error_type = result["error_type"]
         if error_type == "DoesNotCompileError":
             error_message = "Compilation error"
@@ -79,8 +81,11 @@ def submit_code(code_id):
             error_message = error_type
         comment = f"{error_message}: {result['message']}"
     else:
+        score = 1.0
         comment = "Solution accepted"
 
+    if code.passback_params:
+        report_outcome_score(code.passback_params, score)
 
     submission = Submission(
         user=code.owner,

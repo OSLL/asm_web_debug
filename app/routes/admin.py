@@ -45,7 +45,7 @@ class UserView(ProtectedModelView):
 
 
 class CodeView(ProtectedModelView):
-    column_exclude_list = ["code"]
+    column_exclude_list = ["code", "passback_params"]
     form_overrides = { "arch": ArchSelectField }
 
     def __init__(self):

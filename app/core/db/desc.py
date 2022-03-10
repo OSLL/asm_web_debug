@@ -30,7 +30,7 @@ class Problem(me.Document):
     title = me.StringField(max_length=256)
     statement = me.StringField()
     checker_name = me.StringField()
-    checker_config = me.StringField()
+    checker_config = me.StringField(default="{}")
 
     def __str__(self):
         return str(self.title)
@@ -44,6 +44,7 @@ class Code(me.Document):
     arch = me.StringField(default="x86_64")
     owner = me.ReferenceField(User)
     problem = me.ReferenceField(Problem)
+    passback_params = me.StringField()
 
 
 class Submission(me.Document):
