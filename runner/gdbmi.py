@@ -1,5 +1,6 @@
 import string
 from collections import namedtuple
+from typing import TypeAlias
 
 Result = namedtuple("Result", ["status", "values"])
 ExecAsync = namedtuple("ExecAsync", ["status", "values"])
@@ -9,6 +10,7 @@ DebuggerOutput = namedtuple("DebuggerOutput", ["line"])
 TargetOutput = namedtuple("TargetOutput", ["line"])
 LogOutput = namedtuple("LogOutput", ["line"])
 
+AnyNotification: TypeAlias = ExecAsync | StatusAsync | Notification | DebuggerOutput | TargetOutput | LogOutput
 
 class Parser:
     def __init__(self, s):
