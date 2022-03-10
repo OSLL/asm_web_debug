@@ -2,9 +2,9 @@
 
 host=${1:-"http://127.0.0.1:5100"}
 
-./scripts/install_selenium_driver.sh
+# ./scripts/install_selenium_driver.sh
 
-PATH=./:$PATH python main.py "${host}"
+python main.py "${host}"
 
 return_code=$?
 
@@ -15,5 +15,4 @@ else
   echo "Failure tests"
 fi
 
-cd -
 exit $return_code

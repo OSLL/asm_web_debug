@@ -18,6 +18,8 @@ jobs:
           poetry install --no-interaction --no-ansi
       - name: Run web server
         run: ./manage.py run -d --port 5100
+      - name: Create test user
+        run: ./manage.py create-admin --username test_username --password test_password
       - name: Run tests
         run: |
           cd tests/selenium

@@ -8,11 +8,13 @@ import os
 
 
 workdir = pathlib.Path(__file__).parent
-name = "asm_web_debug"
+args = None
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--name", type=str, default="asm_web_debug", help="Name for docker compose")
+
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     parser_run = subparsers.add_parser("run", help="Run server")
@@ -22,7 +24,9 @@ def parse_args():
 
     subparsers.add_parser("stop", help="Stop development server started in detach mode")
     subparsers.add_parser("shell", help="Run shell")
-    subparsers.add_parser("create-admin", help="Create admin user")
+    parser_create_admin = subparsers.add_parser("create-admin", help="Create admin user")
+    parser_create_admin.add_argument("--username", type=str)
+    parser_create_admin.add_argument("--password", type=str)
 
     parser_restart = subparsers.add_parser("restart", help="Restart services")
     parser_restart.add_argument("service", nargs="+")
@@ -38,7 +42,7 @@ def create_env_file():
 def run_docker_compose(config_path, env, detach=False):
     try:
         subprocess.run(
-            ["docker-compose", "-f", config_path, "-p", name, "up", "--build"] + (["-d"] if detach else []),
+            ["docker-compose", "-f", config_path, "-p", args.name, "up", "--build"] + (["-d"] if detach else []),
             cwd=workdir, check=True, env={**os.environ, **env}
         )
     except KeyboardInterrupt:
@@ -49,15 +53,16 @@ def run_docker_compose(config_path, env, detach=False):
         print("To restart a service, run ./manage.py restart <web|runner|mongo|nginx>")
 
 def stop_docker_compose():
-    subprocess.run(["docker-compose", "-p", name, "down"])
+    subprocess.run(["docker-compose", "-p", args.name, "down"])
 
 def restart_docker_compose_services(config_path, services):
-    subprocess.run(["docker-compose", "-f", config_path, "-p", name, "up", "--no-deps", "--build", "-d"] + services)
+    subprocess.run(["docker-compose", "-f", config_path, "-p", args.name, "up", "--no-deps", "--build", "-d"] + services)
 
 def run_command(config_path, command):
-    subprocess.run(["docker-compose", "-f", config_path, "-p", name, "run", "web"] + command)
+    subprocess.run(["docker-compose", "-f", config_path, "-p", args.name, "run", "web"] + command)
 
 def main():
+    global args
     args = parse_args()
 
     if args.command == "run":
@@ -78,7 +83,12 @@ def main():
         run_command("docker/develop.docker-compose.yml", ["poetry", "run", "bash"])
 
     if args.command == "create-admin":
-        run_command("docker/develop.docker-compose.yml", ["poetry", "run", "python", "-m", "app", "create-admin"])
+        cmd = ["create-admin"]
+        if args.username:
+            cmd += ["--username", args.username]
+        if args.password:
+            cmd += ["--password", args.password]
+        run_command("docker/develop.docker-compose.yml", ["poetry", "run", "python", "-m", "app"] + cmd)
 
 
 if __name__ == "__main__":
