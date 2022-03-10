@@ -16,7 +16,7 @@
         <p>{{ problem.statement }}</p>
         <div style="display: block; float: right;">
         	<input type="button" class="btn btn-info" name="Check" value="Check" id="submit_button" />
-        	<a href="{{ url_for('codes.submissions', code_id=code._id) }}" target="_blank" class="btn btn-success">My solutions</a>
+        	<a href="{{ url_for('codes.submissions', code_id=code._id) }}" target="_blank" class="btn btn-success">My submissions</a>
         </div>
     </div>
 {% endif %}

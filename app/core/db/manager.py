@@ -8,7 +8,7 @@ from flask_mongoengine import MongoEngine
 from pymongo import DESCENDING, ASCENDING
 from passlib.hash import pbkdf2_sha256
 
-from app.core.db.desc import Code, Problem, User, Logs, Consumers
+from app.core.db.desc import Code, Problem, Submission, User, Logs, Consumers
 
 
 class DBManager:
@@ -37,6 +37,13 @@ class DBManager:
         try:
             return Code.objects.get(_id=code_id)
         except Code.DoesNotExist:
+            return None
+
+    @staticmethod
+    def get_submission(submission_id):
+        try:
+            return Submission.objects.get(_id=submission_id)
+        except Submission.DoesNotExist:
             return None
 
     @staticmethod

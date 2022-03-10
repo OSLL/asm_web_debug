@@ -1,7 +1,7 @@
 from crypt import methods
 import json
 import logging
-from flask import Blueprint, render_template, request, current_app as app, redirect, abort
+from flask import Blueprint, make_response, render_template, request, current_app as app, redirect, abort
 from flask_login import current_user
 import requests
 
@@ -132,3 +132,13 @@ def submissions(code_id):
     submissions = list(Submission.objects(user=current_user))
     submissions.sort(key=lambda x: x.timestamp, reverse=True)
     return render_template("pages/submissions.html", submissions=submissions)
+
+
+@bp.route("/view_source_code/<submission_id>")
+def view_source_code(submission_id):
+    submission = DBManager.get_submission(submission_id)
+    if not submission:
+        abort(404)
+    response = make_response(submission.code, 200)
+    response.mimetype = "text/plain"
+    return response
