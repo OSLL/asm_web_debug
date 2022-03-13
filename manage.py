@@ -34,6 +34,7 @@ def create_env_file():
 
 
 def run_docker_compose(config_path, env, detach=False):
+
     try:
         subprocess.run(
             ["docker-compose", "-f", config_path, "-p", name, "up", "--build"] + (["-d"] if detach else []),
@@ -72,4 +73,5 @@ def main():
 
 
 if __name__ == "__main__":
+
     main()

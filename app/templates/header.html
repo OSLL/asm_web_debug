@@ -4,6 +4,7 @@
         {% if current_user.is_authenticated %}
             {% if not current_user.has_role('user') %}
                 <a id="log_link" href="{{url_for('logs.logs_page')}}" target="_blank">Logs</a>
+                <a id="tasks_link" href="./tasks" target="_self">Tasks</a>
             {% endif %}
             <div id="auth_user" style="text-align:right; float:right">
                 Username: {{current_user.username}} <a href='/logout'>logout</a><br>
