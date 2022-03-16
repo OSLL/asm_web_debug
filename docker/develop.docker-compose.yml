@@ -21,6 +21,8 @@ services:
       dockerfile: docker/runner.dockerfile
     volumes:
       - ../:/code:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - runner_data:/runner_data
     environment:
       - LOGLEVEL=DEBUG
 
@@ -44,3 +46,4 @@ services:
 
 volumes:
   mongo_data:
+  runner_data:

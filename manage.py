@@ -56,7 +56,7 @@ def stop_docker_compose():
     subprocess.run(["docker-compose", "-p", args.name, "down"])
 
 def restart_docker_compose_services(config_path, services):
-    subprocess.run(["docker-compose", "-f", config_path, "-p", args.name, "up", "--no-deps", "--build", "-d"] + services)
+    subprocess.run(["docker-compose", "-f", config_path, "-p", args.name, "restart"] + services)
 
 def run_command(config_path, command):
     subprocess.run(["docker-compose", "-f", config_path, "-p", args.name, "run", "web"] + command)

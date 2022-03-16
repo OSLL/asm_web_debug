@@ -26,7 +26,7 @@ class RunningProgram:
     event_subscribers: List[Callable[[gdbmi.AnyNotification], None]]
 
     def __init__(self, arch: str) -> None:
-        self.workdir = pathlib.Path(tempfile.mkdtemp(prefix="asmwebide_runner_"))
+        self.workdir = pathlib.Path(tempfile.mkdtemp(prefix="asmwebide_runner_", dir=config.runner_data_path))
         self.arch = arch
         self.debugger = Debugger()
         self.reg_name_to_id = None

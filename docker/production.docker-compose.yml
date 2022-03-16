@@ -17,6 +17,9 @@ services:
     build:
       context: ".."
       dockerfile: docker/runner.dockerfile
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - runner_data:/runner_data
     restart: always
 
   nginx:
@@ -38,3 +41,4 @@ services:
 
 volumes:
   mongo_data:
+  runner_data:

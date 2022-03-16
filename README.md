@@ -1,5 +1,13 @@
 # asm_web_debug
 
+# Prepare
+
+Build an image used for running user code:
+
+```
+docker build -t asm_web_debug_executor -f docker/executor.dockerfile .
+```
+
 # Run
 - Bash
 ```
