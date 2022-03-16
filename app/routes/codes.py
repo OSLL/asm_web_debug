@@ -11,6 +11,7 @@ from app.core.db.utils import code_to_dict
 from app.core.lti_core.lti_utils import LTIError, report_outcome_score
 from app.core.utils.hex import hexdump
 from app.response import Response
+from runner.checkerlib import Checker
 
 
 
@@ -30,14 +31,20 @@ def index_id(code_id):
     code = DBManager.get_code(code_id=code_id)
     if code:
         checker_name = ""
+        sample_test = None
         if code.problem:
             checker_name = code.problem.checker_name
+            try:
+                sample_test = Checker._all_checkers[checker_name].sample_test
+            except:
+                pass
         ide_init = f"IDE({json.dumps(checker_name)});"
         return render_template(
             'pages/ide.html',
             code=code_to_dict(code),
             problem=code.problem,
-            ide_init=ide_init
+            ide_init=ide_init,
+            sample_test=sample_test
         )
     else:
         return render_template('pages/ide.html')

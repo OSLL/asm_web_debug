@@ -17,7 +17,7 @@
     width: 100%;
     margin-bottom: 20px;
     border: 1px solid #dddddd;
-    border-collapse: collapse; 
+    border-collapse: collapse;
 }
 
 .index_table th {
@@ -66,4 +66,9 @@
     cursor: pointer;
     color: #00c;
     text-decoration: underline;
+}
+
+.sample_test {
+    width: 100%;
+    font-family: monospace;
 }

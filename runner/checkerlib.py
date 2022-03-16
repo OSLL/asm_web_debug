@@ -12,6 +12,7 @@ class DoesNotCompileError(CheckerException): pass
 class WrongAnswerError(CheckerException): pass
 class SignalledError(CheckerException): pass
 class InternalCheckerError(CheckerException): pass
+class InvalidSampleTestFormatError(CheckerException): pass
 
 
 class BaseChecker(abc.ABC):
@@ -85,12 +86,15 @@ class BaseChecker(abc.ABC):
 
 
 class Checker(BaseChecker):
-    source_prefix = ""
-    source_suffix = ""
+    source_prefix: str = ""
+    source_suffix: str = ""
+    sample_test: Optional[str] = None
+
     program: DebugSession
 
     async def check_before_run(self) -> None: pass
     async def check(self) -> None: pass
+    async def prepare_sample_test(self) -> None: pass
 
     def get_source_for_interactive_debugger(self) -> str:
         return f"""{self.source_prefix}

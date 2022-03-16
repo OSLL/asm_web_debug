@@ -1,11 +1,11 @@
 import asyncio
 import json
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Type
 
 from aiohttp import web, WSMsgType
 
 from runner import gdbmi
-from runner.checkerlib import BaseChecker
+from runner.checkerlib import BaseChecker, Checker, CheckerException
 from runner.debugger import DebuggerError
 from runner.runner import BreakpointId, DebugSession
 from runner.settings import config
@@ -36,13 +36,13 @@ class WSInteractor:
             try:
                 json_msg = json.loads(msg.data)
                 await self.handle_message(json_msg)
-            except (ValueError, DebuggerError) as e:
+            except (ValueError, DebuggerError, CheckerException) as e:
                 await self.ws.send_json({
-                    "type": "errror",
+                    "type": "error",
                     "message": str(e)
                 })
 
-    async def start_program(self, source: str, stdin: str, breakpoints: List[int]):
+    async def start_program(self, source: str, stdin: str, breakpoints: List[int], checker_class: Optional[Type[Checker]], sample_test: Optional[str]):
         if self.debug_session:
             await self.debug_session.close()
         self.breakpoints = {}
@@ -60,12 +60,21 @@ class WSInteractor:
 
         self.debug_session.set_stdin(stdin)
         await self.debug_session.start_debugger()
-        asyncio.create_task(self.handle_gdb_events())
 
         for line in breakpoints:
             self.breakpoints[line] = await self.debug_session.add_breakpoint(line)
 
-        await self.debug_session.start_program()
+        if checker_class and sample_test:
+            checker = checker_class(arch=self.debug_session.arch, source_code=source)
+            checker.sample_test = sample_test
+            checker.program = self.debug_session
+            await self.debug_session.restart()
+            await checker.prepare_sample_test()
+            await self.debug_session.continue_execution()
+        else:
+            await self.debug_session.start_program()
+
+        asyncio.create_task(self.handle_gdb_events())
 
     async def terminate_program(self):
         await self.ws.send_json({
@@ -99,11 +108,14 @@ class WSInteractor:
             for b in breakpoints:
                 if type(b) is not int:
                     raise ValueError("Expected 'breakpoints' contents to be ints")
+            sample_test = msg.get("sample_test")
+            if sample_test is not None and type(sample_test) is not str:
+                raise ValueError("Expected 'sample_test' to be either null or a string")
             checker_name = msg.get("checker_name")
             checker_class = BaseChecker._all_checkers.get(checker_name)
             if checker_class is not None:
                 source = checker_class(arch="x86_64", source_code=source).get_source_for_interactive_debugger()
-            await self.start_program(source, stdin, breakpoints)
+            await self.start_program(source, stdin, breakpoints, checker_class, sample_test)
 
         if not self.debug_session:
             return

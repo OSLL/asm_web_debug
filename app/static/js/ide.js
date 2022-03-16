@@ -36,7 +36,8 @@ function IDE(checkerName) {
     const $debugButtons = $("#debug-buttons");
     const $output = $("#build_log");
     const $registerTable = $("#register_body");
-    const $submitButton = $("#submit_button")
+    const $submitButton = $("#submit_button");
+    const $sampleTest = $("#sample_test");
 
     const ws = new WebSocket(`${(window.location.protocol === "https") ? "wss" : "ws"}://${window.location.host}/ws_ide`);
 
@@ -57,7 +58,7 @@ function IDE(checkerName) {
 
     function showAlert(content, kind) {
         const $alert = $("#ajax-alert");
-        $alert.html(content);
+        $alert.text(content);
         $alert.show();
         $alert.removeClass().addClass(`alert alert-${kind}`);
         $alert.delay(3000).fadeOut();
@@ -131,7 +132,8 @@ function IDE(checkerName) {
                 "source": doc.getValue(),
                 "input": "",
                 "breakpoints": getBreakpoints(),
-                "checker_name": checkerName
+                "checker_name": checkerName,
+                "sample_test": $sampleTest ? $sampleTest.val() : null
             });
         } else {
             sendMessage({
@@ -237,6 +239,9 @@ function IDE(checkerName) {
             }
         } else if (msg.type === "output") {
             $output.val($output.val() + msg.data);
+        } else if (msg.type === "error") {
+            showAlert(msg.message, "danger");
+            setState(State.stopped);
         }
     });
 

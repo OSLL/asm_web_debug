@@ -42,8 +42,15 @@
                     <option value={{arch}}>{{arch}}</option>
                 {% endfor %}
             </select>
+            <br />
+
+{% if sample_test %}
+            Input:
+            <textarea id="sample_test" class="sample_test" rows="1">{{ sample_test }}</textarea>
+{% endif %}
             <div id="debug-buttons"></div>
             <br><br>
+
 
             <form><textarea id='code' class='code' >{{ code['code'] }}</textarea></form>
 
