@@ -49,8 +49,6 @@ class Consumers(me.Document):
     
 class Tasks(me.Document):
     _id = me.StringField(primary_key=True)
-    public_id = me.StringField(max_length=4, unique=true)
     name = me.StringField(unique=true)
-    difficulty = me.IntField(default=1)
     description = me.StringField()
-    examples = me.ListField(me.StringField())
+    tests = me.DictField()
