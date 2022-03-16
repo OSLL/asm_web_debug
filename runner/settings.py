@@ -26,6 +26,7 @@ class Config:
     })
 
     default_cpu_usage_limit: str = "0.1"
+    default_cpu_time_limit: int = 1
     default_memory_limit: str = "32m"
     default_real_time_limit: int = 3600
     default_offline_real_time_limit: int = 10

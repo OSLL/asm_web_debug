@@ -47,6 +47,10 @@ class DebugSession:
     def stdin_path(self) -> pathlib.Path:
         return self.workdir / "input"
 
+    @property
+    def cid_file_path(self) -> pathlib.Path:
+        return self.workdir / "cid"
+
     async def compile(self, source_code) -> CompilationResult:
         with open(self.source_path, "w") as f:
             f.write(source_code)
@@ -81,19 +85,43 @@ class DebugSession:
         with open(self.stdin_path, "w") as f:
             f.write(data)
 
-    async def start_debugger(self) -> None:
+    async def start_debugger(
+        self,
+        cpu_usage_limit: Optional[str] = None,
+        cpu_time_limit: Optional[int] = None,
+        memory_limit: Optional[str] = None,
+        real_time_limit: Optional[int] = None
+    ) -> None:
+        cpu_usage_limit = cpu_usage_limit or config.default_cpu_usage_limit
+        cpu_time_limit = cpu_time_limit or config.default_cpu_time_limit
+        memory_limit = memory_limit or config.default_memory_limit
+        real_time_limit = real_time_limit or config.default_real_time_limit
+
         await self.debugger.start(config.archs[self.arch].gdb)
         await self.debugger.gdb_command(f"-gdb-set mi-async on")
 
         gdbserver_command = [
             "docker", "run", "--rm", "-i",
-            "--cpus", config.default_cpu_usage_limit,
-            "--memory", config.default_memory_limit,
             "-v", f"{config.runner_data_volume}:{config.runner_data_path}",
-            config.executor_docker_image,
-            config.archs[self.arch].gdbserver,
-            "--multi", "-"
+            "--cidfile", str(self.cid_file_path),
         ]
+
+        if cpu_usage_limit:
+            gdbserver_command += ["--cpus", cpu_usage_limit]
+
+        if memory_limit:
+            gdbserver_command += ["--memory", memory_limit]
+
+        gdbserver_command += [config.executor_docker_image]
+
+        if cpu_time_limit:
+            gdbserver_command += ["prlimit", f"--cpu={cpu_time_limit}"]
+
+        if real_time_limit:
+            gdbserver_command += ["timeout", f"{real_time_limit}s"]
+
+        gdbserver_command += [config.archs[self.arch].gdbserver, "--multi", "-"]
+
         gdbserver_command_shell = shlex.join(gdbserver_command)
         await self.debugger.gdb_command(f"-target-select extended-remote | {gdbserver_command_shell}")
 
@@ -105,8 +133,24 @@ class DebugSession:
         if self.debugger is not None:
             await self.debugger.terminate()
 
+    async def terminate_gdbserver(self) -> None:
+        try:
+            container_id = self.cid_file_path.read_text().strip()
+        except (IOError, OSError):
+            return
+
+        command = ["docker", "kill", container_id]
+
+        process = await asyncio.subprocess.create_subprocess_exec(
+            *command,
+            stdout=asyncio.subprocess.DEVNULL,
+            stderr=asyncio.subprocess.DEVNULL
+        )
+        await process.wait()
+
     async def close(self) -> None:
         await self.terminate()
+        await self.terminate_gdbserver()
         shutil.rmtree(self.workdir)
 
     async def start_program(self) -> None:

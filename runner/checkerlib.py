@@ -2,8 +2,8 @@ import abc
 import pathlib
 from typing import Dict, Optional, Type
 from runner import gdbmi
+from runner.settings import config
 from runner.debugger import DebuggerError
-
 from runner.runner import DebugSession
 
 class CheckerException(Exception): pass
@@ -35,17 +35,17 @@ class BaseChecker(abc.ABC):
         self._cleanup = []
 
     async def start(self, source_code: Optional[str]) -> DebugSession:
-        running_program = DebugSession(self.arch)
-        self._cleanup.append(running_program.close)
+        debug_session = DebugSession(self.arch)
+        self._cleanup.append(debug_session.close)
 
         if not source_code:
             source_code = self.source_code
 
-        compilation_result = await running_program.compile(source_code)
+        compilation_result = await debug_session.compile(source_code)
         if not compilation_result.successful:
             raise DoesNotCompileError(str(compilation_result.stderr))
 
-        await running_program.start_debugger()
+        await debug_session.start_debugger(real_time_limit=config.default_offline_real_time_limit)
 
         def on_event(event: gdbmi.AnyNotification) -> None:
             if type(event) is gdbmi.ExecAsync and event.status == "stopped":
@@ -53,10 +53,10 @@ class BaseChecker(abc.ABC):
                 if reason in ("signal-received", "exited-signalled") and event.values["signal-name"] != "SIGINT":
                     raise SignalledError(event.values["signal-name"])
 
-        running_program.event_subscribers.append(on_event)
-        await running_program.restart()
+        debug_session.event_subscribers.append(on_event)
+        await debug_session.restart()
 
-        return running_program
+        return debug_session
 
     async def close(self) -> None:
         for fn in self._cleanup:
