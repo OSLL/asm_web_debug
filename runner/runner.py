@@ -2,6 +2,7 @@ import asyncio.subprocess
 import binascii
 from dataclasses import dataclass
 import pathlib
+import shlex
 import shutil
 import tempfile
 from collections import namedtuple
@@ -18,7 +19,7 @@ BreakpointId: TypeAlias = int
 RegisterName: TypeAlias = str
 
 
-class RunningProgram:
+class DebugSession:
     workdir: pathlib.Path
     arch: str
     debugger: Debugger
@@ -83,6 +84,20 @@ class RunningProgram:
     async def start_debugger(self) -> None:
         await self.debugger.start(config.archs[self.arch].gdb)
         await self.debugger.gdb_command(f"-gdb-set mi-async on")
+
+        gdbserver_command = [
+            "docker", "run", "--rm", "-i",
+            "--cpus", config.default_cpu_usage_limit,
+            "--memory", config.default_memory_limit,
+            "-v", f"{config.runner_data_volume}:{config.runner_data_path}",
+            config.executor_docker_image,
+            config.archs[self.arch].gdbserver,
+            "--multi", "-"
+        ]
+        gdbserver_command_shell = shlex.join(gdbserver_command)
+        await self.debugger.gdb_command(f"-target-select extended-remote | {gdbserver_command_shell}")
+
+        await self.debugger.gdb_command(f"-gdb-set remote exec-file {self.executable_path}")
         await self.debugger.gdb_command(f"-file-exec-and-symbols {self.executable_path}")
         await self.debugger.gdb_command(f"-exec-arguments >&2 <{self.stdin_path}")
 

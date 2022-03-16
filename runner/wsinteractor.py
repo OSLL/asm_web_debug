@@ -7,7 +7,7 @@ from aiohttp import web, WSMsgType
 from runner import gdbmi
 from runner.checkerlib import BaseChecker
 from runner.debugger import DebuggerError
-from runner.runner import BreakpointId, RunningProgram
+from runner.runner import BreakpointId, DebugSession
 from runner.settings import config
 
 
@@ -21,7 +21,7 @@ async def run_interactor(ws: web.WebSocketResponse):
 
 class WSInteractor:
     ws: web.WebSocketResponse
-    running_program: Optional[RunningProgram]
+    running_program: Optional[DebugSession]
     breakpoints: Dict[int, BreakpointId]
 
     def __init__(self, ws: web.WebSocketResponse):
@@ -46,7 +46,7 @@ class WSInteractor:
         if self.running_program:
             await self.running_program.close()
         self.breakpoints = {}
-        self.running_program = RunningProgram("x86_64")
+        self.running_program = DebugSession("x86_64")
         result = await self.running_program.compile(source)
         await self.ws.send_json({
             "type": "compilation_result",
@@ -68,10 +68,10 @@ class WSInteractor:
         await self.running_program.start_program()
 
     async def terminate_program(self):
-        await self.close()
         await self.ws.send_json({
             "type": "finished"
         })
+        await self.close()
 
     async def send_registers_state(self):
         registers = await self.running_program.get_register_values(config.archs[self.running_program.arch].display_registers)

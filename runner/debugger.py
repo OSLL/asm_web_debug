@@ -29,11 +29,6 @@ class Debugger:
 
     async def start(self, path_to_gdb: str) -> None:
         command = [
-            "docker", "run", "--rm", "-i",
-            "--cpus", config.default_cpu_usage_limit,
-            "--memory", config.default_memory_limit,
-            "-v", f"{config.runner_data_volume}:{config.runner_data_path}",
-            config.executor_docker_image,
             path_to_gdb,
             "-q", "-nx",
             "--interpreter=mi2"

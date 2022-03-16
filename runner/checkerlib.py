@@ -4,7 +4,7 @@ from typing import Dict, Optional, Type
 from runner import gdbmi
 from runner.debugger import DebuggerError
 
-from runner.runner import RunningProgram
+from runner.runner import DebugSession
 
 class CheckerException(Exception): pass
 
@@ -34,8 +34,8 @@ class BaseChecker(abc.ABC):
         self.source_code = source_code
         self._cleanup = []
 
-    async def start(self, source_code: Optional[str]) -> RunningProgram:
-        running_program = RunningProgram(self.arch)
+    async def start(self, source_code: Optional[str]) -> DebugSession:
+        running_program = DebugSession(self.arch)
         self._cleanup.append(running_program.close)
 
         if not source_code:
@@ -87,7 +87,7 @@ class BaseChecker(abc.ABC):
 class Checker(BaseChecker):
     source_prefix = ""
     source_suffix = ""
-    program: RunningProgram
+    program: DebugSession
 
     async def check_before_run(self) -> None: pass
     async def check(self) -> None: pass

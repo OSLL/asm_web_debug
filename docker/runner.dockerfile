@@ -6,7 +6,7 @@ RUN pip install poetry
 COPY pyproject.toml poetry.lock /code/
 RUN poetry install --no-interaction --no-ansi --no-dev
 
-RUN apt-get update && apt-get install -y gcc gdb docker.io
+RUN apt-get update && apt-get install -y gcc gdb gdbserver docker.io
 
 COPY . /code
 

@@ -8,6 +8,7 @@ from typing import Dict, List
 class Arch:
     gcc: str
     gdb: str
+    gdbserver: str
     display_registers: List[str]
 
 
@@ -16,7 +17,12 @@ class Config:
     host: str = "0.0.0.0"
     port: int = 80
     archs: Dict[str, Arch] = field(default_factory=lambda: {
-        "x86_64": Arch(gcc="gcc", gdb="gdb", display_registers=["rax", "rbx", "rcx", "rdx", "rsi", "rdi", "rbp", "rsp", "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15", "rip", "eflags"])
+        "x86_64": Arch(
+            gcc="gcc",
+            gdb="gdb",
+            gdbserver="gdbserver",
+            display_registers=["rax", "rbx", "rcx", "rdx", "rsi", "rdi", "rbp", "rsp", "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15", "rip", "eflags"]
+        )
     })
 
     default_cpu_usage_limit: str = "0.1"
