@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .solutions_table{
+        width: 100%;
+        border-collapse: collapse;
+        border-radius: 10px;
+        border-style: hidden; /* hide standard table (collapsed) border */
+        box-shadow: 0 0 0 2px lightblue; /* this draws the table border  */
+    }
+    table,td, tr, th{
+        border: 2px solid lightblue;
+        border-radius: 20px;
+        padding: 4px;
+    }
+    #view_info{
+        margin: 0;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+
+        background-color: white;
+        width: 40%;
+        height: 90%;
+        border: 2px solid lightblue;
+        border-radius: 20px;
+        box-shadow: 0 0 20px lightblue, inset 0 0 2px lightblue;
+    }
+    .close_button{
+        position: relative;
+        top: 4%;
+        left: 96%;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+    }
+    .view_scroll{
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+        width: 100%;
+        height: 100%;
+        padding: 10px;
+    }
+    .view_content{
+        display: flex;
+        flex-direction: column;
+
+        width: 100%;
+        height: 91%;
+        padding: 20px;
+    }
+</style>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+
+<div class="py-5 text-center">
+    <table class="solutions_table" >
+            <thead>
+                <tr>
+                    <th scope="col">id</th>
+                    <th scope="col">Date</th>
+                    <th scope="col">Time</th>
+                    <th scope="col">Feedback</th>
+                    <th scope="col">Task</th>
+                    <th scope="col">Session</th>
+                </tr>
+            </thead>
+            {% for line in solutions %}
+            <tr>
+                <th>{{ line[0] }}</th>
+                <td>{{ line[1] }}</td>
+                <td>{{ line[2] }}</td>
+                {% if line[3]=="Success!" %}
+                    <td style="color: green">{{ line[3] }}</td>
+                {% else %}
+                    <td style="color: red">{{ line[3] }}</td>
+                {% endif %}
+                <td>
+                    <button type="button" class="btn btn-primary" style="border-radius: 20px" onclick="show({{ tasks[line[4]] }})">View task</button>
+                </td>
+                <td>
+                    <a href="">
+                        {{ line[5] }}
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+</div>
+
+<div id="view_info" style="display: none">
+    <button class="btn btn-secondary close_button" style="font-weight: bold" onclick="hide()">X</button>
+    <div class="view_content">
+        <div class="overflow-auto view_scroll">
+            <h1 id="task_id">#</h1>
+            <h2 id="task_name" style="word-break: break-all; text-align: center"></h2>
+            <h4 id="task_difficulty" style="align-self: end">Difficulty:</h4>
+            <h4 id="task_success" style="align-self: end">Success amount:</h4>
+            <hr></hr>
+            <h3 style="align-self: start">Description</h3>
+            <p id="task_description" style="width: 100%; word-break: break-all"></p>
+            <h3 style="align-self: start; width: 100%; word-break: break-all">Examples</h3>
+            <p id="task_examples" style="width: 100%; word-break: break-all"></p>
+        </div>
+    </div>
+</div>
+
+<script>
+function hide(){
+        $.ajax({
+            success(){
+                $("#view_info").hide()
+            }
+        })
+    }
+
+function show(line){
+        $.ajax({
+            success(){
+                console.log(line);
+                $("#task_id").text("#"+line[0])
+                $("#task_name").text(line[1])
+                $("#task_difficulty").text("Difficulty: "+line[2])
+                $("#task_success").text("Success amount: "+line[3])
+                $("#task_description").text(line[4])
+                $("#task_examples").text(line[5])
+                $("#view_info").show()
+            }
+        })
+    }
+
+</script>
+{% endblock %}
