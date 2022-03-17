@@ -11,7 +11,7 @@ async def ide_websocket(request: web.Request):
     request.app["websockets"].add(ws)
 
     try:
-        await run_interactor(ws)
+        await run_interactor(ws, request.rel_url.query)
     finally:
         request.app["websockets"].discard(ws)
 

@@ -102,12 +102,4 @@
     <script src="static/js/libs/jquery.md5.min.js"></script>
 
     <script src="static/js/ide.js"></script>
-
-    <script type="text/javascript">
-    {% if ide_init %}
-        {{ ide_init | safe }}
-    {% else %}
-        IDE();
-    {% endif %}
-    </script>
 {% endblock %}

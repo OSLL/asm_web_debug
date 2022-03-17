@@ -3,6 +3,7 @@ import json
 from typing import Dict, Optional, List, Type
 
 from aiohttp import web, WSMsgType
+from multidict import MultiDict
 
 from runner import gdbmi
 from runner.checkerlib import BaseChecker, Checker, CheckerException
@@ -11,8 +12,8 @@ from runner.runner import BreakpointId, DebugSession
 from runner.settings import config
 
 
-async def run_interactor(ws: web.WebSocketResponse):
-    interactor = WSInteractor(ws)
+async def run_interactor(ws: web.WebSocketResponse, query: MultiDict[str]):
+    interactor = WSInteractor(ws, query)
     try:
         await interactor.run()
     finally:
@@ -23,11 +24,15 @@ class WSInteractor:
     ws: web.WebSocketResponse
     debug_session: Optional[DebugSession]
     breakpoints: Dict[int, BreakpointId]
+    checker_name: Optional[str]
+    checker_class: Optional[Type[Checker]]
 
-    def __init__(self, ws: web.WebSocketResponse):
+    def __init__(self, ws: web.WebSocketResponse, query: MultiDict[str]):
         self.ws = ws
         self.debug_session = None
         self.breakpoints = {}
+        self.checker_name = query.get("checker_name")
+        self.checker_class = BaseChecker._all_checkers.get(self.checker_name)
 
     async def handle_incoming_messages(self):
         async for msg in self.ws:
@@ -42,7 +47,7 @@ class WSInteractor:
                     "message": str(e)
                 })
 
-    async def start_program(self, source: str, stdin: str, breakpoints: List[int], checker_class: Optional[Type[Checker]], sample_test: Optional[str]):
+    async def start_program(self, source: str, stdin: str, breakpoints: List[int], sample_test: Optional[str]):
         if self.debug_session:
             await self.debug_session.close()
         self.breakpoints = {}
@@ -64,8 +69,8 @@ class WSInteractor:
         for line in breakpoints:
             self.breakpoints[line] = await self.debug_session.add_breakpoint(line)
 
-        if checker_class and sample_test:
-            checker = checker_class(arch=self.debug_session.arch, source_code=source)
+        if self.checker_class and sample_test:
+            checker = self.checker_class(arch=self.debug_session.arch, source_code=source)
             checker.sample_test = sample_test
             checker.program = self.debug_session
             await self.debug_session.restart()
@@ -111,11 +116,10 @@ class WSInteractor:
             sample_test = msg.get("sample_test")
             if sample_test is not None and type(sample_test) is not str:
                 raise ValueError("Expected 'sample_test' to be either null or a string")
-            checker_name = msg.get("checker_name")
-            checker_class = BaseChecker._all_checkers.get(checker_name)
-            if checker_class is not None:
-                source = checker_class(arch="x86_64", source_code=source).get_source_for_interactive_debugger()
-            await self.start_program(source, stdin, breakpoints, checker_class, sample_test)
+
+            if self.checker_class is not None:
+                source = self.checker_class(arch="x86_64", source_code=source).get_source_for_interactive_debugger()
+            await self.start_program(source, stdin, breakpoints, sample_test)
 
         if not self.debug_session:
             return

@@ -4,6 +4,7 @@ import logging
 from flask import Blueprint, make_response, render_template, request, current_app as app, redirect, abort
 from flask_login import current_user
 import requests
+from urllib.parse import urlencode
 
 from app.core.db.desc import Submission
 from app.core.db.manager import DBManager
@@ -38,12 +39,10 @@ def index_id(code_id):
                 sample_test = Checker._all_checkers[checker_name].sample_test
             except:
                 pass
-        ide_init = f"IDE({json.dumps(checker_name)});"
         return render_template(
             'pages/ide.html',
             code=code_to_dict(code),
             problem=code.problem,
-            ide_init=ide_init,
             sample_test=sample_test
         )
     else:
@@ -153,4 +152,20 @@ def view_source_code(submission_id):
         abort(404)
     response = make_response(submission.code, 200)
     response.mimetype = "text/plain"
+    return response
+
+
+@bp.route("/websocket/<code_id>")
+def websocket(code_id):
+    params = {
+        "username": current_user.username,
+        "is_admin": current_user.is_admin,
+    }
+
+    code = DBManager.get_code(code_id=code_id)
+    if code and code.problem:
+        params["checker_name"] = code.problem.checker_name
+
+    response = make_response()
+    response.headers["X-Accel-Redirect"] = f"/runner_api/websocket?{urlencode(params)}"
     return response

@@ -23,7 +23,7 @@ class BaseChecker(abc.ABC):
     @abc.abstractmethod
     async def run(self) -> None: pass
 
-    _all_checkers: "Dict[str, Type[BaseChecker]]" = {}
+    _all_checkers: "Dict[str, Type[Checker]]" = {}
 
     def __init_subclass__(cls, **kwargs) -> None:
         super().__init_subclass__(**kwargs)

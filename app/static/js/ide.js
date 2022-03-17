@@ -1,4 +1,4 @@
-function IDE(checkerName) {
+(function() {
     const State = Object.freeze({
         stopped: {
             id: "stopped",
@@ -39,7 +39,7 @@ function IDE(checkerName) {
     const $submitButton = $("#submit_button");
     const $sampleTest = $("#sample_test");
 
-    const ws = new WebSocket(`${(window.location.protocol === "https") ? "wss" : "ws"}://${window.location.host}/ws_ide`);
+    const ws = new WebSocket(`${(window.location.protocol === "https") ? "wss" : "ws"}://${window.location.host}/websocket/${codeId}`);
 
     let state = State.stopped;
     let activeLine = 0;
@@ -132,7 +132,6 @@ function IDE(checkerName) {
                 "source": doc.getValue(),
                 "input": "",
                 "breakpoints": getBreakpoints(),
-                "checker_name": checkerName,
                 "sample_test": $sampleTest ? $sampleTest.val() : null
             });
         } else {
@@ -262,4 +261,4 @@ function IDE(checkerName) {
 
     initEditor();
     setState(State.stopped);
-};
+})();
