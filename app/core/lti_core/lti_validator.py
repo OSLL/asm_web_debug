@@ -1,4 +1,4 @@
-from flask import current_app
+import logging
 from oauthlib.oauth1 import RequestValidator
 
 from app.core.db.desc import Consumers
@@ -28,8 +28,8 @@ class LTIRequestValidator(RequestValidator):
     def validate_timestamp_and_nonce(self, client_key, timestamp, nonce, request, request_token=None, access_token=None):
         if not DBManager.has_timestamp_and_nonce(client_key, timestamp, nonce):
             DBManager.add_timestamp_and_nonce(client_key, timestamp, nonce)
-            current_app.logger.debug('timestamp and nonce are valid!')
+            logging.debug('timestamp and nonce are valid!')
             return True
         else:
-            current_app.logger.error('timestamp and nonce are invalid!')
+            logging.error('timestamp and nonce are invalid!')
             return False

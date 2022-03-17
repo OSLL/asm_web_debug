@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<form method="POST" action="{{ url_for('auth.login') }}">
+<form method="POST" action="{{ url_for('login') }}">
 {% if error %}
     <p>{{ error }}</p>
 {% endif %}

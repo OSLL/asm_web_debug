@@ -1,4 +1,6 @@
-from flask import abort, current_app
+from app import app
+
+from flask import abort
 from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.form import SecureForm
 from flask_admin.contrib.mongoengine import ModelView
@@ -6,6 +8,7 @@ from flask_login import current_user
 from wtforms.fields import PasswordField, SelectField
 
 from app.core.db.desc import Code, Consumers, Problem, Submission, User
+from runner.checkerlib import Checker
 
 class ProtectedModelView(ModelView):
     form_base_class = SecureForm
@@ -19,12 +22,12 @@ class ProtectedModelView(ModelView):
 
 class ArchSelectField(SelectField):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **{**kwargs, "choices": current_app.config["ARCHS"]})
+        super().__init__(*args, **{**kwargs, "choices": app.config["ARCHS"]})
 
 
 class CheckerSelectField(SelectField):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **{**kwargs, "choices": list(current_app.config["CHECKERS"])})
+        super().__init__(*args, **{**kwargs, "choices": list(Checker._all_checkers)})
 
 
 class UserView(ProtectedModelView):
@@ -84,6 +87,5 @@ class AdminIndex(AdminIndexView):
         abort(403)
 
 
-def init_admin(app):
-    app.admin = Admin(app, template_mode="bootstrap4", index_view=AdminIndex())
-    app.admin.add_views(UserView(), CodeView(), ProblemView(), SubmissionView(), ConsumerView())
+admin = Admin(app, template_mode="bootstrap4", index_view=AdminIndex())
+admin.add_views(UserView(), CodeView(), ProblemView(), SubmissionView(), ConsumerView())

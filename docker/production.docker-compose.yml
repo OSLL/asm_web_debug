@@ -10,8 +10,7 @@ services:
       - mongo
     env_file:
       - ../.env
-    environment:
-      - RUNMODE=deploy
+    command: poetry run waitress-serve --port 80 app:app
 
   runner:
     build:

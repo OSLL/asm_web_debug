@@ -13,7 +13,7 @@ services:
     env_file:
       - ../.env
     environment:
-      - RUNMODE=test
+      - FLASK_DEBUG=1
 
   runner:
     build:

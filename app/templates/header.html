@@ -1,15 +1,14 @@
 <div id="header">
     <div id='header'>
-        <a id="index_link" href="./" target="_self">Index</a>
+        <a id="index_link" href="{{ url_for('index') }}">Index</a>
         {% if current_user.is_admin %}
-            <a href="{{ url_for('logs.logs_page') }}">Logs</a>
             <a href="{{ url_for('admin.index') }}">Admin</a>
         {% endif %}
         <div id="auth_user" style="text-align:right; float:right">
             {% if current_user.is_authenticated %}
-                Username: {{ current_user.username }} <a href="{{ url_for('auth.logout') }}">logout</a><br />
+                Username: {{ current_user.username }} <a href="{{ url_for('logout') }}">logout</a><br />
             {% else %}
-                <a href="{{ url_for('auth.login') }}">Log in</a>
+                <a href="{{ url_for('login') }}">Log in</a>
             {% endif %}
         </div>
     </div>

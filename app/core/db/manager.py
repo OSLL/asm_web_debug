@@ -1,9 +1,7 @@
-import json
 import datetime
 import logging
 from typing import Optional
 
-from flask import current_app
 from flask_mongoengine import MongoEngine
 from pymongo import DESCENDING, ASCENDING
 from passlib.hash import pbkdf2_sha256
@@ -69,7 +67,7 @@ class DBManager:
         try:
             return User.objects.get(_id=user_id)
         except User.DoesNotExist:
-            current_app.logger.debug(f'User not found: {user_id}')
+            logging.debug(f'User not found: {user_id}')
             return None
 
     @staticmethod
@@ -86,7 +84,7 @@ class DBManager:
             log = Logs.objects.get(_id=log_id)
             return log
         except Logs.DoesNotExist:
-            current_app.logger.debug(f'Log not found: {log_id}')
+            logging.debug(f'Log not found: {log_id}')
             return None
 
     @staticmethod

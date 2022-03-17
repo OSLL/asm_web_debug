@@ -1,5 +1,6 @@
-import logging
-from flask import Blueprint, abort, request, make_response, render_template, url_for, redirect
+from app import app
+
+from flask import abort, request, make_response, render_template, url_for, redirect
 from itsdangerous import json
 
 from app.core.db.manager import DBManager
@@ -9,16 +10,10 @@ from app.core.lti_core.lti_utils import extract_passback_params, get_custom_para
 from app.core.lti_core.check_request import check_request
 from app.core.db.desc import Code, Consumers, User
 
-from flask import current_app as app
 import flask_login
-from uuid import uuid4
 
 
-lti_bp = Blueprint('lti', __name__ )
-bp = lti_bp
-
-
-@bp.route('/lti', methods=['POST'])
+@app.route('/lti', methods=['POST'])
 def lti_route():
     if check_request(request):
         temporary_user_params = request.form

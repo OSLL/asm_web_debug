@@ -1,7 +1,9 @@
+from app import app
+
 from crypt import methods
 import json
 import logging
-from flask import Blueprint, make_response, render_template, request, current_app as app, redirect, abort
+from flask import Blueprint, make_response, render_template, request, redirect, abort
 from flask_login import current_user
 import requests
 from urllib.parse import urlencode
@@ -11,7 +13,6 @@ from app.core.db.manager import DBManager
 from app.core.db.utils import code_to_dict
 from app.core.lti_core.lti_utils import LTIError, report_outcome_score
 from app.core.utils.hex import hexdump
-from app.response import Response
 from runner.checkerlib import Checker
 
 
@@ -117,7 +118,7 @@ def save_code(code_id):
 
     DBManager.create_code(code_id=code_id, source_code=source_code, arch=arch)
 
-    return Response(success_save=True)
+    return {"success_save": True}
 
 
 @bp.route('/hexview/<code_id>', methods = ["GET", "POST"])
@@ -169,3 +170,6 @@ def websocket(code_id):
     response = make_response()
     response.headers["X-Accel-Redirect"] = f"/runner_api/websocket?{urlencode(params)}"
     return response
+
+
+app.register_blueprint(bp)
