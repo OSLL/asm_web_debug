@@ -2,11 +2,10 @@ import datetime
 import logging
 from typing import Optional
 
-from flask_mongoengine import MongoEngine
 from pymongo import DESCENDING, ASCENDING
 from passlib.hash import pbkdf2_sha256
 
-from app.core.db.desc import Code, Problem, Submission, User, Logs, Consumers
+from app.core.db.desc import Code, Problem, Submission, User, Consumers
 
 
 class DBManager:
@@ -60,8 +59,6 @@ class DBManager:
     def get_codes_older_than(days):
         return Code.objects(created__lte=(datetime.datetime.now()-datetime.timedelta(days=days))).to_json()
 
-    #### log ####
-
     @staticmethod
     def get_user(user_id):
         try:
@@ -69,34 +66,6 @@ class DBManager:
         except User.DoesNotExist:
             logging.debug(f'User not found: {user_id}')
             return None
-
-    @staticmethod
-    def add_log(log_id, time, lineno, pathname, levelname, message):
-        return Logs(_id=log_id, time=time, lineno=lineno, pathname=pathname, levelname=levelname, message=message).save()._id
-
-    @staticmethod
-    def get_all_logs():
-        return Logs.objects.all()
-
-    @staticmethod
-    def get_log_by_id(log_id):
-        try:
-            log = Logs.objects.get(_id=log_id)
-            return log
-        except Logs.DoesNotExist:
-            logging.debug(f'Log not found: {log_id}')
-            return None
-
-    @staticmethod
-    def get_filter_logs(query={}, limit=None, offset=None, sort=None, order=None):
-        logs = Logs.objects(**query).order_by('-time')
-        count = logs.count()
-        if limit is not None and offset is not None:
-            logs = logs.skip(offset).limit(limit)
-        if sort:
-            logs = logs.order_by(f"{'-' if order == 'asc' else '+'}{sort}")
-        return logs, count
-
 
     #### lti ####
 

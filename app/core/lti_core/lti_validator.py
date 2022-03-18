@@ -6,7 +6,6 @@ from app.core.db.manager import DBManager
 
 
 class LTIRequestValidator(RequestValidator):
-
     @property
     def client_key_length(self):
         return 15, 30
@@ -19,6 +18,10 @@ class LTIRequestValidator(RequestValidator):
     def enforce_ssl(self):
         return False
 
+    @property
+    def timestamp_lifetime(self):
+        return 600
+
     def get_client_secret(self, client_key, request):
         return DBManager.get_secret(client_key)
 
@@ -28,8 +31,6 @@ class LTIRequestValidator(RequestValidator):
     def validate_timestamp_and_nonce(self, client_key, timestamp, nonce, request, request_token=None, access_token=None):
         if not DBManager.has_timestamp_and_nonce(client_key, timestamp, nonce):
             DBManager.add_timestamp_and_nonce(client_key, timestamp, nonce)
-            logging.debug('timestamp and nonce are valid!')
             return True
         else:
-            logging.error('timestamp and nonce are invalid!')
             return False

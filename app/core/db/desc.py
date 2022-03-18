@@ -58,19 +58,6 @@ class Submission(me.Document):
     timestamp = me.DateTimeField(default=datetime.datetime.now)
 
 
-class Logs(me.Document):
-    _id = me.StringField(primary_key=True)
-    time = me.DateTimeField(default=datetime.datetime.now)
-    levelname = me.StringField()
-    message = me.StringField()
-    lineno = me.IntField()
-    pathname = me.StringField()
-
-    meta = {
-        'indexes': ['time']
-    }
-
-
 class Consumers(me.Document):
     _id = me.StringField(primary_key=True)
     secret = me.StringField()
