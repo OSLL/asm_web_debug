@@ -45,6 +45,7 @@ class DBManager:
             task_obj.name = task_name
             task_obj.description = task_description
             task_obj.tests = task_tests
+            task_obj.save()
         else:
             task_obj = Tasks(_id=task_id, name=task_name, description=task_description, tests=task_tests)
             task_obj.save()
