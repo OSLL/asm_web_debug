@@ -88,7 +88,7 @@ def main():
             cmd += ["--username", args.username]
         if args.password:
             cmd += ["--password", args.password]
-        run_command("docker/develop.docker-compose.yml", ["poetry", "run", "python", "-m", "app"] + cmd)
+        run_command("docker/develop.docker-compose.yml", ["poetry", "run", "flask"] + cmd)
 
 
 if __name__ == "__main__":
