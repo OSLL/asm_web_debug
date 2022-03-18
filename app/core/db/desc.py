@@ -49,6 +49,6 @@ class Consumers(me.Document):
     
 class Tasks(me.Document):
     _id = me.StringField(primary_key=True)
-    name = me.StringField(unique=true)
+    name = me.StringField(unique=True)
     description = me.StringField()
     tests = me.DictField()
