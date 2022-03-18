@@ -49,6 +49,18 @@ class DBManager:
         else:
             task_obj = Tasks(_id=task_id, name=task_name, description=task_description, tests=task_tests)
             task_obj.save()
+            
+    @staticmethod
+    def get_task(task_id):
+        try:
+            return Tasks.objects.get(_id=task_id)
+        except Tasks.DoesNotExist:
+            current_app.logger.debug(f'Task not found: {task_id}')
+            return None
+
+    @staticmethod
+    def get_all_tasks():
+        return Tasks.objects.all()
 
     #### log ####
 
