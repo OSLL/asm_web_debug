@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Solution #{{ data.id }}{% endblock %}
+
+{% block content %}
+<style>
+    .solution-header{
+        border: 5px solid #b9b9b9;
+        border-radius: 20px;
+        text-align: center;
+        font-size: xx-large;
+        margin: 50px;
+    };
+    .code-block{
+        
+    };
+</style>
+
+<div class="solution-header">Решение #{{ data.id }}</div>
+<div class="code-block">
+    <code>
+        {{ data.task }}
+    </code>
+</div>
+{% endblock %}
