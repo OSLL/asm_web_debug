@@ -45,3 +45,10 @@ class Consumers(me.Document):
     secret = me.StringField()
     datetime = me.DateTimeField(default=datetime.datetime.now)
     timestamps = me.ListField(blank=True)
+
+    
+class Tasks(me.Document):
+    _id = me.StringField(primary_key=True)
+    name = me.StringField(unique=True)
+    description = me.StringField()
+    tests = me.DictField()
