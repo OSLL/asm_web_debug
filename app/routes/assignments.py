@@ -142,7 +142,7 @@ def view_source_code(submission_id):
     submission = Submission.query.get_or_404(submission_id)
     check_assignment_access(submission.assignment)
 
-    response = make_response(submission.code, 200)
+    response = make_response(submission.source_code, 200)
     response.mimetype = "text/plain"
     return response
 

@@ -15,17 +15,17 @@
     </thead>
     <tbody>
         {% for submission in submissions %}
-        <tr {% if submission.is_correct %}
+        <tr {% if submission.grade > 0 %}
             class="table-success"
             {% else %}
             class="table-danger"
             {% endif %}
         >
-            <td>{{ submission.timestamp }}</td>
+            <td>{{ submission.submitted_at }}</td>
             <td>{{ submission.arch }}</td>
             <td>{{ submission.comment }}</td>
             <td>
-                <a href="{{ url_for('codes.view_source_code', submission_id=submission.id) }}">View source</a>
+                <a href="{{ url_for('view_source_code', submission_id=submission.id) }}">View source</a>
             </td>
         </tr>
         {% endfor %}
