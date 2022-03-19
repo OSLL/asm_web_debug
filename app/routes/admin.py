@@ -62,7 +62,10 @@ class AssignmentView(ProtectedModelView):
 class ProblemView(ProtectedModelView):
     column_exclude_list = ["statement", "checker_config_json"]
     form_excluded_columns = ["assignments"]
-    form_overrides = { "checker_name": CheckerSelectField }
+    form_overrides = {
+        "checker_name": CheckerSelectField,
+        "statement": TextAreaField
+    }
 
     def __init__(self):
         super().__init__(Problem, db.session, endpoint="admin_problems", url="problems")
