@@ -6,7 +6,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField
 from wtforms.validators import DataRequired
 
-from app.core.db.manager import DBManager
+from app.models import User
 
 
 class LoginForm(FlaskForm):
@@ -16,7 +16,11 @@ class LoginForm(FlaskForm):
 
 @login_manager.user_loader
 def load_user(user_id):
-    return DBManager.get_user(user_id)
+    try:
+        user_id = int(user_id)
+    except (TypeError, ValueError):
+        return None
+    return User.query.get(user_id)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -24,8 +28,8 @@ def login():
     form = LoginForm()
     error = ""
     if form.validate_on_submit():
-        user = DBManager.get_user_by_username_and_password(form.username.data, form.password.data)
-        if user is not None:
+        user = User.query.filter_by(username=form.username.data).first()
+        if user and user.check_password(form.password.data):
             login_user(user)
             return redirect(url_for("index"))
         error = "Invalid username or password"

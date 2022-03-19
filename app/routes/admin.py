@@ -1,13 +1,13 @@
-from app import app
+from app import app, db
 
 from flask import abort
 from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.form import SecureForm
-from flask_admin.contrib.mongoengine import ModelView
+from flask_admin.contrib.sqla import ModelView
 from flask_login import current_user
 from wtforms.fields import PasswordField, SelectField
 
-from app.core.db.desc import Code, Consumers, Problem, Submission, User
+from app.models import Problem, Submission, User, Assignment
 from runner.checkerlib import Checker
 
 class ProtectedModelView(ModelView):
@@ -31,15 +31,15 @@ class CheckerSelectField(SelectField):
 
 
 class UserView(ProtectedModelView):
-    column_exclude_list = ["password", "tasks"]
-    form_excluded_columns = ["password"]
+    column_exclude_list = ["password_hash", "lti_tool_consumer_guid", "lti_user_id"]
+    form_excluded_columns = ["password_hash", "assignments"]
 
     form_extra_fields = {
         "new_password": PasswordField("New password", description="if you want to update user's password, type it here")
     }
 
     def __init__(self):
-        super().__init__(User, endpoint="admin_users", url="users")
+        super().__init__(User, db.session, endpoint="admin_users", url="users")
 
     def on_model_change(self, form, model, is_created):
         if form.new_password.data:
@@ -47,36 +47,29 @@ class UserView(ProtectedModelView):
         return super().on_model_change(form, model, is_created)
 
 
-class CodeView(ProtectedModelView):
-    column_exclude_list = ["code", "passback_params"]
+class AssignmentView(ProtectedModelView):
+    column_exclude_list = ["source_code", "arch", "lti_assignment_id", "lti_callback_url"]
     form_overrides = { "arch": ArchSelectField }
 
     def __init__(self):
-        super().__init__(Code, endpoint="admin_codes", url="codes")
+        super().__init__(Assignment, db.session, endpoint="admin_codes", url="assignments")
 
 
 class ProblemView(ProtectedModelView):
-    column_exclude_list = ["statement", "checker_config"]
+    column_exclude_list = ["statement", "checker_config_json"]
+    form_excluded_columns = ["assignments"]
     form_overrides = { "checker_name": CheckerSelectField }
 
     def __init__(self):
-        super().__init__(Problem, endpoint="admin_problems", url="problems")
+        super().__init__(Problem, db.session, endpoint="admin_problems", url="problems")
 
 
 class SubmissionView(ProtectedModelView):
-    column_exclude_list = ["code"]
+    column_exclude_list = ["source_code"]
     form_overrides = { "arch": ArchSelectField }
 
     def __init__(self):
-        super().__init__(Submission, endpoint="admin_submissions", url="submissions")
-
-
-class ConsumerView(ProtectedModelView):
-    column_exclude_list = ["timestamps"]
-    form_excluded_columns = ["timestamps"]
-
-    def __init__(self):
-        super().__init__(Consumers, endpoint="admin_consumers", url="consumers")
+        super().__init__(Submission, db.session, endpoint="admin_submissions", url="submissions")
 
 
 class AdminIndex(AdminIndexView):
@@ -88,4 +81,4 @@ class AdminIndex(AdminIndexView):
 
 
 admin = Admin(app, template_mode="bootstrap4", index_view=AdminIndex())
-admin.add_views(UserView(), CodeView(), ProblemView(), SubmissionView(), ConsumerView())
+admin.add_views(UserView(), ProblemView(), AssignmentView(), SubmissionView())

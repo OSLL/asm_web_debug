@@ -1,8 +1,6 @@
-import logging
-from oauthlib.oauth1 import RequestValidator
+from app import app
 
-from app.core.db.desc import Consumers
-from app.core.db.manager import DBManager
+from oauthlib.oauth1 import RequestValidator
 
 
 class LTIRequestValidator(RequestValidator):
@@ -23,14 +21,11 @@ class LTIRequestValidator(RequestValidator):
         return 600
 
     def get_client_secret(self, client_key, request):
-        return DBManager.get_secret(client_key)
+        return app.config["LTI_CONSUMERS"].get(client_key)
 
     def validate_client_key(self, client_key, request):
-        return DBManager.is_key_valid(client_key)
+        return client_key in app.config["LTI_CONSUMERS"]
 
     def validate_timestamp_and_nonce(self, client_key, timestamp, nonce, request, request_token=None, access_token=None):
-        if not DBManager.has_timestamp_and_nonce(client_key, timestamp, nonce):
-            DBManager.add_timestamp_and_nonce(client_key, timestamp, nonce)
-            return True
-        else:
-            return False
+        # TODO: validate timestamp and nonce
+        return True

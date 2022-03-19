@@ -7,7 +7,7 @@ services:
       dockerfile: docker/web.dockerfile
     restart: always
     depends_on:
-      - mongo
+      - postgres
     env_file:
       - ../.env
     command: poetry run waitress-serve --port 80 app:app
@@ -32,12 +32,14 @@ services:
       - runner
     restart: always
 
-  mongo:
-    image: "mongo:4.4.4-bionic"
+  postgres:
+    image: "postgres:14"
     restart: always
     volumes:
-      - mongo_data:/data/db
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - ../.env
 
 volumes:
-  mongo_data:
+  postgres_data:
   runner_data:

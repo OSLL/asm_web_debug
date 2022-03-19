@@ -1,5 +1,5 @@
-from app import app
-from app.core.db.desc import User
+from app import app, db
+from app.models import User
 
 import click
 
@@ -9,6 +9,7 @@ import click
 @click.option("--password", prompt=True, hide_input=True, confirmation_prompt=True)
 def create_admin(username, password):
     with app.app_context():
-        user = User(username=username, is_admin=True)
+        user = User(username=username, full_name=username, is_admin=True)
         user.set_password(password)
-        user.save()
+        db.session.add(user)
+        db.session.commit()

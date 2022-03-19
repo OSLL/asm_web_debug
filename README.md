@@ -8,6 +8,12 @@ Build an image used for running user code:
 docker build -t asm_web_debug_executor -f docker/executor.dockerfile .
 ```
 
+Initialize the database:
+
+```
+./manage.py flask db upgrade
+```
+
 # Run
 - Bash
 ```
@@ -17,7 +23,7 @@ Will run in development mode with live reload enabled on port 8080.
 
 To create an administrator user run:
 ```
-./manage.py create-admin
+./manage.py flask create-admin
 ```
 
 # Tests

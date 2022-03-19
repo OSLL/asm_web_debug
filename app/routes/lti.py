@@ -1,47 +1,61 @@
-from app import app
+from app import app, db
 
-from flask import abort, request, make_response, render_template, url_for, redirect
+from flask import abort, request, url_for, redirect
 from itsdangerous import json
+from app.models import Assignment, User
 
-from app.core.db.manager import DBManager
-
-from app.core.lti_core.lti_validator import LTIRequestValidator
-from app.core.lti_core.lti_utils import extract_passback_params, get_custom_params, get_role
 from app.core.lti_core.check_request import check_request
-from app.core.db.desc import Code, Consumers, User
 
 import flask_login
 
 
 @app.route('/lti', methods=['POST'])
 def lti_route():
-    if check_request(request):
-        temporary_user_params = request.form
-        username = temporary_user_params.get('ext_user_username')
-        user_id = f"{username}_{temporary_user_params.get('tool_consumer_instance_guid', '')}"
-        params_for_passback = extract_passback_params(temporary_user_params)
-        custom_params = get_custom_params(temporary_user_params)
-        role = get_role(temporary_user_params)
+    if not check_request(request):
+        abort(403)
 
-        problem_id = custom_params.get("problem_id", "").strip()
-        code_id = f"{user_id}--{problem_id}"
+    consumer_key = request.form.get("oauth_consumer_key")
+    lti_assignment_id = request.form.get("lis_result_sourcedid")
+    lti_tool_consumer_guid = request.form.get("tool_consumer_instance_guid")
+    lti_callback_url = request.form.get("lis_outcome_service_url")
+    lti_user_id = request.form.get("user_id")
+    roles = request.form.get("roles", "").split(",")
+    email = request.form.get("lis_person_contact_email_primary")
+    full_name = request.form.get("lis_person_name_full")
 
-        user = DBManager.get_user(user_id)
+    try:
+        problem_id = int(request.form.get("custom_problem_id", "").strip())
+    except ValueError:
+        return "Invalid custom_problem_id param, should be an integer", 400
 
-        if not user:
-            user = User(_id=user_id, username=username)
-        user.is_admin = role == "teacher"
-        user.save()
+    user = User.query.filter_by(lti_tool_consumer_guid=lti_tool_consumer_guid, lti_user_id=lti_user_id).first()
+    if not user:
+        user = User(
+            lti_tool_consumer_guid=lti_tool_consumer_guid,
+            lti_user_id=lti_user_id
+        )
+        db.session.add(user)
 
-        flask_login.login_user(User.objects.get(_id=user_id), remember=True)
+    user.is_admin = "Instructor" in roles
+    user.email = email
+    user.full_name = full_name
 
-        code = DBManager.get_code(code_id)
-        if not code:
-            code = Code(_id=code_id, owner=user)
-        code.problem = DBManager.get_problem(problem_id)
-        code.passback_params = json.dumps(params_for_passback)
-        code.save()
+    db.session.commit()
 
-        return redirect(url_for('codes.index_id', code_id=code_id))
-    else:
-        abort(404)
+    flask_login.login_user(user, remember=True)
+
+    assignment = Assignment.query.filter_by(user_id=user.id, problem_id=problem_id).first()
+    if not assignment:
+        assignment = Assignment(
+            user_id=user.id,
+            problem_id=problem_id
+        )
+        db.session.add(assignment)
+
+    assignment.lti_consumer_key = consumer_key
+    assignment.lti_assignment_id = lti_assignment_id
+    assignment.lti_callback_url = lti_callback_url
+
+    db.session.commit()
+
+    return redirect(url_for("view_assignment", assignment_id=assignment.id))

@@ -7,13 +7,14 @@ services:
       dockerfile: docker/web.dockerfile
     restart: always
     volumes:
-      - ../:/code:ro
+      - ../:/code
     depends_on:
-      - mongo
+      - postgres
     env_file:
       - ../.env
     environment:
       - FLASK_DEBUG=1
+      - PYTHONDONTWRITEBYTECODE=1
 
   runner:
     build:
@@ -38,12 +39,14 @@ services:
     volumes:
       - ../app/static:/static:ro
 
-  mongo:
-    image: "mongo:4.4.4-bionic"
+  postgres:
+    image: "postgres:14"
     restart: always
     volumes:
-      - mongo_data:/data/db
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - ../.env
 
 volumes:
-  mongo_data:
+  postgres_data:
   runner_data:

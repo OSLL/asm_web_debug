@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import binascii
+import secrets
 import pathlib
 import argparse
 import subprocess
@@ -24,9 +24,9 @@ def parse_args():
 
     subparsers.add_parser("stop", help="Stop development server started in detach mode")
     subparsers.add_parser("shell", help="Run shell")
-    parser_create_admin = subparsers.add_parser("create-admin", help="Create admin user")
-    parser_create_admin.add_argument("--username", type=str)
-    parser_create_admin.add_argument("--password", type=str)
+
+    parser_flask = subparsers.add_parser("flask", help="Run a flask command")
+    parser_flask.add_argument("args", nargs=argparse.REMAINDER)
 
     parser_restart = subparsers.add_parser("restart", help="Restart services")
     parser_restart.add_argument("service", nargs="+")
@@ -36,7 +36,10 @@ def parse_args():
 
 def create_env_file():
     with open(workdir / ".env", "w") as f:
-        print(f"AWI_SECRET_KEY={binascii.hexlify(os.urandom(32)).decode()}", file=f)
+        print(f"AWI_SECRET_KEY={secrets.token_urlsafe()}", file=f)
+        print(f"AWI_CONSUMER_KEYS={secrets.token_hex(8)}", file=f)
+        print(f"AWI_CONSUMER_SECRETS={secrets.token_urlsafe()}", file=f)
+        print(f"POSTGRES_PASSWORD={secrets.token_urlsafe()}", file=f)
 
 
 def run_docker_compose(config_path, env, detach=False):
@@ -50,15 +53,19 @@ def run_docker_compose(config_path, env, detach=False):
 
     if detach:
         print("To stop the server, run ./manage.py stop")
-        print("To restart a service, run ./manage.py restart <web|runner|mongo|nginx>")
+        print("To restart a service, run ./manage.py restart <web|runner|postgres|nginx>")
 
 def stop_docker_compose():
     subprocess.run(["docker-compose", "-p", args.name, "down"])
+
+def build_docker_compose(config_path):
+    subprocess.run(["docker-compose", "-f", config_path, "-p", args.name, "build"])
 
 def restart_docker_compose_services(config_path, services):
     subprocess.run(["docker-compose", "-f", config_path, "-p", args.name, "restart"] + services)
 
 def run_command(config_path, command):
+    build_docker_compose(config_path)
     subprocess.run(["docker-compose", "-f", config_path, "-p", args.name, "run", "web"] + command)
 
 def main():
@@ -82,13 +89,8 @@ def main():
     if args.command == "shell":
         run_command("docker/develop.docker-compose.yml", ["poetry", "run", "bash"])
 
-    if args.command == "create-admin":
-        cmd = ["create-admin"]
-        if args.username:
-            cmd += ["--username", args.username]
-        if args.password:
-            cmd += ["--password", args.password]
-        run_command("docker/develop.docker-compose.yml", ["poetry", "run", "flask"] + cmd)
+    if args.command == "flask":
+        run_command("docker/develop.docker-compose.yml", ["poetry", "run", "flask"] + args.args)
 
 
 if __name__ == "__main__":

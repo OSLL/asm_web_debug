@@ -8,15 +8,13 @@
 {% endblock %}
 
 {% block content %}
-    {% set code = code or dict(code='', arch='x86_64', breakpoints=[]) %}
-
 {% if problem %}
     <div id='task_info_div' style="float: left; width: 60%;">
         <h4>{{ problem.title }}</h4>
         <p>{{ problem.statement }}</p>
         <div style="display: block; float: right;">
         	<input type="button" class="btn btn-info" name="Check" value="Check" id="submit_button" />
-        	<a href="{{ url_for('codes.submissions', code_id=code._id) }}" target="_blank" class="btn btn-success">My submissions</a>
+        	<a href="{{ url_for('view_submissions', assignment_id=assignment.id) }}" target="_blank" class="btn btn-success">My submissions</a>
         </div>
     </div>
 {% endif %}
@@ -25,17 +23,7 @@
         {% if problem %}
         	<hr />
         {% endif %}
-            <div id="lastSave">
-                {% if 'last_update' in code %}
-                    {% set time = code['last_update'] %}
-                    Последнее сохранение:
-                    <span id='lastSavedTime'>
-                        <script language="javascript" type="text/javascript">
-                            document.write(new Date({{time}}*1000))
-                        </script>
-                    </span>
-                {% endif %}
-                </div><br>
+            <br />
             <div id='ajax-alert'></div>
             <select id='arch_select' name='arch'>
                 {% for arch in config['ARCHS'] %}
@@ -52,7 +40,7 @@
             <br><br>
 
 
-            <form><textarea id='code' class='code' >{{ code['code'] }}</textarea></form>
+            <form><textarea id="code" class="code" >{{ assignment.source_code }}</textarea></form>
 
             <br>
             <button id="hex-view" class="btn btn-outline-secondary">Open binary in HEX view</button>

@@ -1,13 +1,14 @@
-import logging
+from app import app
 
-from app.core.db.manager import DBManager
 from app.core.lti_core.lti_validator import LTIRequestValidator
 from lti.contrib.flask import FlaskToolProvider
 
 
 def check_request(request):
+    consumer_key = request.values.get('oauth_consumer_key', None)
+    consumer_secret = app.config["LTI_CONSUMERS"].get(consumer_key)
     provider = FlaskToolProvider.from_flask_request(
-        secret = DBManager.get_secret(request.values.get('oauth_consumer_key', None)),
+        secret = consumer_secret,
         request = request
     )
 
