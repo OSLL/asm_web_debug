@@ -61,6 +61,14 @@ class DBManager:
     @staticmethod
     def get_all_tasks():
         return Tasks.objects.all()
+    
+    @staticmethod
+    def delete_task(task_id):
+        try:
+            return Tasks.objects(_id=task_id).delete()
+        except Tasks.DoesNotExist:
+            current_app.logger.debug(f'Task not found: {task_id}')
+            return None
 
     #### log ####
 
