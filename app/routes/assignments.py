@@ -24,7 +24,7 @@ def get_assignment(assignment_id) -> Assignment:
     return assignment
 
 
-@app.route('/assignment/<assignment_id>')
+@app.route('/assignment/<int:assignment_id>')
 def view_assignment(assignment_id):
     assignment = get_assignment(assignment_id)
 
@@ -38,7 +38,7 @@ def view_assignment(assignment_id):
     )
 
 
-@app.route("/assignment/<assignment_id>/submit", methods=["POST"])
+@app.route("/assignment/<int:assignment_id>/submit", methods=["POST"])
 def submit_code(assignment_id):
     assignment = get_assignment(assignment_id)
 
@@ -107,7 +107,7 @@ def submit_code(assignment_id):
     }
 
 
-@app.route('/assignment/<assignment_id>/save', methods=["POST"])
+@app.route('/assignment/<int:assignment_id>/save', methods=["POST"])
 def save_code(assignment_id):
     assignment = get_assignment(assignment_id)
 
@@ -124,20 +124,20 @@ def save_code(assignment_id):
     return {"success_save": True}
 
 
-@app.route('/assignment/<assignment_id>/hexview', methods=["GET", "POST"])
+@app.route('/assignment/<int:assignment_id>/hexview', methods=["GET", "POST"])
 def hexview(assignment_id):
     assignment = get_assignment(assignment_id)
     return render_template('pages/hexview.html', result=hexdump(assignment.source_code))
 
 
-@app.route("/assignment/<assignment_id>/submissions")
+@app.route("/assignment/<int:assignment_id>/submissions")
 def view_submissions(assignment_id):
     assignment = get_assignment(assignment_id)
     submissions = Submission.query.filter_by(assignment_id=assignment.id).order_by(desc(Submission.submitted_at)).all()
     return render_template("pages/submissions.html", submissions=submissions)
 
 
-@app.route("/submission/<submission_id>/source")
+@app.route("/submission/<int:submission_id>/source")
 def view_source_code(submission_id):
     submission = Submission.query.get_or_404(submission_id)
     check_assignment_access(submission.assignment)
@@ -147,7 +147,7 @@ def view_source_code(submission_id):
     return response
 
 
-@app.route("/assignment/<assignment_id>/websocket")
+@app.route("/assignment/<int:assignment_id>/websocket")
 def websocket(assignment_id):
     assignment = get_assignment(assignment_id)
 

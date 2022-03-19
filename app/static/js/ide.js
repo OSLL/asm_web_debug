@@ -31,15 +31,13 @@
         }
     });
 
-    const codeId = location.pathname.slice(1).split('/')[0];
-
     const $debugButtons = $("#debug-buttons");
     const $output = $("#build_log");
     const $registerTable = $("#register_body");
     const $submitButton = $("#submit_button");
     const $sampleTest = $("#sample_test");
 
-    const ws = new WebSocket(`${(window.location.protocol === "https") ? "wss" : "ws"}://${window.location.host}/websocket/${codeId}`);
+    const ws = new WebSocket(`${(window.location.protocol === "https") ? "wss" : "ws"}://${window.location.host}/assignment/${assignmentId}/websocket`);
 
     let state = State.stopped;
     let activeLine = 0;
@@ -169,7 +167,7 @@
         data.append("code", doc.getValue());
         data.append("arch", $("#arch_select").val());
 
-        await fetch("/save/" + codeId, {
+        await fetch(`/assignment/${assignmentId}/save`, {
             method: "POST",
             body: data
         });
@@ -179,7 +177,7 @@
         $submitButton.prop("disabled", true);
         await saveCode();
 
-        const result = await fetch("/submit/" + codeId, {
+        const result = await fetch(`/assignment/${assignmentId}/submit`, {
             method: "POST"
         });
         const data = await result.json();
@@ -248,7 +246,7 @@
         const $form = $("#hidden_form");
         $form.trigger("reset");
         $form.attr("method", "POST");
-        $form.attr("action", `/hexview/${codeId}`);
+        $form.attr("action", `/hexview/${assignmentId}`);
         $form.attr("target", "_blank");
 
         const $input = $("#hidden_textarea");

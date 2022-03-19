@@ -5,7 +5,7 @@ from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.form import SecureForm
 from flask_admin.contrib.sqla import ModelView
 from flask_login import current_user
-from wtforms.fields import PasswordField, SelectField
+from wtforms.fields import PasswordField, SelectField, TextAreaField
 
 from app.models import Problem, Submission, User, Assignment
 from runner.checkerlib import Checker
@@ -49,7 +49,11 @@ class UserView(ProtectedModelView):
 
 class AssignmentView(ProtectedModelView):
     column_exclude_list = ["source_code", "arch", "lti_assignment_id", "lti_callback_url"]
-    form_overrides = { "arch": ArchSelectField }
+    form_excluded_columns = ["submissions"]
+    form_overrides = {
+        "arch": ArchSelectField,
+        "source_code": TextAreaField
+    }
 
     def __init__(self):
         super().__init__(Assignment, db.session, endpoint="admin_codes", url="assignments")
@@ -66,7 +70,10 @@ class ProblemView(ProtectedModelView):
 
 class SubmissionView(ProtectedModelView):
     column_exclude_list = ["source_code"]
-    form_overrides = { "arch": ArchSelectField }
+    form_overrides = {
+        "arch": ArchSelectField,
+        "source_code": TextAreaField
+    }
 
     def __init__(self):
         super().__init__(Submission, db.session, endpoint="admin_submissions", url="submissions")

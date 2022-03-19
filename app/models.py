@@ -39,6 +39,9 @@ class User(db.Model, UserMixin):
     def check_password(self, password: str) -> bool:
         return pbkdf2_sha256.verify(password, self.password_hash)
 
+    def __str__(self) -> str:
+        return f"{self.full_name} (id={self.id})"
+
 
 class Problem(db.Model):
     id = Column(Integer, primary_key=True)
@@ -51,6 +54,9 @@ class Problem(db.Model):
 
     def get_checker(self) -> Optional[Type[Checker]]:
         return Checker._all_checkers.get(self.checker_name)
+
+    def __str__(self) -> str:
+        return f"{self.title} (id={self.id})"
 
 
 class Assignment(db.Model):
