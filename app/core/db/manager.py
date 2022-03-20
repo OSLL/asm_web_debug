@@ -4,8 +4,7 @@ from flask_mongoengine import MongoEngine
 from pymongo import DESCENDING, ASCENDING
 import json
 
-from app.core.db.desc import Codes, User, Logs, Consumers, solutions
-
+from app.core.db.desc import Codes, User, Logs, Consumers, Tasks, solutions
 
 class DBManager:
 
@@ -37,6 +36,30 @@ class DBManager:
     @staticmethod
     def get_codes_older_than(days):
         return Codes.objects(created__lte=(datetime.datetime.now()-datetime.timedelta(days=days))).to_json()
+    
+    @staticmethod
+    def create_task(task_id, task_name, task_description, task_tests):
+        task_obj = Tasks.objects(_id=task_id).first()
+        if task_obj:
+            task_obj.name = task_name
+            task_obj.description = task_description
+            task_obj.tests = task_tests
+            task_obj.save()
+        else:
+            task_obj = Tasks(_id=task_id, name=task_name, description=task_description, tests=task_tests)
+            task_obj.save()
+            
+    @staticmethod
+    def get_task(task_id):
+        try:
+            return Tasks.objects.get(_id=task_id)
+        except Tasks.DoesNotExist:
+            current_app.logger.debug(f'Task not found: {task_id}')
+            return None
+
+    @staticmethod
+    def get_all_tasks():
+        return Tasks.objects.all()
 
     #### log ####
 

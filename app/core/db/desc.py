@@ -52,3 +52,9 @@ class solutions(me.Document):
     feedback: me.StringField()
     task: me.ReferenceField('tasks', dbref=True)
     LTI_session: me.ReferenceField('LTI_sessions', dbref=True)
+    
+class Tasks(me.Document):
+    _id = me.StringField(primary_key=True)
+    name = me.StringField(unique=True)
+    description = me.StringField()
+    tests = me.DictField()
