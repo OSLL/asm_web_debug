@@ -1,4 +1,4 @@
-from app import app
+from app import app, redis_client
 
 from oauthlib.oauth1 import RequestValidator
 
@@ -27,5 +27,8 @@ class LTIRequestValidator(RequestValidator):
         return client_key in app.config["LTI_CONSUMERS"]
 
     def validate_timestamp_and_nonce(self, client_key, timestamp, nonce, request, request_token=None, access_token=None):
-        # TODO: validate timestamp and nonce
+        redis_key = f"nonce:{timestamp}_{client_key}_{nonce}"
+        if redis_client.get(redis_key):
+            return False
+        redis_client.setex(redis_key, self.timestamp_lifetime * 2, "1")
         return True

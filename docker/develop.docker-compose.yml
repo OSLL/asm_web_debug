@@ -10,6 +10,7 @@ services:
       - ../:/code
     depends_on:
       - postgres
+      - redis
     env_file:
       - ../.env
     environment:
@@ -47,6 +48,13 @@ services:
     env_file:
       - ../.env
 
+  redis:
+    image: "redis:6"
+    restart: always
+    volumes:
+      - redis_data:/data
+
 volumes:
   postgres_data:
   runner_data:
+  redis_data:

@@ -8,6 +8,7 @@ services:
     restart: always
     depends_on:
       - postgres
+      - redis
     env_file:
       - ../.env
     command: poetry run waitress-serve --port 80 app:app
@@ -40,6 +41,13 @@ services:
     env_file:
       - ../.env
 
+  redis:
+    image: "redis:6"
+    restart: always
+    volumes:
+      - redis_data:/data
+
 volumes:
   postgres_data:
   runner_data:
+  redis_data:

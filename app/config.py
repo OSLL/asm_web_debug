@@ -22,6 +22,7 @@ class Config:
         'host': 'mongo',
         'port': 27017
     }
+    REDIS_URL = "redis://redis:6379/0"
     SECRET_KEY = ''
     LTI_CONSUMERS = {}
     RUNNER_API = "http://runner/runner_api"
