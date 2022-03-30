@@ -4,8 +4,7 @@ from flask_mongoengine import MongoEngine
 from pymongo import DESCENDING, ASCENDING
 import json
 
-from app.core.db.desc import Codes, User, Logs, Consumers, Tasks
-
+from app.core.db.desc import Codes, User, Logs, Consumers, Tasks, solutions
 
 class DBManager:
 
@@ -147,3 +146,10 @@ class DBManager:
     def create_lti_consumer(id_key, secret_key, timestamp_and_nonce = []):
         return Consumers(_id = id_key, secret = secret_key, timestamps = timestamp_and_nonce).save()
 
+    @staticmethod
+    def get_solution(solution_id):
+        try:
+            return solutions.objects.get(_id=solution_id)
+        except solutions.DoesNotExist:
+            current_app.logger.debug(f'Solution not found: {solution_id}')
+            return None

@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}Solution #{{ data.id }}{% endblock %}
+
+{% block content %}
+<style>
+    .solution-header{
+        border: 5px solid #b9b9b9;
+        border-radius: 20px;
+        text-align: center;
+        font-size: xx-large;
+        margin: 50px;
+    }
+    .block-content{
+        border: 2px solid #b9b9b9;
+        border-radius: 20px;
+        text-align: left;
+        font-size: x-large;
+        margin: 50px;
+        padding: 20px;
+    }
+</style>
+
+<div class="solution-header">Решение #{{ data.id }}</div>
+<div class="block-content">
+    <p>
+        <b>Task #{{ data.task.id }} condition:</b>
+        <br>
+        {{ data.task.condition }}
+    </p>
+    <p>
+        <b>Solution:</b>
+        <br>
+        {{data._datetime}}
+        <br>
+        {{data.feedback}}
+    </p>
+</div>
+{% endblock %}
