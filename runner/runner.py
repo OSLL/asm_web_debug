@@ -101,7 +101,7 @@ class DebugSession:
         await self.debugger.gdb_command(f"-gdb-set mi-async on")
 
         gdbserver_command = [
-            "docker", "run", "--rm", "-i",
+            "docker", "run", "-i",
             "-v", f"{config.runner_data_volume}:{config.runner_data_path}",
             "--cidfile", str(self.cid_file_path),
         ]
@@ -139,7 +139,7 @@ class DebugSession:
         except (IOError, OSError):
             return
 
-        command = ["docker", "kill", container_id]
+        command = ["docker", "rm", "-f", container_id]
 
         process = await asyncio.subprocess.create_subprocess_exec(
             *command,

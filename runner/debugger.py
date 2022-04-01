@@ -1,5 +1,5 @@
 import logging
-from runner import gdbmi
+from runner import gdbmi, metrics
 from runner.settings import config
 
 from typing import Optional, AsyncIterator
@@ -34,8 +34,6 @@ class Debugger:
             "--interpreter=mi2"
         ]
 
-        logging.debug(command)
-
         self.gdb = await asyncio.subprocess.create_subprocess_exec(
             *command,
             stdin=asyncio.subprocess.PIPE,
@@ -43,10 +41,10 @@ class Debugger:
             stderr=asyncio.subprocess.PIPE
         )
 
-        logging.debug("task created")
-
         self.interactor_task = asyncio.create_task(self._gdb_interactor())
         self.inferior_output_task = asyncio.create_task(self._inferior_output_reader())
+
+        metrics.running_gdb_processes.inc()
 
     async def _gdb_interactor(self) -> None:
         while self.gdb is not None:
@@ -57,7 +55,6 @@ class Debugger:
             gdb_response = gdbmi.parse_gdb_response(line.decode())
             if gdb_response is None:
                 continue
-            logging.debug(gdb_response)
 
             if type(gdb_response) is gdbmi.ExecAsync:
                 self.inferior_running = gdb_response.status == "running"
@@ -89,16 +86,19 @@ class Debugger:
         await self.gdb.wait()
         self.gdb = None
         self.interactor_task = None
+        metrics.running_gdb_processes.dec()
 
     async def gdb_command(self, cmd: str) -> dict:
-        logging.debug(cmd)
-
-        self.gdb.stdin.write(f"{cmd}\n".encode())
-        result = await self.gdb_results.get()
+        cmd_name = cmd.split(maxsplit=1)[0]
+        with metrics.gdb_command_latency.labels(cmd_name).time():
+            self.gdb.stdin.write(f"{cmd}\n".encode())
+            result = await self.gdb_results.get()
 
         if result.status == "error":
+            metrics.gdb_command_failures.labels(cmd_name).inc()
             raise DebuggerError(result.values)
 
+        metrics.gdb_command_successes.labels(cmd_name).inc()
         return result.values
 
     async def gdb_notifications_iterator(self) -> AsyncIterator[gdbmi.AnyNotification]:

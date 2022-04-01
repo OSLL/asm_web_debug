@@ -16,6 +16,7 @@ class Arch:
 class Config:
     host: str = "0.0.0.0"
     port: int = 80
+    prometheus_port: int = 9090
     archs: Dict[str, Arch] = field(default_factory=lambda: {
         "x86_64": Arch(
             gcc="gcc",

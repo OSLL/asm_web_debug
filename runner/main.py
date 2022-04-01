@@ -2,6 +2,7 @@ import logging
 import weakref
 
 from aiohttp import web, WSCloseCode
+import prometheus_client
 
 from runner.routes import setup_routes
 from runner.settings import config
@@ -26,6 +27,8 @@ def init_app() -> web.Application:
 
 def main() -> None:
     logging.basicConfig(level=logging.os.environ.get('LOGLEVEL', 'INFO').upper())
+
+    prometheus_client.start_http_server(config.prometheus_port)
 
     app = init_app()
     web.run_app(app, host=config.host, port=config.port)
