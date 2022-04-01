@@ -37,6 +37,7 @@ services:
     depends_on:
       - web
       - runner
+      - prometheus
     volumes:
       - ../app/static:/static:ro
 
@@ -54,7 +55,15 @@ services:
     volumes:
       - redis_data:/data
 
+  prometheus:
+    build:
+      context: ".."
+      dockerfile: docker/prometheus.dockerfile
+    volumes:
+      - prometheus_data:/prometheus
+
 volumes:
   postgres_data:
   runner_data:
   redis_data:
+  prometheus_data:

@@ -1,0 +1,18 @@
+scrape_configs:
+  - job_name: "prometheus"
+    scrape_interval: 5s
+    static_configs:
+      - targets:
+        - "prometheus:9090"
+
+  - job_name: "web"
+    scrape_interval: 5s
+    static_configs:
+      - targets:
+        - "web:9090"
+
+  - job_name: "runner"
+    scrape_interval: 5s
+    static_configs:
+      - targets:
+        - "runner:9090"

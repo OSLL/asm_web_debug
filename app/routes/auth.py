@@ -1,7 +1,7 @@
 from app import app, login_manager
 
-from flask import redirect, render_template, url_for
-from flask_login import login_user, logout_user
+from flask import redirect, render_template, url_for, abort
+from flask_login import current_user, login_user, logout_user
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField
 from wtforms.validators import DataRequired
@@ -40,3 +40,10 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for("index"))
+
+
+@app.route("/require_admin")
+def require_admin():
+    if not current_user.is_authenticated or not current_user.is_admin:
+        abort(403)
+    return "ok"
