@@ -16,6 +16,10 @@ from app.models import Assignment, Submission
 def check_assignment_access(assignment: Assignment) -> None:
     if not current_user.is_authenticated:
         abort(403, description="Not authenticated")
+    if current_user.is_admin:
+        return
+    if assignment.user_id != current_user.id:
+        abort(403)
 
 
 def get_assignment(assignment_id) -> Assignment:
