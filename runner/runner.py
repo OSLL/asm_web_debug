@@ -1,10 +1,13 @@
 import asyncio.subprocess
 import binascii
+import logging
 import pathlib
 import shutil
 import tempfile
 from collections import namedtuple
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Type, TypeAlias
+
+import aiohttp
 
 from runner import gdbmi
 from runner.debugger import Debugger, DebuggerError
@@ -16,6 +19,17 @@ CompilationResult = namedtuple("CompilationResult", ["successful", "stdout", "st
 BreakpointId: TypeAlias = int
 RegisterName: TypeAlias = str
 
+_docker_session: Optional[aiohttp.ClientSession] = None
+
+def get_docker_session() -> aiohttp.ClientSession:
+    global _docker_session
+    if not _docker_session:
+        _docker_session = aiohttp.ClientSession(
+            base_url="http://docker",
+            connector=aiohttp.UnixConnector(config.docker_socket)
+        )
+    return _docker_session
+
 
 class DebugSession:
     workdir: pathlib.Path
@@ -23,6 +37,7 @@ class DebugSession:
     debugger: Debugger
     reg_name_to_id: Optional[Dict[RegisterName, int]]
     event_subscribers: List[Callable[[gdbmi.AnyNotification], None]]
+    container_id: str
 
     def __init__(self, arch: str) -> None:
         self.workdir = pathlib.Path(tempfile.mkdtemp(prefix="asmwebide_runner_", dir=config.runner_data_path))
@@ -30,8 +45,8 @@ class DebugSession:
         self.debugger = Debugger()
         self.reg_name_to_id = None
         self.set_stdin("")
-        self.exception_on_stop = None
         self.event_subscribers = []
+        self.container_id = ""
 
     @property
     def session_id(self) -> str:
@@ -48,10 +63,6 @@ class DebugSession:
     @property
     def stdin_path(self) -> pathlib.Path:
         return self.workdir / "input"
-
-    @property
-    def cid_file_path(self) -> pathlib.Path:
-        return self.workdir / "cid"
 
     async def compile(self, source_code) -> CompilationResult:
         with open(self.source_path, "w") as f:
@@ -89,9 +100,9 @@ class DebugSession:
 
     async def start_debugger(
         self,
-        cpu_usage_limit: Optional[str] = None,
+        cpu_usage_limit: Optional[float] = None,
         cpu_time_limit: Optional[int] = None,
-        memory_limit: Optional[str] = None,
+        memory_limit: Optional[int] = None,
         real_time_limit: Optional[int] = None
     ) -> None:
         cpu_usage_limit = cpu_usage_limit or config.default_cpu_usage_limit
@@ -102,38 +113,42 @@ class DebugSession:
         await self.debugger.start(config.archs[self.arch].gdb)
         await self.debugger.gdb_command(f"-gdb-set mi-async on")
 
-        gdbserver_command = [
-            "docker", "run", "--rm", "-d",
-            "-v", f"{config.runner_data_volume}:{config.runner_data_path}",
-            "--cidfile", str(self.cid_file_path),
-            "--network", config.docker_network,
-            "--hostname", self.session_id
-        ]
-
-        if cpu_usage_limit:
-            gdbserver_command += ["--cpus", cpu_usage_limit]
-
-        if memory_limit:
-            gdbserver_command += ["--memory", memory_limit]
-
-        gdbserver_command += [config.executor_docker_image]
-
-        if cpu_time_limit:
-            gdbserver_command += ["prlimit", f"--cpu={cpu_time_limit}"]
+        gdbserver_command = []
 
         if real_time_limit:
             gdbserver_command += ["timeout", f"{real_time_limit}s"]
 
         gdbserver_command += [config.archs[self.arch].gdbserver, "--multi", ":1234"]
 
-        process = await asyncio.subprocess.create_subprocess_exec(
-            *gdbserver_command,
-            stdout=asyncio.subprocess.DEVNULL,
-            stderr=asyncio.subprocess.DEVNULL
-        )
-        await process.wait()
-        if process.returncode != 0:
-            raise DebuggerError("Failed to start gdbserver")
+        gdbserver_docker_params = {
+            "Hostname": self.session_id,
+            "Cmd": gdbserver_command,
+            "Image": config.executor_docker_image,
+            "HostConfig": {
+                "CpuQuota": round(cpu_usage_limit * 100000),
+                "Memory": memory_limit,
+                "Ulimits": [{
+                    "Name": "cpu",
+                    "Soft": cpu_time_limit,
+                    "Hard": cpu_time_limit
+                }],
+                "NetworkMode": config.docker_network,
+                "Binds": [
+                    f"{config.runner_data_volume}:{config.runner_data_path}"
+                ]
+            }
+        }
+
+        async with get_docker_session().post("/containers/create", json=gdbserver_docker_params) as resp:
+            data = await resp.json()
+            if "Id" in data:
+                self.container_id = data["Id"]
+            else:
+                raise DebuggerError(data["message"])
+
+        async with get_docker_session().post(f"/containers/{self.container_id}/start") as resp:
+            if resp.status != 204:
+                raise DebuggerError("Failed to start container")
 
         await self.debugger.gdb_command(f"-target-select extended-remote {self.session_id}:1234")
 
@@ -146,19 +161,8 @@ class DebugSession:
             await self.debugger.terminate()
 
     async def terminate_gdbserver(self) -> None:
-        try:
-            container_id = self.cid_file_path.read_text().strip()
-        except (IOError, OSError):
-            return
-
-        command = ["docker", "rm", "-f", container_id]
-
-        process = await asyncio.subprocess.create_subprocess_exec(
-            *command,
-            stdout=asyncio.subprocess.DEVNULL,
-            stderr=asyncio.subprocess.DEVNULL
-        )
-        await process.wait()
+        async with get_docker_session().delete(f"/containers/{self.container_id}?force=true"):
+            pass
 
     async def close(self) -> None:
         await self.terminate()
