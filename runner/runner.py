@@ -1,15 +1,13 @@
 import asyncio.subprocess
 import binascii
-from dataclasses import dataclass
 import pathlib
-import shlex
 import shutil
 import tempfile
 from collections import namedtuple
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Type, TypeAlias
 
 from runner import gdbmi
-from runner.debugger import Debugger
+from runner.debugger import Debugger, DebuggerError
 from runner.settings import root, config
 
 CompilationResult = namedtuple("CompilationResult", ["successful", "stdout", "stderr"])
@@ -34,6 +32,10 @@ class DebugSession:
         self.set_stdin("")
         self.exception_on_stop = None
         self.event_subscribers = []
+
+    @property
+    def session_id(self) -> str:
+        return self.workdir.name
 
     @property
     def source_path(self) -> pathlib.Path:
@@ -101,9 +103,11 @@ class DebugSession:
         await self.debugger.gdb_command(f"-gdb-set mi-async on")
 
         gdbserver_command = [
-            "docker", "run", "-i",
+            "docker", "run", "--rm", "-d",
             "-v", f"{config.runner_data_volume}:{config.runner_data_path}",
             "--cidfile", str(self.cid_file_path),
+            "--network", config.docker_network,
+            "--hostname", self.session_id
         ]
 
         if cpu_usage_limit:
@@ -120,10 +124,18 @@ class DebugSession:
         if real_time_limit:
             gdbserver_command += ["timeout", f"{real_time_limit}s"]
 
-        gdbserver_command += [config.archs[self.arch].gdbserver, "--multi", "-"]
+        gdbserver_command += [config.archs[self.arch].gdbserver, "--multi", ":1234"]
 
-        gdbserver_command_shell = shlex.join(gdbserver_command)
-        await self.debugger.gdb_command(f"-target-select extended-remote | {gdbserver_command_shell}")
+        process = await asyncio.subprocess.create_subprocess_exec(
+            *gdbserver_command,
+            stdout=asyncio.subprocess.DEVNULL,
+            stderr=asyncio.subprocess.DEVNULL
+        )
+        await process.wait()
+        if process.returncode != 0:
+            raise DebuggerError("Failed to start gdbserver")
+
+        await self.debugger.gdb_command(f"-target-select extended-remote {self.session_id}:1234")
 
         await self.debugger.gdb_command(f"-gdb-set remote exec-file {self.executable_path}")
         await self.debugger.gdb_command(f"-file-exec-and-symbols {self.executable_path}")

@@ -1,10 +1,8 @@
-import logging
 from runner import gdbmi, metrics
 from runner.settings import config
 
 from typing import Optional, AsyncIterator
 import asyncio
-import signal
 
 
 class DebuggerError(Exception):

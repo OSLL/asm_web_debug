@@ -33,6 +33,7 @@ class Config:
     default_offline_real_time_limit: int = 10
 
     executor_docker_image: str = "asm_web_debug_executor"
+    docker_network: str = "asm_web_debug_default"
     runner_data_volume: str = "asm_web_debug_runner_data"
     runner_data_path: str = "/runner_data"
 
