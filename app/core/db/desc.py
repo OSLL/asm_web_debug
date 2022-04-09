@@ -50,8 +50,9 @@ class Solutions(me.Document):
     _id = me.StringField(primary_key=True)
     datetime = me.DateTimeField()
     feedback = me.StringField()
-    task = me.ReferenceField('tasks', dbref=True)
+    task = me.ReferenceField('Tasks', dbref=True)
     LTI_session = me.ReferenceField('LTI_sessions', dbref=True)
+    codes = me.ReferenceField('Codes', dbref=True)
     
 class Tasks(me.Document):
     _id = me.StringField(primary_key=True)
