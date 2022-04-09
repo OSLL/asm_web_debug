@@ -20,6 +20,7 @@ class Solution:
         self.feedback = "feedback"
         self.task = Task()
         self.LTI_session = "LTI session"
+        self.code_id = "code_id"
 
 solution_bp = Blueprint('solution', __name__)
 bp = solution_bp
