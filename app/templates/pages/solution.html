@@ -19,6 +19,43 @@
         margin: 50px;
         padding: 20px;
     }
+    .float-container {
+    border: 3px solid #fff;
+    padding: 20px;
+    }
+
+    * {
+  box-sizing: border-box;
+}
+
+.row {
+    display: flex;
+    margin-left:-5px;
+    margin-right:-5px;
+    text-align: center;
+    font-size: x-large;
+}
+
+.column {
+  flex: 50%;
+  padding: 5px;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%;
+  border: 2px solid #ddd;
+}
+
+th, td {
+  text-align: left;
+  padding: 16px;
+}
+
+tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
 </style>
 
 <div class="solution-header">Решение #{{ data.id }}</div>
@@ -31,9 +68,95 @@
     <p>
         <b>Solution:</b>
         <br>
-        {{data._datetime}}
+        <a href={{data.code_id}}>Проверить в редакторе</a>
         <br>
-        {{data.feedback}}
+        Добавлено: {{data._datetime}}
+        <br>
+        Feedback: {{data.feedback}}
     </p>
 </div>
+<div class="row">
+    <div class="column">
+        <b>
+            Ожидаемые значения
+        </b>
+        <br>
+        <table class="mytable">
+            <tr>
+              <th>Register</th>
+              <th>Value</th>
+            </tr>
+            <tr>
+              <td>Reg1</td>
+              <td>Value1</td>
+            </tr>
+            <tr>
+              <td>Reg2</td>
+              <td>Value2</td>
+            </tr>
+        </table> 
+    </div>
+    <div class="column">
+        <b>
+            Полученные значения
+        </b>
+        <br>
+        <table class="mytable">
+            <tr>
+              <th>Register</th>
+              <th>Value</th>
+            </tr>
+            <tr>
+                <td>Reg1</td>
+                <td>Value1</td>
+              </tr>
+              <tr>
+                <td>Reg2</td>
+                <td>Value2</td>
+              </tr>
+        </table> 
+    </div>
+</div>
+<div class="row">
+    <div class="column">
+        <b>
+            Ожидаемые значения
+        </b>
+        <br>
+        <table class="mytable">
+            <tr>
+              <th>Stack</th>
+              <th>Value</th>
+            </tr>
+            <tr>
+              <td>Stack Addr1</td>
+              <td>Value1</td>
+            </tr>
+            <tr>
+              <td>Stack Addr2</td>
+              <td>Value2</td>
+            </tr>
+        </table> 
+    </div>
+    <div class="column">
+        <b>
+            Полученные значения
+        </b>
+        <br>
+        <table class="mytable">
+            <tr>
+              <th>Stack</th>
+              <th>Value</th>
+            </tr>
+            <tr>
+                <td>Stack Addr1</td>
+                <td>Value1</td>
+              </tr>
+              <tr>
+                <td>Stack Addr2</td>
+                <td>Value2</td>
+              </tr>
+        </table> 
+    </div>
+</div>  
 {% endblock %}
