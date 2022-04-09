@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}System information{% endblock %}
+
+{% block content %}
+<style>
+    .solution-header{
+        border: 5px solid #b9b9b9;
+        border-radius: 20px;
+        text-align: center;
+        font-size: xx-large;
+        margin: 50px;
+    }
+    .block-content{
+        border: 2px solid #b9b9b9;
+        border-radius: 20px;
+        text-align: left;
+        font-size: x-large;
+        margin: 50px;
+        padding: 20px;
+    }
+</style>
+
+<div class="solution-header">Информация о системе</div>
+<div class="block-content">
+    <p>
+        CPU:
+    </p>
+    <p>
+        Memory:
+    </p>
+    <p>
+        Кол-во процессов:
+    </p>
+    <p>
+        Процессы:
+    </p>
+    <textarea>
+        Some top information
+    </textarea>
+</div>
+{% endblock %}
