@@ -15,6 +15,7 @@ from app.routes.logs import log_bp
 from app.routes.lti import lti_bp
 from app.routes.welcome import welcome_bp
 from app.routes.solution import solution_bp
+from app.routes.admin_view import adminview_bp
 from app.config import ConfigManager
 
 
@@ -28,6 +29,7 @@ def create_app():
     app.register_blueprint(debug_bp)
     app.register_blueprint(welcome_bp)
     app.register_blueprint(solution_bp)
+    app.register_blueprint(adminview_bp)
 
     # load config
     runmode = os.environ.get('RUNMODE')
