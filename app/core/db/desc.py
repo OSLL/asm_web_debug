@@ -46,12 +46,12 @@ class Consumers(me.Document):
     datetime = me.DateTimeField(default=datetime.datetime.now)
     timestamps = me.ListField(blank=True)
     
-class solutions(me.Document):
-    _id: me.StringField(primary_key=True)
-    datetime: me.DateTimeField()
-    feedback: me.StringField()
-    task: me.ReferenceField('tasks', dbref=True)
-    LTI_session: me.ReferenceField('LTI_sessions', dbref=True)
+class Solutions(me.Document):
+    _id = me.StringField(primary_key=True)
+    datetime = me.DateTimeField()
+    feedback = me.StringField()
+    task = me.ReferenceField('tasks', dbref=True)
+    LTI_session = me.ReferenceField('LTI_sessions', dbref=True)
     
 class Tasks(me.Document):
     _id = me.StringField(primary_key=True)
