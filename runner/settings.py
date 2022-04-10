@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 import pathlib
-import sys
+import os
 from typing import Dict, List
 
 
@@ -37,6 +37,7 @@ class Config:
     runner_data_path: str = "/runner_data"
     docker_network: str = "asm_web_debug_default"
     docker_socket: str = "/var/run/docker.sock"
+    system_clock_resolution: int = os.sysconf("SC_CLK_TCK")
 
 root: pathlib.Path = pathlib.Path(__file__).parent.parent
 config: Config = Config()

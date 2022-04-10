@@ -10,7 +10,7 @@ import runner.checkers # register all checkers
 
 
 async def on_shutdown(app):
-    from runner.runner import get_docker_session
+    from runner.docker import get_docker_session
     await get_docker_session().close()
 
     for ws in set(app['websockets']):

@@ -1,6 +1,5 @@
 import asyncio.subprocess
 import binascii
-import logging
 import pathlib
 import shutil
 import tempfile
@@ -9,7 +8,7 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Type, T
 
 import aiohttp
 
-from runner import gdbmi
+from runner import docker, gdbmi
 from runner.debugger import Debugger, DebuggerError
 from runner.settings import root, config
 
@@ -19,17 +18,6 @@ CompilationResult = namedtuple("CompilationResult", ["successful", "stdout", "st
 BreakpointId: TypeAlias = int
 RegisterName: TypeAlias = str
 
-_docker_session: Optional[aiohttp.ClientSession] = None
-
-def get_docker_session() -> aiohttp.ClientSession:
-    global _docker_session
-    if not _docker_session:
-        _docker_session = aiohttp.ClientSession(
-            base_url="http://docker",
-            connector=aiohttp.UnixConnector(config.docker_socket)
-        )
-    return _docker_session
-
 
 class DebugSession:
     workdir: pathlib.Path
@@ -37,7 +25,7 @@ class DebugSession:
     debugger: Debugger
     reg_name_to_id: Optional[Dict[RegisterName, int]]
     event_subscribers: List[Callable[[gdbmi.AnyNotification], None]]
-    container_id: str
+    gdbserver_container_id: str
 
     def __init__(self, arch: str) -> None:
         self.workdir = pathlib.Path(tempfile.mkdtemp(prefix="asmwebide_runner_", dir=config.runner_data_path))
@@ -46,7 +34,7 @@ class DebugSession:
         self.reg_name_to_id = None
         self.set_stdin("")
         self.event_subscribers = []
-        self.container_id = ""
+        self.gdbserver_container_id = ""
 
     @property
     def session_id(self) -> str:
@@ -139,16 +127,7 @@ class DebugSession:
             }
         }
 
-        async with get_docker_session().post("/containers/create", json=gdbserver_docker_params) as resp:
-            data = await resp.json()
-            if "Id" in data:
-                self.container_id = data["Id"]
-            else:
-                raise DebuggerError(data["message"])
-
-        async with get_docker_session().post(f"/containers/{self.container_id}/start") as resp:
-            if resp.status != 204:
-                raise DebuggerError("Failed to start container")
+        self.gdbserver_container_id = await docker.create_and_start_container(gdbserver_docker_params)
 
         await self.debugger.gdb_command(f"-target-select extended-remote {self.session_id}:1234")
 
@@ -161,8 +140,7 @@ class DebugSession:
             await self.debugger.terminate()
 
     async def terminate_gdbserver(self) -> None:
-        async with get_docker_session().delete(f"/containers/{self.container_id}?force=true"):
-            pass
+        await docker.stop_and_delete_container(self.gdbserver_container_id)
 
     async def close(self) -> None:
         await self.terminate()
@@ -257,3 +235,14 @@ class DebugSession:
 
     async def restart(self) -> None:
         await self.continue_until("_start", restart_program=True)
+
+    async def get_inferior_proc_stat(self) -> List[str]:
+        if not self.debugger.inferior_pid:
+            raise DebuggerError("get_inferior_proc_stat: unknown pid")
+        data = await docker.run_command_in_container(self.gdbserver_container_id, ["cat", f"/proc/{self.debugger.inferior_pid}/stat"])
+        return [i.decode() for i in data.strip().split()]
+
+    async def get_cpu_time_used(self) -> float:
+        stat = await self.get_inferior_proc_stat()
+        utime_clk = int(stat[13]) # man proc(5)
+        return utime_clk / config.system_clock_resolution

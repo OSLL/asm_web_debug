@@ -1,3 +1,4 @@
+import logging
 from runner import gdbmi, metrics
 from runner.settings import config
 
@@ -16,6 +17,7 @@ class Debugger:
     gdb_notifications: asyncio.Queue[gdbmi.AnyNotification | None]
     interactor_task: Optional[asyncio.Task]
     inferior_output_task: Optional[asyncio.Task]
+    inferior_pid: Optional[int]
 
     def __init__(self) -> None:
         self.gdb = None
@@ -24,6 +26,7 @@ class Debugger:
         self.gdb_notifications = asyncio.Queue()
         self.interactor_task = None
         self.inferior_output_task = None
+        self.inferior_pid = None
 
     async def start(self, path_to_gdb: str) -> None:
         command = [
@@ -53,6 +56,13 @@ class Debugger:
             gdb_response = gdbmi.parse_gdb_response(line.decode())
             if gdb_response is None:
                 continue
+            logging.debug(gdb_response)
+
+            if type(gdb_response) is gdbmi.Notification:
+                if gdb_response.status == "thread-group-started":
+                    self.inferior_pid = gdb_response.values["pid"]
+                elif gdb_response.status == "thread-group-exited":
+                    self.inferior_pid = None
 
             if type(gdb_response) is gdbmi.ExecAsync:
                 self.inferior_running = gdb_response.status == "running"
@@ -87,6 +97,7 @@ class Debugger:
         metrics.running_gdb_processes.dec()
 
     async def gdb_command(self, cmd: str) -> dict:
+        logging.debug(cmd)
         cmd_name = cmd.split(maxsplit=1)[0]
         with metrics.gdb_command_latency.labels(cmd_name).time():
             self.gdb.stdin.write(f"{cmd}\n".encode())
