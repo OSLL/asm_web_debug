@@ -19,24 +19,24 @@
         margin: 50px;
         padding: 20px;
     }
+    .mybutton{
+        font-size: x-large;
+        text-align: center;
+    }
 </style>
 
 <div class="solution-header">Информация о системе</div>
-<div class="block-content">
-    <p>
-        CPU:
-    </p>
-    <p>
-        Memory:
-    </p>
-    <p>
-        Кол-во процессов:
-    </p>
-    <p>
-        Процессы:
-    </p>
-    <textarea>
-        Some top information
-    </textarea>
+<div class="mybutton">
+    Обновить <button type="button" class="btn btn-outline-primary">⟳</button>
 </div>
+<div class="block-content">
+    <pre id="top-information">
+        {{data}}
+    </pre>
+</div>
+
+{% endblock %}
+
+{% block script %}
+<script src="static/js/adminview.js"></script> 
 {% endblock %}
