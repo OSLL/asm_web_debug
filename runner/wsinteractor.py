@@ -90,6 +90,8 @@ class WSInteractor:
         self.debug_session.set_stdin(stdin)
         await self.debug_session.start_debugger(real_time_limit=config.default_online_real_time_limit)
 
+        await self.post_stats()
+
         for line in breakpoints:
             self.breakpoints[line] = await self.debug_session.add_breakpoint(line)
 
