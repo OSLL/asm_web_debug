@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import weakref
 
@@ -7,6 +8,11 @@ import prometheus_client
 from runner.routes import setup_routes
 from runner.settings import config
 import runner.checkers # register all checkers
+
+
+async def on_startup(app):
+    from runner.monitoring import periodically_update_resource_usage_gauges
+    app["monitoring_task"] = asyncio.create_task(periodically_update_resource_usage_gauges())
 
 
 async def on_shutdown(app):
@@ -19,10 +25,13 @@ async def on_shutdown(app):
         await ws.close(code=WSCloseCode.GOING_AWAY,
                        message='Server shutdown')
 
+    app["monitoring_task"].cancel()
+
 
 def init_app() -> web.Application:
     app = web.Application()
     app["websockets"] = weakref.WeakSet()
+    app.on_startup.append(on_startup)
     app.on_shutdown.append(on_shutdown)
 
     setup_routes(app)

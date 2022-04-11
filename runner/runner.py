@@ -4,7 +4,7 @@ import pathlib
 import shutil
 import tempfile
 from collections import namedtuple
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Type, TypeAlias
+from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, Type, TypeAlias
 
 from runner import docker, gdbmi
 from runner.debugger import Debugger, DebuggerError
@@ -15,6 +15,9 @@ CompilationResult = namedtuple("CompilationResult", ["successful", "stdout", "st
 
 BreakpointId: TypeAlias = int
 RegisterName: TypeAlias = str
+
+
+active_debug_sessions: Set["DebugSession"] = set()
 
 
 class DebugSession:
@@ -133,6 +136,8 @@ class DebugSession:
         await self.debugger.gdb_command(f"-file-exec-and-symbols {self.executable_path}")
         await self.debugger.gdb_command(f"-exec-arguments >&2 <{self.stdin_path}")
 
+        active_debug_sessions.add(self)
+
     async def terminate(self) -> None:
         if self.debugger is not None:
             await self.debugger.terminate()
@@ -141,6 +146,7 @@ class DebugSession:
         await docker.stop_and_delete_container(self.gdbserver_container_id)
 
     async def close(self) -> None:
+        active_debug_sessions.discard(self)
         await self.terminate()
         await self.terminate_gdbserver()
         shutil.rmtree(self.workdir)
@@ -250,6 +256,10 @@ class DebugSession:
     async def get_total_cpu_time_used(self) -> float:
         data = await docker.run_command_in_container(self.gdbserver_container_id, ["cat", "/sys/fs/cgroup/cpuacct/cpuacct.usage"])
         return int(data) / 10**9
+
+    async def get_memory_used(self) -> int:
+        data = await docker.run_command_in_container(self.gdbserver_container_id, ["cat", "/sys/fs/cgroup/memory/memory.usage_in_bytes"])
+        return int(data)
 
     async def get_max_memory_used(self) -> int:
         data = await docker.run_command_in_container(self.gdbserver_container_id, ["cat", "/sys/fs/cgroup/memory/memory.max_usage_in_bytes"])
