@@ -2,7 +2,7 @@ from typing import Optional, Type
 from app import db
 
 from flask_login import UserMixin
-from sqlalchemy import Column, String, UniqueConstraint, Boolean, ForeignKey, DateTime, Integer
+from sqlalchemy import Column, Float, String, UniqueConstraint, Boolean, ForeignKey, DateTime, Integer
 from sqlalchemy.orm import relationship
 from passlib.hash import pbkdf2_sha256
 
@@ -80,6 +80,9 @@ class Assignment(db.Model):
 
     submissions = relationship("Submission", backref="assignment", lazy=True)
 
+    def __str__(self) -> str:
+        return f"{self.user.full_name} - {self.problem.title}"
+
 
 class Submission(db.Model):
     id = Column(Integer, primary_key=True)
@@ -91,3 +94,22 @@ class Submission(db.Model):
     submitted_at = Column(DateTime, server_default=db.func.now())
     grade = Column(Integer, default=0)
     comment = Column(String)
+
+
+class DebugSession(db.Model):
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("user.id"), nullable=False)
+    user = relationship("User")
+    assignment_id = Column(Integer, ForeignKey("assignment.id"), nullable=False)
+    assignment = relationship("Assignment")
+
+    source_code = Column(String, nullable=False)
+    arch = Column(String, nullable=False)
+
+    started_at = Column(DateTime, nullable=False)
+    finished_at = Column(DateTime, nullable=True)
+    is_interactive = Column(Boolean, nullable=False)
+
+    cpu_time_used = Column(Float, nullable=True)
+    real_time_used = Column(Float, nullable=True)
+    memory_used = Column(Integer, nullable=True)

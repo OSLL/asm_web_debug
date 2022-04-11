@@ -1,8 +1,10 @@
 import asyncio
 import json
+import time
 from typing import Dict, Optional, List, Type
 
 from aiohttp import web, WSMsgType
+import aiohttp
 from multidict import MultiDict
 
 from runner import gdbmi
@@ -10,6 +12,15 @@ from runner.checkerlib import BaseChecker, Checker, CheckerException
 from runner.debugger import DebuggerError
 from runner.runner import BreakpointId, DebugSession
 from runner.settings import config
+
+
+_flask_session: Optional[aiohttp.ClientSession] = None
+
+def get_flask_session() -> aiohttp.ClientSession:
+    global _flask_session
+    if not _flask_session:
+        _flask_session = aiohttp.ClientSession(base_url="http://web")
+    return _flask_session
 
 
 async def run_interactor(ws: web.WebSocketResponse, query: MultiDict[str]):
@@ -26,6 +37,9 @@ class WSInteractor:
     breakpoints: Dict[int, BreakpointId]
     checker_name: Optional[str]
     checker_class: Optional[Type[Checker]]
+    user_id: int
+    assignment_id: int
+    metadata: dict
 
     def __init__(self, ws: web.WebSocketResponse, query: MultiDict[str]):
         self.ws = ws
@@ -33,6 +47,9 @@ class WSInteractor:
         self.breakpoints = {}
         self.checker_name = query.get("checker_name")
         self.checker_class = BaseChecker._all_checkers.get(self.checker_name)
+        self.user_id = int(query.get("user_id"))
+        self.assignment_id = int(query.get("assignment_id"))
+        self.metadata = {}
 
     async def handle_incoming_messages(self):
         async for msg in self.ws:
@@ -48,10 +65,17 @@ class WSInteractor:
                 })
 
     async def start_program(self, source: str, stdin: str, breakpoints: List[int], sample_test: Optional[str]):
-        if self.debug_session:
-            await self.debug_session.close()
+        await self.close()
         self.breakpoints = {}
         self.debug_session = DebugSession("x86_64")
+        self.metadata = {
+            "source_code": source,
+            "arch": self.debug_session.arch,
+            "user_id": self.user_id,
+            "assignment_id": self.assignment_id,
+            "started_at": time.time()
+        }
+
         result = await self.debug_session.compile(source)
         await self.ws.send_json({
             "type": "compilation_result",
@@ -80,6 +104,20 @@ class WSInteractor:
             await self.debug_session.start_program()
 
         asyncio.create_task(self.handle_gdb_events())
+
+    async def post_stats(self):
+        if not self.debug_session:
+            return
+
+        data = {
+            "cpu_time_used": await self.debug_session.get_total_cpu_time_used(),
+            "memory_used": await self.debug_session.get_max_memory_used()
+        }
+
+        data.update(self.metadata)
+
+        async with get_flask_session().post("/internal/debug_session_info", json=data) as resp:
+            self.metadata.update(await resp.json())
 
     async def terminate_program(self):
         await self.ws.send_json({
@@ -211,5 +249,8 @@ class WSInteractor:
 
     async def close(self):
         if self.debug_session:
+            self.metadata["finished_at"] = time.time()
+            await self.post_stats()
             await self.debug_session.close()
             self.debug_session = None
+            self.metadata = {}

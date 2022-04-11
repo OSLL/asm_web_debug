@@ -11,7 +11,9 @@ import runner.checkers # register all checkers
 
 async def on_shutdown(app):
     from runner.docker import get_docker_session
+    from runner.wsinteractor import get_flask_session
     await get_docker_session().close()
+    await get_flask_session().close()
 
     for ws in set(app['websockets']):
         await ws.close(code=WSCloseCode.GOING_AWAY,

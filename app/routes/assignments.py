@@ -156,8 +156,8 @@ def websocket(assignment_id):
     assignment = get_assignment(assignment_id)
 
     params = {
-        "username": current_user.username,
-        "is_admin": current_user.is_admin,
+        "user_id": str(current_user.id),
+        "assignment_id": str(assignment.id),
         "checker_name": assignment.problem.checker_name
     }
 

@@ -7,7 +7,7 @@ from flask_admin.contrib.sqla import ModelView
 from flask_login import current_user
 from wtforms.fields import PasswordField, SelectField, TextAreaField
 
-from app.models import Problem, Submission, User, Assignment
+from app.models import DebugSession, Problem, Submission, User, Assignment
 from runner.checkerlib import Checker
 
 class ProtectedModelView(ModelView):
@@ -82,6 +82,16 @@ class SubmissionView(ProtectedModelView):
         super().__init__(Submission, db.session, endpoint="admin_submissions", url="submissions")
 
 
+class DebugSessionView(ProtectedModelView):
+    column_exclude_list = ["source_code"]
+    form_overrides = {
+        "arch": ArchSelectField,
+        "source_code": TextAreaField
+    }
+
+    def __init__(self):
+        super().__init__(DebugSession, db.session, endpoint="admin_debug_sessions", url="debug_sessions")
+
 class AdminIndex(AdminIndexView):
     @expose("/")
     def index(self):
@@ -91,4 +101,4 @@ class AdminIndex(AdminIndexView):
 
 
 admin = Admin(app, template_mode="bootstrap4", index_view=AdminIndex())
-admin.add_views(UserView(), ProblemView(), AssignmentView(), SubmissionView())
+admin.add_views(UserView(), ProblemView(), AssignmentView(), SubmissionView(), DebugSessionView())

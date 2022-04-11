@@ -6,8 +6,6 @@ import tempfile
 from collections import namedtuple
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Type, TypeAlias
 
-import aiohttp
-
 from runner import docker, gdbmi
 from runner.debugger import Debugger, DebuggerError
 from runner.settings import root, config
@@ -236,13 +234,23 @@ class DebugSession:
     async def restart(self) -> None:
         await self.continue_until("_start", restart_program=True)
 
-    async def get_inferior_proc_stat(self) -> List[str]:
+    async def get_inferior_proc_stat(self, pid: Optional[int] = None) -> List[str]:
+        if pid is None:
+            pid = self.debugger.inferior_pid
         if not self.debugger.inferior_pid:
             raise DebuggerError("get_inferior_proc_stat: unknown pid")
-        data = await docker.run_command_in_container(self.gdbserver_container_id, ["cat", f"/proc/{self.debugger.inferior_pid}/stat"])
+        data = await docker.run_command_in_container(self.gdbserver_container_id, ["cat", f"/proc/{pid}/stat"])
         return [i.decode() for i in data.strip().split()]
 
     async def get_cpu_time_used(self) -> float:
         stat = await self.get_inferior_proc_stat()
         utime_clk = int(stat[13]) # man proc(5)
         return utime_clk / config.system_clock_resolution
+
+    async def get_total_cpu_time_used(self) -> float:
+        data = await docker.run_command_in_container(self.gdbserver_container_id, ["cat", "/sys/fs/cgroup/cpuacct/cpuacct.usage"])
+        return int(data) / 10**9
+
+    async def get_max_memory_used(self) -> int:
+        data = await docker.run_command_in_container(self.gdbserver_container_id, ["cat", "/sys/fs/cgroup/memory/memory.max_usage_in_bytes"])
+        return int(data)
