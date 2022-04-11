@@ -35,7 +35,9 @@ class BaseChecker(abc.ABC):
         self.source_code = source_code
         self._cleanup = []
 
-    async def start(self, source_code: Optional[str]) -> DebugSession:
+    async def start(self, source_code: Optional[str], params: Optional[dict] = None) -> DebugSession:
+        if params is None:
+            params = {}
         debug_session = DebugSession(self.arch)
         self._cleanup.append(debug_session.close)
 
@@ -46,7 +48,7 @@ class BaseChecker(abc.ABC):
         if not compilation_result.successful:
             raise DoesNotCompileError(str(compilation_result.stderr))
 
-        await debug_session.start_debugger(real_time_limit=config.default_offline_real_time_limit)
+        await debug_session.start_debugger(**params)
 
         def on_event(event: gdbmi.AnyNotification) -> None:
             if type(event) is gdbmi.ExecAsync and event.status == "stopped":
@@ -90,6 +92,11 @@ class Checker(BaseChecker):
     source_suffix: str = ""
     sample_test: Optional[str] = None
 
+    cpu_usage_limit: Optional[float] = None # in cores
+    cpu_time_limit: Optional[int] = None    # in seconds
+    memory_limit: Optional[int] = None      # in bytes
+    real_time_limit: Optional[int] = None   # in seconds
+
     program: DebugSession
 
     async def check_before_run(self) -> None: pass
@@ -105,5 +112,10 @@ class Checker(BaseChecker):
 
     async def run(self) -> None:
         await self.check_before_run()
-        self.program = await self.start(self.get_source_for_interactive_debugger())
+        self.program = await self.start(self.get_source_for_interactive_debugger(), params={
+            "cpu_usage_limit": self.cpu_usage_limit,
+            "cpu_time_limit": self.cpu_time_limit,
+            "memory_limit": self.memory_limit,
+            "real_time_limit": self.real_time_limit
+        })
         await self.check()
