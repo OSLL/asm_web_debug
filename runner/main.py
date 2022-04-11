@@ -40,7 +40,10 @@ def init_app() -> web.Application:
 
 
 def main() -> None:
-    logging.basicConfig(level=logging.os.environ.get('LOGLEVEL', 'INFO').upper())
+    logging.basicConfig(
+        level=logging.os.environ.get('LOGLEVEL', 'INFO').upper(),
+        format="%(asctime)s [%(levelname)s] %(message)s"
+    )
 
     prometheus_client.start_http_server(config.prometheus_port)
 

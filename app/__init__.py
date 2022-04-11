@@ -16,7 +16,10 @@ migrate = Migrate(app, db)
 login_manager = LoginManager(app)
 redis_client = FlaskRedis(app)
 
-logging.basicConfig(level="DEBUG")
+logging.basicConfig(
+    level=logging.os.environ.get('LOGLEVEL', 'INFO').upper(),
+    format="%(asctime)s [%(levelname)s] %(message)s"
+)
 
 def _register():
     import runner.checkers # register all checkers

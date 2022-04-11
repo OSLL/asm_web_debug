@@ -16,6 +16,7 @@ services:
     environment:
       - FLASK_DEBUG=1
       - PYTHONDONTWRITEBYTECODE=1
+      - LOGLEVEL=DEBUG
 
   runner:
     build:
