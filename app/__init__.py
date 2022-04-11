@@ -27,4 +27,10 @@ def _register():
     import app.routes # register routes
     import app.cli # register cli commands
 
-_register()
+    if os.environ.get("AWI_TEST_MODE") == "1":
+        logging.info("============ RUNNING IN TEST MODE! ==============")
+        from app.testdata import populate
+        populate()
+
+with app.app_context():
+    _register()

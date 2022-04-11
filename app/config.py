@@ -17,11 +17,6 @@ class Config:
     CODES_FOLDER = '../codes/'
     ENVIRONMENT_FOLDER = '../environment'
     ARCHS = ('x86_64',)
-    MONGODB_SETTINGS = {
-        'db': 'database',
-        'host': 'mongo',
-        'port': 27017
-    }
     REDIS_URL = "redis://redis:6379/0"
     SECRET_KEY = ''
     LTI_CONSUMERS = {}

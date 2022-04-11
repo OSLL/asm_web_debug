@@ -12,6 +12,8 @@ services:
     env_file:
       - ../.env
     command: poetry run waitress-serve --port 80 app:app
+    environment:
+      - "AWI_TEST_MODE=${AWI_TEST_MODE}"
 
   runner:
     build:
@@ -31,13 +33,14 @@ services:
     depends_on:
       - web
       - runner
+      - prometheus
     restart: always
 
   postgres:
     image: "postgres:14"
     restart: always
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - "${POSTGRES_VOLUME_BIND:-postgres_data:/var/lib/postgresql/data}"
     env_file:
       - ../.env
 
@@ -47,7 +50,15 @@ services:
     volumes:
       - redis_data:/data
 
+  prometheus:
+    build:
+      context: ".."
+      dockerfile: docker/prometheus.dockerfile
+    volumes:
+      - prometheus_data:/prometheus
+
 volumes:
   postgres_data:
   runner_data:
   redis_data:
+  prometheus_data:

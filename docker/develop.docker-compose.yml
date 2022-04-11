@@ -17,6 +17,7 @@ services:
       - FLASK_DEBUG=1
       - PYTHONDONTWRITEBYTECODE=1
       - LOGLEVEL=DEBUG
+      - "AWI_TEST_MODE=${AWI_TEST_MODE}"
 
   runner:
     build:
@@ -46,7 +47,7 @@ services:
     image: "postgres:14"
     restart: always
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - "${POSTGRES_VOLUME_BIND:-postgres_data:/var/lib/postgresql/data}"
     env_file:
       - ../.env
 

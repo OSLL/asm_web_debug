@@ -21,6 +21,7 @@ def parse_args():
     parser_run.add_argument("-p", "--port", type=int, default=8080, help="Port for development server")
     parser_run.add_argument("-d", "--detach", action="store_true", help="Run in the background")
     parser_run.add_argument("--prod", action="store_true", help="Run in production mode")
+    parser_run.add_argument("-t", "--test", action="store_true", help="Run in test mode")
 
     subparsers.add_parser("stop", help="Stop development server started in detach mode")
     subparsers.add_parser("shell", help="Run shell")
@@ -76,9 +77,12 @@ def main():
         if not (workdir / ".env").exists():
             create_env_file()
         profile = "production" if args.prod else "develop"
-        run_docker_compose(f"docker/{profile}.docker-compose.yml", {
-            "APP_PORT": str(args.port)
-        }, args.detach)
+        env = { "APP_PORT": str(args.port) }
+        if args.test:
+            env["POSTGRES_VOLUME_BIND"] = "/dev/null:/.devnull"
+            env["AWI_TEST_MODE"] = "1"
+            profile = "production"
+        run_docker_compose(f"docker/{profile}.docker-compose.yml", env, args.detach)
 
     if args.command == "stop":
         stop_docker_compose()
