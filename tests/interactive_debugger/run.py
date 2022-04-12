@@ -72,21 +72,22 @@ async def run_async_tests_parallel(endpoint: str, n: int) -> None:
         async with session.post("/login", data={"username": "admin", "password": "admin"}): pass
         tasks = []
         for i in range(n):
-            tasks.append(run_async_tests(session, f"{i} "))
+            tasks.append(run_async_tests(session, i))
         await asyncio.gather(*tasks)
 
 
-async def run_async_tests(session: aiohttp.ClientSession, prefix: str = "") -> None:
+async def run_async_tests(session: aiohttp.ClientSession, idx: int) -> None:
     try:
+        await asyncio.sleep(1.0 * idx)
         async with session.ws_connect("/assignment/1/websocket") as ws:
             client = DebugClient(ws)
-            async with report_time(f"{prefix}start"):
+            async with report_time(f"{idx} start"):
                 assert (await client.start(EXAMPLE_SOURCE, [1]))
                 await client.wait_until_stopped()
 
             while True:
-                await asyncio.sleep(1)
-                async with report_time(f"{prefix}step"):
+                await asyncio.sleep(1.0)
+                async with report_time(f"{idx} step"):
                     await client.step()
                 is_paused = await client.wait_until_stopped()
                 if not is_paused:
