@@ -1,4 +1,4 @@
-import asyncio.subprocess
+import asyncio
 import binascii
 import pathlib
 import shutil
@@ -28,6 +28,8 @@ class DebugSession:
     event_subscribers: List[Callable[[gdbmi.AnyNotification], None]]
     gdbserver_container_id: str
 
+    closed: bool
+
     def __init__(self, arch: str) -> None:
         self.workdir = pathlib.Path(tempfile.mkdtemp(prefix="asmwebide_runner_", dir=config.runner_data_path))
         self.arch = arch
@@ -36,6 +38,7 @@ class DebugSession:
         self.set_stdin("")
         self.event_subscribers = []
         self.gdbserver_container_id = ""
+        self.closed = False
 
     @property
     def session_id(self) -> str:
@@ -94,6 +97,8 @@ class DebugSession:
         memory_limit: Optional[int] = None,
         real_time_limit: Optional[int] = None
     ) -> None:
+        active_debug_sessions.add(self)
+
         cpu_usage_limit = cpu_usage_limit or config.default_cpu_usage_limit
         cpu_time_limit = cpu_time_limit or config.default_cpu_time_limit
         memory_limit = memory_limit or config.default_memory_limit
@@ -136,20 +141,19 @@ class DebugSession:
         await self.debugger.gdb_command(f"-file-exec-and-symbols {self.executable_path}")
         await self.debugger.gdb_command(f"-exec-arguments >&2 <{self.stdin_path}")
 
-        active_debug_sessions.add(self)
-
-    async def terminate(self) -> None:
+    async def close_impl(self) -> None:
         if self.debugger is not None:
-            await self.debugger.terminate()
-
-    async def terminate_gdbserver(self) -> None:
-        await docker.stop_and_delete_container(self.gdbserver_container_id)
-
-    async def close(self) -> None:
-        active_debug_sessions.discard(self)
-        await self.terminate()
-        await self.terminate_gdbserver()
+            await asyncio.shield(self.debugger.terminate())
+        if self.gdbserver_container_id:
+            await asyncio.shield(docker.stop_and_delete_container(self.gdbserver_container_id))
         shutil.rmtree(self.workdir)
+        active_debug_sessions.discard(self)
+
+    def close(self) -> None:
+        if self.closed:
+            return
+        self.closed = True
+        asyncio.create_task(self.close_impl())
 
     async def start_program(self) -> None:
         await self.debugger.gdb_command(f"-exec-run")
@@ -250,17 +254,29 @@ class DebugSession:
 
     async def get_cpu_time_used(self) -> float:
         stat = await self.get_inferior_proc_stat()
-        utime_clk = int(stat[13]) # man proc(5)
+        try:
+            utime_clk = int(stat[13]) # man proc(5)
+        except (ValueError, IndexError):
+            raise docker.DockerError("docker container went away")
         return utime_clk / config.system_clock_resolution
 
     async def get_total_cpu_time_used(self) -> float:
         data = await docker.run_command_in_container(self.gdbserver_container_id, ["cat", "/sys/fs/cgroup/cpuacct/cpuacct.usage"])
-        return int(data) / 10**9
+        try:
+            return int(data) / 10**9
+        except ValueError:
+            raise docker.DockerError("docker container went away")
 
     async def get_memory_used(self) -> int:
         data = await docker.run_command_in_container(self.gdbserver_container_id, ["cat", "/sys/fs/cgroup/memory/memory.usage_in_bytes"])
-        return int(data)
+        try:
+            return int(data)
+        except ValueError:
+            raise docker.DockerError("docker container went away")
 
     async def get_max_memory_used(self) -> int:
         data = await docker.run_command_in_container(self.gdbserver_container_id, ["cat", "/sys/fs/cgroup/memory/memory.max_usage_in_bytes"])
-        return int(data)
+        try:
+            return int(data)
+        except ValueError:
+            raise docker.DockerError("docker container went away")

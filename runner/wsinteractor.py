@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 import time
 from typing import Dict, Optional, List, Type
 
@@ -10,6 +11,7 @@ from multidict import MultiDict
 from runner import gdbmi
 from runner.checkerlib import BaseChecker, Checker, CheckerException
 from runner.debugger import DebuggerError
+from runner.docker import DockerError
 from runner.runner import BreakpointId, DebugSession
 from runner.settings import config
 
@@ -28,7 +30,7 @@ async def run_interactor(ws: web.WebSocketResponse, query: MultiDict[str]):
     try:
         await interactor.run()
     finally:
-        await interactor.close()
+        await interactor.close_and_post_stats()
 
 
 class WSInteractor:
@@ -40,6 +42,8 @@ class WSInteractor:
     user_id: int
     assignment_id: int
     metadata: dict
+    handle_gdb_events_task: Optional[asyncio.Task]
+    closed: bool
 
     def __init__(self, ws: web.WebSocketResponse, query: MultiDict[str]):
         self.ws = ws
@@ -50,6 +54,8 @@ class WSInteractor:
         self.user_id = int(query.get("user_id"))
         self.assignment_id = int(query.get("assignment_id"))
         self.metadata = {}
+        self.handle_gdb_events_task = None
+        self.closed = True
 
     async def handle_incoming_messages(self):
         async for msg in self.ws:
@@ -65,7 +71,9 @@ class WSInteractor:
                 })
 
     async def start_program(self, source: str, stdin: str, breakpoints: List[int], sample_test: Optional[str]):
-        await self.close()
+        if self.debug_session:
+            await self.terminate_program()
+
         self.breakpoints = {}
         self.debug_session = DebugSession("x86_64")
         self.metadata = {
@@ -105,27 +113,43 @@ class WSInteractor:
         else:
             await self.debug_session.start_program()
 
-        asyncio.create_task(self.handle_gdb_events())
+        self.handle_gdb_events_task = asyncio.create_task(self.handle_gdb_events())
 
     async def post_stats(self):
         if not self.debug_session:
             return
 
-        data = {
-            "cpu_time_used": await self.debug_session.get_total_cpu_time_used(),
-            "memory_used": await self.debug_session.get_max_memory_used()
-        }
+        try:
+            data = {
+                "cpu_time_used": await self.debug_session.get_total_cpu_time_used(),
+                "memory_used": await self.debug_session.get_max_memory_used()
+            }
+        except DockerError:
+            data = {
+                "cpu_time_used": None,
+                "memory_used": None
+            }
 
         data.update(self.metadata)
 
-        async with get_flask_session().post("/internal/debug_session_info", json=data) as resp:
-            self.metadata.update(await resp.json())
+        try:
+            async with get_flask_session().post("/internal/debug_session_info", json=data) as resp:
+                self.metadata.update(await resp.json())
+        except aiohttp.ClientError:
+            pass
+
+    async def close_and_post_stats(self):
+        try:
+            self.metadata["finished_at"] = time.time()
+            await self.post_stats()
+        finally:
+            self.close()
 
     async def terminate_program(self):
         await self.ws.send_json({
             "type": "finished"
         })
-        await self.close()
+        await self.close_and_post_stats()
 
     async def send_registers_state(self):
         registers = await self.debug_session.get_register_values(config.archs[self.debug_session.arch].display_registers)
@@ -218,41 +242,46 @@ class WSInteractor:
         })
 
     async def handle_gdb_events(self):
-        async for event in self.debug_session.debugger.gdb_notifications_iterator():
-            if type(event) is gdbmi.ExecAsync:
-                if event.status == "running":
-                    await self.ws.send_json({
-                        "type": "running"
-                    })
-                elif event.status == "stopped" and event.values["reason"].startswith("exited"):
-                    if event.values["reason"] == "exited-signalled":
-                        signal_name = event.values["signal-name"]
-                        status = f"\n[process received signal {signal_name}]"
-                    else:
-                        exitcode = int(event.values.get("exit-code", "0"), 8)
-                        status = f"\n[process exited with exit code {exitcode}]"
-                    await self.send_output(status)
-                    await self.terminate_program()
-                elif event.status == "stopped" and event.values["reason"] in ["breakpoint-hit", "end-stepping-range", "function-finished", "location-reached", "signal-received"]:
-                    if "line" in event.values["frame"]:
-                        line = int(event.values["frame"]["line"])
-                    else:
-                        line = -1
-                    await self.ws.send_json({
-                        "type": "paused",
-                        "line": line
-                    })
+        try:
+            async for event in self.debug_session.debugger.gdb_notifications_iterator():
+                if type(event) is gdbmi.ExecAsync:
+                    if event.status == "running":
+                        await self.ws.send_json({
+                            "type": "running"
+                        })
+                    elif event.status == "stopped" and event.values["reason"].startswith("exited"):
+                        if event.values["reason"] == "exited-signalled":
+                            signal_name = event.values["signal-name"]
+                            status = f"\n[process received signal {signal_name}]"
+                        else:
+                            exitcode = int(event.values.get("exit-code", "0"), 8)
+                            status = f"\n[process exited with exit code {exitcode}]"
+                        await self.send_output(status)
+                        await self.terminate_program()
+                    elif event.status == "stopped" and event.values["reason"] in ["breakpoint-hit", "end-stepping-range", "function-finished", "location-reached", "signal-received"]:
+                        if "line" in event.values["frame"]:
+                            line = int(event.values["frame"]["line"])
+                        else:
+                            line = -1
+                        await self.ws.send_json({
+                            "type": "paused",
+                            "line": line
+                        })
 
-            if type(event) is gdbmi.TargetOutput:
-                await self.send_output(event.line)
+                if type(event) is gdbmi.TargetOutput:
+                    await self.send_output(event.line)
+        except Exception as e:
+            logging.error(e)
+            await self.terminate_program()
 
     async def run(self):
         await self.handle_incoming_messages()
 
-    async def close(self):
+    def close(self):
+        if self.handle_gdb_events_task:
+            self.handle_gdb_events_task.cancel()
+            self.handle_gdb_events_task = None
         if self.debug_session:
-            self.metadata["finished_at"] = time.time()
-            await self.post_stats()
-            await self.debug_session.close()
+            self.debug_session.close()
             self.debug_session = None
             self.metadata = {}

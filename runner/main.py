@@ -18,12 +18,19 @@ async def on_startup(app):
 async def on_shutdown(app):
     from runner.docker import get_docker_session
     from runner.wsinteractor import get_flask_session
+    from runner.runner import active_debug_sessions
     await get_docker_session().close()
     await get_flask_session().close()
 
     for ws in set(app['websockets']):
         await ws.close(code=WSCloseCode.GOING_AWAY,
                        message='Server shutdown')
+
+    for session in list(active_debug_sessions):
+        try:
+            await session.close()
+        except:
+            pass
 
     app["monitoring_task"].cancel()
 

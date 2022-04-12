@@ -1,3 +1,4 @@
+import asyncio
 import struct
 from typing import List, Optional
 
@@ -22,16 +23,23 @@ class DockerError(Exception): pass
 
 
 async def create_and_start_container(config: dict) -> str:
-    async with get_docker_session().post("/containers/create", json=config) as resp:
-        data = await resp.json()
-        if "Id" in data:
-            container_id = data["Id"]
-        else:
-            raise DockerError(data["message"])
+    container_id = None
 
-    async with get_docker_session().post(f"/containers/{container_id}/start") as resp:
-        if resp.status != 204:
-            raise DockerError("Failed to start container")
+    try:
+        async with get_docker_session().post("/containers/create", json=config) as resp:
+            data = await resp.json()
+            if "Id" in data:
+                container_id = data["Id"]
+            else:
+                raise DockerError(data["message"])
+
+        async with get_docker_session().post(f"/containers/{container_id}/start") as resp:
+            if resp.status != 204:
+                raise DockerError("Failed to start container")
+    except asyncio.CancelledError:
+        if container_id:
+            await asyncio.shield(stop_and_delete_container(container_id))
+        raise
 
     return container_id
 

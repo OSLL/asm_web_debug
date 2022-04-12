@@ -61,9 +61,9 @@ class BaseChecker(abc.ABC):
 
         return debug_session
 
-    async def close(self) -> None:
+    def close(self) -> None:
         for fn in self._cleanup:
-            await fn()
+            fn()
 
     @classmethod
     async def run_checker_by_name(cls, checker_name: str, config: dict, arch: str, source_code: str) -> None:
@@ -81,7 +81,7 @@ class BaseChecker(abc.ABC):
         except DebuggerError as err:
             raise InternalCheckerError(err)
         finally:
-            await checker.close()
+            checker.close()
 
     def get_source_for_interactive_debugger(self) -> str:
         return self.source_code
