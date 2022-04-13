@@ -1,10 +1,12 @@
 import datetime
+from flask import Blueprint, render_template
+from app.core.db.manager import DBManager
 
-from flask import Blueprint, render_template, redirect, request
-#from app.core.db.manager import get_solution
+dbmanager = DBManager()
+
 class Task:
     def __init__(self):
-        self.id = 1
+        self.id = 0
         self.course = "course"
         self.condition = "condition" 
         self.created = datetime.datetime.now()
@@ -13,29 +15,19 @@ class Task:
 
 class Solution:
     def __init__(self):
-        self.id = 1
+        self.id = 0
         self._datetime = datetime.datetime.now()
         self.feedback = "feedback"
         self.task = Task()
         self.LTI_session = "LTI session"
-    # def __init__(self, solution):
-    #     self.id = solution._id
-    #     self.datetime = solution.datetime
-    #     self.feedback = solution.feedback
-    #     self.task = solution.task
-    #     self.LTI_session = solution.LTI_session
-
-
-def getSolutionBy(id):
-    #get solution by id from db
-    #return Solution(get_solution(id))
-    return Solution()
-
+        self.code_id = "code_id"
 
 solution_bp = Blueprint('solution', __name__)
 bp = solution_bp
 
 @bp.route('/solutions/<int:id>', methods=['GET', 'POST'])
 def index(id):
-    solution = getSolutionBy(id)
+    solution = dbmanager.get_solution(id)
+    if(solution == None):
+        solution = Solution()
     return render_template('pages/solution.html', data=solution)
