@@ -1,3 +1,11 @@
+<script>
+    function uuidv4() {
+        return "/"+([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+            (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+        );
+    }
+</script>
+
 <div id="header">
     <div id='header'>
         <a id="index_link" href="./" target="_self">Index</a>
@@ -6,6 +14,7 @@
                 <a id="log_link" href="{{url_for('logs.logs_page')}}" target="_blank">Logs</a>
                 <a id="tasks_link" href="./tasks" target="_self">Tasks</a>
                 <a id="solutions_link" href="./solutions" target="_self">Solutions</a>
+                <button onclick="location.href=uuidv4()">Create code</button>
             {% endif %}
             <div id="auth_user" style="text-align:right; float:right">
                 Username: {{current_user.username}} <a href='/logout'>logout</a><br>
