@@ -14,6 +14,7 @@ from app.routes.index import index_bp
 from app.routes.logs import log_bp
 from app.routes.lti import lti_bp
 from app.routes.welcome import welcome_bp
+from app.routes.tasks import tasks_bp
 from app.routes.solution import solution_bp
 from app.routes.tasks import tasks_bp
 from app.routes.solutions import solutions_bp
@@ -30,6 +31,7 @@ def create_app():
     app.register_blueprint(lti_bp)
     app.register_blueprint(debug_bp)
     app.register_blueprint(welcome_bp)
+    app.register_blueprint(tasks_bp)
     app.register_blueprint(solution_bp)
     app.register_blueprint(tasks_bp)
     app.register_blueprint(solutions_bp)

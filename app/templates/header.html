@@ -14,7 +14,7 @@
                 <a id="log_link" href="{{url_for('logs.logs_page')}}" target="_blank">Logs</a>
                 <a id="tasks_link" href="./tasks" target="_self">Tasks</a>
                 <a id="solutions_link" href="./solutions" target="_self">Solutions</a>
-                <button onclick="location.href=uuidv4()">Create code</button>
+                <a href="#" onclick="location.href=uuidv4()">Create code</a>
             {% endif %}
             <div id="auth_user" style="text-align:right; float:right">
                 Username: {{current_user.username}} <a href='/logout'>logout</a><br>

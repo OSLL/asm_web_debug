@@ -28,6 +28,7 @@ def remove(id):
     return redirect('/tasks')
 
 
+
 @bp.route('/tasks/edit/', methods=['GET', 'POST'])
 def edit():
     task_id=request.args.get("id")
@@ -56,11 +57,13 @@ def edit():
 
 
 @bp.route('/tasks/add/', methods=['GET', 'POST'])
+
 def add():
     max = 0
     for i in tasks_data:
         if i[0] >max:
             max=i[0]
+            
     registers_bef = request.args.get("registers").split(",")
     stack_bef = request.args.get("stack").split(",")
     registers = []
@@ -77,5 +80,5 @@ def add():
                        request.form.get("edit_difficulty"),
                        0,
                        request.form.get("edit_description"),registers,stack])
-
     return redirect('/tasks')
+
