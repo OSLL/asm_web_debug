@@ -22,17 +22,7 @@
     <div id='main_div'>
         <div id='left_main_div' style="float: left; width: 78%;">
         	<hr />
-            <div id="lastSave">
-                {% if 'last_update' in code %}
-                    {% set time = code['last_update'] %}
-                    Последнее сохранение:
-                    <span id='lastSavedTime'>
-                        <script language="javascript" type="text/javascript">
-                            document.write(new Date({{time}}*1000))
-                        </script>
-                    </span>
-                {% endif %}
-                </div><br>
+            <br>
             <div id='ajax-alert'></div>
             <select id='arch_select' name='arch'>
                 {% for arch in config['ARCHS'] %}
@@ -45,6 +35,25 @@
             <form><textarea id='code' class='code' >{{ code['code'] }}</textarea></form>
 
             <br>
+            <div id="lastSave" style="text-align: right; float: right;">
+                {% if 'last_update' in code %}
+                    {% set time = code['last_update'] %}
+                    Created by
+                    <span id="createdByUser">
+                        <script>
+                            const user_div = document.getElementById("auth_user");
+                            document.write((user_div.textContent).replace("Username:", "").replace("logout", ""));
+                        </script>
+                    </span>
+                    (Last edit:
+                    <span id='lastSavedTime'>
+                        <script language="javascript" type="text/javascript">
+                            const lastDate = new Date({{time}}*1000);
+                            document.write((lastDate.getDate() > 9 ? lastDate.getDate() : '0' + lastDate.getDate()) + '.' + ((lastDate.getMonth() + 1) > 9 ? (lastDate.getMonth() + 1) : '0' + (lastDate.getMonth() + 1)) + '.' + lastDate.getFullYear() + ' ' + (lastDate.getHours() > 9 ? lastDate.getHours() : '0' + lastDate.getHours()) + ':' + (lastDate.getMinutes() > 9 ? lastDate.getMinutes() : '0' + lastDate.getMinutes()) + ':' + (lastDate.getSeconds() > 9 ? lastDate.getSeconds() : '0' + lastDate.getSeconds()) + ')');
+                        </script>
+                    </span>
+                {% endif %}
+                </div>
             <button id="hex-view" class="btn btn-outline-secondary">Open binary in HEX view</button>
             <br><br>
             
