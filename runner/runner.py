@@ -192,6 +192,19 @@ class RunningProgram:
         for val, reg in zip(result.values["register-values"], regs):
             reg_mapping.append([reg, val["value"]])
         return reg_mapping
+    
+    async def get_stack(self):
+        result = await self.gdb_command(" -stack-list-frames")
+        stack_mapping = []
+        for frame in result[1]["stack"]:
+            info = []
+            info.append(frame["level"])
+            info.append(frame["addr"])
+            if frame["func"] != "??":
+                info.append(frame["func"])
+                info.append(frame["line"])
+            stack_mapping.append(info)
+        return stack_mapping
 
     @property
     def running(self):
