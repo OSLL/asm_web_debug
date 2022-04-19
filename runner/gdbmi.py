@@ -72,8 +72,11 @@ class Parser:
     def parse_list_interior(self):
         result = []
         while self.peek() not in [None, "]"]:
-            result.append(self.parse_value())
-            self.skip(",")
+            if self.peek() not in set(string.ascii_letters + "="): 
+                result.append(self.parse_value())
+                self.skip(",")
+            else:
+                self.next()
         return result
 
     def parse_dict(self):
