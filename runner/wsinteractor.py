@@ -77,6 +77,13 @@ class WSInteractor:
             "type": "registers",
             "data": registers
         })
+        
+    async def send_stack_state(self): 
+        stack = await self.runner.get_stack()
+        await self.ws.send_json({
+            "type": "stack",
+            "data": stack
+        })
 
     async def handle_message(self, msg):
         if type(msg) is not dict:
@@ -132,6 +139,9 @@ class WSInteractor:
                 raise ValueError("Expected 'line' to be int")
             await self.runner.remove_breakpoint(line)
 
+        if msg["type"] == "get_stack":
+            await self.send_stack_state()
+        
         if msg["type"] == "get_registers":
             await self.send_registers_state()
 
