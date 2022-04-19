@@ -1,57 +1,8 @@
 {% extends 'base.html' %}
-
+  {% block head %}
+      <link href="static/css/tasks.css" rel="stylesheet" type="text/css" />
+  {% endblock %}
 {% block content %}
-<style>
-    .task_table{
-        width: 100%;
-        border-collapse: collapse;
-        border-radius: 10px;
-        border-style: hidden; /* hide standard table (collapsed) border */
-        box-shadow: 0 0 0 2px lightblue; /* this draws the table border  */
-    }
-    table,td, tr, th{
-        border: 2px solid lightblue;
-        border-radius: 20px;
-        padding: 4px;
-    }
-    #view_info, #edit_info{
-        margin: 0;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-
-        background-color: white;
-        width: 40%;
-        height: 90%;
-        border: 2px solid lightblue;
-        border-radius: 20px;
-        box-shadow: 0 0 20px lightblue, inset 0 0 2px lightblue;
-    }
-    .close_button{
-        position: relative;
-        top: 4%;
-        left: 96%;
-        transform: translate(-50%, -50%);
-        border-radius: 50%;
-    }
-    .view_scroll{
-        display: flex;
-        align-items: center;
-        flex-direction: column;
-        width: 100%;
-        height: 100%;
-        padding: 10px;
-    }
-    .view_content{
-        display: flex;
-        flex-direction: column;
-
-        width: 100%;
-        height: 91%;
-        padding: 20px;
-    }
-</style>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
 
@@ -84,6 +35,10 @@
                         <form method="post" action="/tasks/remove/{{ line[0] }}">
                             <button type="submit" class="btn btn-danger" style="border-radius: 20px" >Delete</button>
                         </form>
+                        <button type="button" class="btn btn-secondary" style="border-radius: 20px"
+                                onclick="location.href='solutions?task_id={{ line[0] }}'">
+                            View solutions
+                        </button>
                     </div>
                 </td>
             </tr>
@@ -110,17 +65,24 @@
             <hr></hr>
             <h3 style="align-self: start">Description</h3>
             <p id="task_description" style="width: 100%; word-break: break-all"></p>
-            <h3 style="align-self: start; width: 100%; word-break: break-all">Examples</h3>
-            <p id="task_examples" style="width: 100%; word-break: break-all"></p>
+            <div style="display: flex; flex-direction: row; justify-content: center; gap: 2%">
+                <div id="registers" class="registers_stack_scroll">
+
+                </div>
+                <div id="stack" class="registers_stack_scroll">
+
+                </div>
+            </div>
             <button class="btn btn-secondary " style="font-weight: bold; margin: 10px">Solve</button>
         </div>
 
     </div>
 </div>
+
 <div id="edit_info" style="display: none">
     <button class="btn btn-secondary close_button" style="font-weight: bold" onclick="hide_edit()">X</button>
     <div class="view_content">
-        <form id="form_edit" class="overflow-auto view_scroll" method="post">
+        <form id="form_edit" class="view_scroll" method="post">
             <h1 id="edit_id" ></h1>
             <input type="text" id="edit_name" name="edit_name" style="word-break: break-all; text-align: center" required>
             <div style="align-self: end; display: flex;">
@@ -130,90 +92,22 @@
             <h4 id="edit_success" style="align-self: end">Success amount: 0</h4>
             <hr></hr>
             <h3 style="align-self: start">Description</h3>
-            <textarea id="edit_description" name="edit_description" style="width: 100%; height: 30%;" required></textarea>
-            <h3 style="align-self: start; width: 100%; word-break: break-all">Examples</h3>
-            <textarea id="edit_examples" name="edit_examples" style="width: 100%; height: 30%;" required></textarea>
+            <textarea id="edit_description" name="edit_description" required></textarea>
+            <div style="display: flex; flex-direction: row; justify-content: center; gap: 2%">
+                <div id="edit_registers" class="registers_stack_scroll">
+
+                </div>
+                <div id="edit_stack" class="registers_stack_scroll">
+
+                </div>
+            </div>
             <button type="submit" class="btn btn-success " style="font-weight: bold; margin: 10px">Save</button>
         </form>
     </div>
 </div>
 
+{% endblock %}
 
-<script>
-    $( document ).ready(function() {
-        console.log( "ready!" );
-    });
-    function hide(){
-        $.ajax({
-            success(){
-                $("#view_info").hide()
-            }
-        })
-    }
-    function hide_edit(){
-        $.ajax({
-            success(){
-                $("#edit_info").hide()
-            }
-        })
-    }
-    function show(line){
-        $.ajax({
-            success(){
-                console.log(line);
-                $("#task_id").text("#"+line[0])
-                $("#task_name").text(line[1])
-                $("#task_difficulty").text("Difficulty: "+line[2])
-                $("#task_success").text("Success amount: "+line[3])
-                $("#task_description").text(line[4])
-                $("#task_examples").text(line[5])
-                $("#view_info").show()
-            }
-        })
-    }
-    function show_edit(line=null){
-        $.ajax({
-            success(){
-                if(line!=null) {
-                    console.log(line);
-                    $("#edit_id").text("#" + line[0])
-                    $("#edit_name").val(line[1])
-                    $("#edit_difficulty").val(line[2])
-                    $("#edit_success").text("Success amount: " + line[3])
-                    $("#edit_description").val(line[4])
-                    $("#edit_examples").val(line[5])
-                    $("#form_edit").attr("action", "/tasks/edit/" + line[0])
-                }else {
-                    $("#edit_id").text("")
-                    $("#edit_name").val("")
-                    $("#edit_difficulty").val(0)
-                    $("#edit_success").text("Success amount: 0")
-                    $("#edit_description").val("")
-                    $("#edit_examples").val("")
-                    $("#form_edit").attr("action", "/tasks/add")
-                }
-                $("#edit_info").show()
-            }
-        })
-    }
-    function find_by_id(data){
-        $.ajax({
-            success(){
-                console.log(data)
-                if($("#find_id").val()==""){
-                    alert("Empty value!")
-                    return
-                }
-                for(var i=0;i<data.length;i++){
-                    if(data[i][0]==$("#find_id").val()){
-                        console.log(data[i])
-                        show(data[i]);
-                        return;
-                    }
-                }
-                alert("Task was not found!")
-            }
-        })
-    }
-</script>
+{% block script %}
+    <script src="static/js/tasks.js"></script>
 {% endblock %}
