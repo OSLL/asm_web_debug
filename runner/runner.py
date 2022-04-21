@@ -195,6 +195,11 @@ class DebugSession:
             raise ValueError(f"Invalid register: {reg}")
         return vals[0][1]
 
+    async def evaluate_expression(self, expr: str) -> str:
+        escaped = expr.replace('"', '\\"')
+        gdb_response = await self.debugger.gdb_command(f'-data-evaluate-expression "{escaped}"')
+        return gdb_response["value"]
+
     async def write_memory_region(self, addr: Any, data: bytes, count: Optional[int] = None) -> None:
         await self.debugger.gdb_command(f"-data-write-memory-bytes {addr} {binascii.hexlify(data).decode()} {count if count is not None else ''}")
 

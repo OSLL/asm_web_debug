@@ -33,7 +33,8 @@ class DebugClient:
             "source": source_code,
             "input": "",
             "breakpoints": breakpoints,
-            "sample_test": None
+            "sample_test": None,
+            "watch": []
         })
         data = await self.ws.receive_json()
         assert data["type"] == "compilation_result"

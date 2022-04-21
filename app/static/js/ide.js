@@ -34,6 +34,7 @@
     const $debugButtons = $("#debug-buttons");
     const $output = $("#build_log");
     const $registerTable = $("#register_body");
+    const $watchTable = $("#watch_body");
     const $submitButton = $("#submit_button");
     const $sampleTest = $("#sample_test");
 
@@ -44,6 +45,7 @@
 
     let codeMirror = null;
     let doc = null;
+    let watchedExprs = [];
 
     $(document).bind('keydown', async function(e) {
         // capture Ctrl+S for data saving
@@ -130,6 +132,7 @@
                 "source": doc.getValue(),
                 "input": "",
                 "breakpoints": getBreakpoints(),
+                "watch": watchedExprs,
                 "sample_test": $sampleTest ? $sampleTest.val() : null
             });
         } else {
@@ -159,6 +162,7 @@
             doc.addLineClass(activeLine - 1, "background", "active-line");
         } else {
             $registerTable.html("");
+            $watchTable.html("");
         }
     }
 
@@ -238,6 +242,35 @@
                 });
                 $registerTable.append($tr);
             }
+        } else if (msg.type === "watch") {
+            $watchTable.html("");
+            for (const [expr, val] of msg.data) {
+                const $tr = $(`<tr>
+<td><span class="remove">&times;</span> ${expr}</td>
+<td>${val}</td>
+</tr>
+`);
+                $tr.find(".remove").on("click", () => {
+                    sendMessage({
+                        "type": "remove_watch",
+                        "expr": expr
+                    })
+                })
+                $watchTable.append($tr);
+            }
+
+            const $add = $(`<tr>
+<td><input id="add_watch_expr" /></td>
+<td><button id="add_watch_button">add</button></td>
+</tr>
+`);
+            $add.find("#add_watch_button").on("click", () => {
+                sendMessage({
+                    "type": "add_watch",
+                    "expr": $("#add_watch_expr").val()
+                });
+            });
+            $watchTable.append($add);
         } else if (msg.type === "output") {
             $output.val($output.val() + msg.data);
         } else if (msg.type === "error") {

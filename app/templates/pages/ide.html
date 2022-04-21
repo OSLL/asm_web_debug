@@ -46,13 +46,13 @@
             <textarea id='build_log' class='build_log' readonly></textarea>
         </div>
 
-        <div id='right_main_div' style="float: right; width: 30%;">
-            <div id='register_table_div'>
-                <b>Регистры</b>
+        <div id="right_main_div" style="float: right; width: 30%;">
+            <div id="register_table_div">
+                <b>Registers</b>
                 <table id="register_table" class="index_table">
                     <thead>
                         <tr>
-                            <th></th>
+                            <th>#</th>
                             <th>signed</th>
                             <th>unsigned</th>
                             <th>hex</th>
@@ -63,16 +63,16 @@
                 </table>
             </div>
 
-            <div id='stack_table_div'>
-                <b>Стек</b>
-                <table id='stack_table' class="index_table">
+            <div id="watch_table_div">
+                <b>Watch</b>
+                <table id="watch_table" class="index_table">
                     <thead>
                         <tr>
-                            <th>Stack</th>
-                            <th>Stack frame</th>
+                            <th>expr</th>
+                            <th>value</th>
                         </tr>
                     </thead>
-                    <tbody id="stack_body"></tbody>
+                    <tbody id="watch_body"></tbody>
                 </table>
             </div>
         </div>

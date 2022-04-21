@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+from this import d
 import time
 from typing import Dict, Optional, List, Type
 
@@ -37,6 +38,7 @@ class WSInteractor:
     ws: web.WebSocketResponse
     debug_session: Optional[DebugSession]
     breakpoints: Dict[int, BreakpointId]
+    watch: List[str]
     checker_name: Optional[str]
     checker_class: Optional[Type[Checker]]
     user_id: int
@@ -49,6 +51,7 @@ class WSInteractor:
         self.ws = ws
         self.debug_session = None
         self.breakpoints = {}
+        self.watch = []
         self.checker_name = query.get("checker_name")
         self.checker_class = BaseChecker._all_checkers.get(self.checker_name)
         self.user_id = int(query.get("user_id"))
@@ -70,11 +73,12 @@ class WSInteractor:
                     "message": str(e)
                 })
 
-    async def start_program(self, source: str, stdin: str, breakpoints: List[int], sample_test: Optional[str]):
+    async def start_program(self, source: str, stdin: str, breakpoints: List[int], sample_test: Optional[str], watch: List[str]):
         if self.debug_session:
             await self.terminate_program()
 
         self.breakpoints = {}
+        self.watch = watch
         self.debug_session = DebugSession("x86_64")
         self.metadata = {
             "source_code": source,
@@ -170,6 +174,20 @@ class WSInteractor:
             "data": registers
         })
 
+    async def send_watch_state(self):
+        data = []
+        for expr in self.watch:
+            try:
+                value = await self.debug_session.evaluate_expression(expr)
+            except DebuggerError:
+                continue
+            data.append((expr, value))
+
+        await self.ws.send_json({
+            "type": "watch",
+            "data": data
+        })
+
     async def handle_message(self, msg):
         if type(msg) is not dict:
             raise ValueError("Expected a dict")
@@ -192,10 +210,16 @@ class WSInteractor:
             sample_test = msg.get("sample_test")
             if sample_test is not None and type(sample_test) is not str:
                 raise ValueError("Expected 'sample_test' to be either null or a string")
+            watch = msg.get("watch")
+            if type(watch) is not list:
+                raise ValueError("Expected 'watch' field to be a list")
+            for w in watch:
+                if type(w) is not str:
+                    raise ValueError("Expected 'watch' contents to be strings")
 
             if self.checker_class is not None:
                 source = self.checker_class(arch="x86_64", source_code=source).get_source_for_interactive_debugger()
-            await self.start_program(source, stdin, breakpoints, sample_test)
+            await self.start_program(source, stdin, breakpoints, sample_test, watch)
 
         if not self.debug_session:
             return
@@ -234,8 +258,31 @@ class WSInteractor:
             del self.breakpoints[line]
             await self.debug_session.remove_breakpoint(breakpoint_id)
 
+        if msg["type"] == "add_watch":
+            expr = msg.get("expr")
+            if type(expr) is not str:
+                raise ValueError("Expected 'expr' to be a string")
+            expr = expr.strip()
+            if expr in self.watch:
+                return
+            try:
+                await self.debug_session.evaluate_expression(expr)
+            except DebuggerError:
+                return
+            self.watch.append(expr)
+            await self.send_watch_state()
+
+        if msg["type"] == "remove_watch":
+            expr = msg.get("expr")
+            if type(expr) is not str:
+                raise ValueError("Expected 'expr' to be a string")
+            expr = expr.strip()
+            self.watch.remove(expr)
+            await self.send_watch_state()
+
         if msg["type"] == "get_registers":
             await self.send_registers_state()
+            await self.send_watch_state()
 
         if msg["type"] == "update_register":
             reg = msg.get("reg")
@@ -250,6 +297,7 @@ class WSInteractor:
                 raise ValueError("Expected register value to be a valid integer")
             await self.debug_session.set_register_value(reg, str(value))
             await self.send_registers_state()
+            await self.send_watch_state()
 
     async def send_output(self, output: str) -> None:
         await self.ws.send_json({

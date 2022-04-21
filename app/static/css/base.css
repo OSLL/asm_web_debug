@@ -73,6 +73,12 @@
     font-family: monospace;
 }
 
-#register_body {
+#register_body, #watch_body {
     font-family: monospace;
+}
+
+.remove {
+    color: red;
+    font-weight: bold;
+    cursor: pointer;
 }
