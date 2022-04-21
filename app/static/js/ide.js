@@ -216,21 +216,25 @@
             }
         } else if (msg.type === "registers") {
             $registerTable.html("");
-            for (const [reg, val] of msg.data) {
-                const editable = (reg !== "rip" && reg !== "eflags");
-                const $tr = $(`<tr>
+            for (const [reg, signed, unsigned, hex] of msg.data) {
+                const $tr = (reg !== "eflags") ? $(`<tr>
 <td>${reg}</td>
-<td>
-    <span class="${editable ? 'edit-register' : ''}">${val}</span>
-</td>
+<td><span class="edit-register">${signed}</span></td>
+<td><span class="edit-register">${unsigned}</span></td>
+<td><span class="edit-register">${hex}</span></td>
+</tr>`) : $(`<tr>
+<td>flags</td>
+<td colspan="3">${signed}</td>
 </tr>`);
-                $tr.find(".edit-register").on("click", () => {
-                    const newVal = prompt(`Update value of register %${reg}`, val);
-                    sendMessage({
-                        "type": "update_register",
-                        "reg": reg,
-                        "value": newVal
-                    });
+                $tr.find(".edit-register").on("click", (e) => {
+                    const newVal = prompt(`Update value of register %${reg}`, e.target.innerText);
+                    if (newVal) {
+                        sendMessage({
+                            "type": "update_register",
+                            "reg": reg,
+                            "value": newVal
+                        });
+                    }
                 });
                 $registerTable.append($tr);
             }

@@ -9,7 +9,7 @@
 
 {% block content %}
 {% if problem %}
-    <div id='task_info_div' style="float: left; width: 60%;">
+    <div id='task_info_div' style="float: left; width: 50%;">
         <h4>{{ problem.title }}</h4>
         <p>{{ problem.statement }}</p>
         <div style="display: block; float: right;">
@@ -19,7 +19,7 @@
     </div>
 {% endif %}
     <div id='main_div'>
-        <div id='left_main_div' style="float: left; width: 78%;">
+        <div id='left_main_div' style="float: left; width: 68%;">
         {% if problem %}
         	<hr />
         {% endif %}
@@ -41,35 +41,35 @@
 
 
             <form><textarea id="code" class="code" >{{ assignment.source_code }}</textarea></form>
-
             <br>
-            <button id="hex-view" class="btn btn-outline-secondary">Open binary in HEX view</button>
-            <br><br>
 
             <textarea id='build_log' class='build_log' readonly></textarea>
         </div>
 
-        <div id='right_main_div' style="float: right; width: 20%;">
+        <div id='right_main_div' style="float: right; width: 30%;">
             <div id='register_table_div'>
                 <b>Регистры</b>
-                <table id='register_table' class="table index_table">
+                <table id="register_table" class="index_table">
                     <thead>
                         <tr>
-                            <td>Register</td>
-                            <td>Value</td>
+                            <th></th>
+                            <th>signed</th>
+                            <th>unsigned</th>
+                            <th>hex</th>
                         </tr>
                     </thead>
-                    <tbody id="register_body"></tbody>
+                    <tbody id="register_body">
+                    </tbody>
                 </table>
             </div>
 
             <div id='stack_table_div'>
                 <b>Стек</b>
-                <table id='stack_table' class="table index_table">
+                <table id='stack_table' class="index_table">
                     <thead>
                         <tr>
-                            <td>Stack</td>
-                            <td>Stack frame</td>
+                            <th>Stack</th>
+                            <th>Stack frame</th>
                         </tr>
                     </thead>
                     <tbody id="stack_body"></tbody>

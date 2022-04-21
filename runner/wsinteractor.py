@@ -152,7 +152,16 @@ class WSInteractor:
         await self.close_and_post_stats()
 
     async def send_registers_state(self):
-        registers = await self.debug_session.get_register_values(config.archs[self.debug_session.arch].display_registers)
+        data = await self.debug_session.get_register_values(config.archs[self.debug_session.arch].display_registers, format="d")
+        registers = []
+
+        for reg, val in data:
+            bits = 64
+            signed = int(val)
+            unsigned = signed % (2 ** bits)
+            hexval = hex(unsigned)
+            registers.append((reg, str(signed), str(unsigned), str(hexval)))
+
         await self.ws.send_json({
             "type": "registers",
             "data": registers
@@ -232,7 +241,11 @@ class WSInteractor:
             value = msg.get("value")
             if type(value) is not str:
                 raise ValueError("Expected 'value' to be a string")
-            await self.debug_session.set_register_value(reg, value)
+            try:
+                value = int(value.strip(), 0)
+            except ValueError:
+                raise ValueError("Expected register value to be a valid integer")
+            await self.debug_session.set_register_value(reg, str(value))
             await self.send_registers_state()
 
     async def send_output(self, output: str) -> None:
