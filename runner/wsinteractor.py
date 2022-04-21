@@ -152,15 +152,18 @@ class WSInteractor:
         await self.close_and_post_stats()
 
     async def send_registers_state(self):
-        data = await self.debug_session.get_register_values(config.archs[self.debug_session.arch].display_registers, format="d")
+        data = await self.debug_session.get_register_values(config.archs[self.debug_session.arch].display_registers)
         registers = []
 
         for reg, val in data:
-            bits = 64
-            signed = int(val)
-            unsigned = signed % (2 ** bits)
-            hexval = hex(unsigned)
-            registers.append((reg, str(signed), str(unsigned), str(hexval)))
+            if reg == "eflags":
+                registers.append((reg, val, val, val))
+            else:
+                bits = 64
+                signed = int(val, 0)
+                unsigned = signed % (2 ** bits)
+                hexval = hex(unsigned)
+                registers.append((reg, str(signed), str(unsigned), str(hexval)))
 
         await self.ws.send_json({
             "type": "registers",
