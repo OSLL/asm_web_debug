@@ -1,7 +1,6 @@
 import asyncio
 import json
 import logging
-from this import d
 import time
 from typing import Dict, Optional, List, Type
 
@@ -45,6 +44,7 @@ class WSInteractor:
     assignment_id: int
     metadata: dict
     handle_gdb_events_task: Optional[asyncio.Task]
+    uninterrupted_timeout_task: Optional[asyncio.Task]
     closed: bool
 
     def __init__(self, ws: web.WebSocketResponse, query: MultiDict[str]):
@@ -58,6 +58,7 @@ class WSInteractor:
         self.assignment_id = int(query.get("assignment_id"))
         self.metadata = {}
         self.handle_gdb_events_task = None
+        self.uninterrupted_timeout_task = None
         self.closed = True
 
     async def handle_incoming_messages(self):
@@ -150,6 +151,9 @@ class WSInteractor:
             self.close()
 
     async def terminate_program(self):
+        if self.uninterrupted_timeout_task:
+            self.uninterrupted_timeout_task.cancel()
+            self.uninterrupted_timeout_task = None
         await self.ws.send_json({
             "type": "finished"
         })
@@ -305,6 +309,11 @@ class WSInteractor:
             "data": output
         })
 
+    async def terminate_after_timeout(self, timeout: float) -> None:
+        await asyncio.sleep(timeout)
+        await self.send_output(f"[terminated after {timeout} seconds of inactivity]")
+        await self.terminate_program()
+
     async def handle_gdb_events(self):
         try:
             async for event in self.debug_session.debugger.gdb_notifications_iterator():
@@ -313,16 +322,24 @@ class WSInteractor:
                         await self.ws.send_json({
                             "type": "running"
                         })
-                    elif event.status == "stopped" and event.values["reason"].startswith("exited"):
+                        self.uninterrupted_timeout_task = asyncio.create_task(
+                            self.terminate_after_timeout(config.default_uninterrupted_real_time_limit))
+                        continue
+
+                    if self.uninterrupted_timeout_task:
+                        self.uninterrupted_timeout_task.cancel()
+                        self.uninterrupted_timeout_task = None
+
+                    if event.status == "stopped" and event.values["reason"].startswith("exited"):
                         if event.values["reason"] == "exited-signalled":
                             signal_name = event.values["signal-name"]
-                            status = f"\n[process received signal {signal_name}]"
+                            status = f"[process received signal {signal_name}]"
                         else:
                             exitcode = int(event.values.get("exit-code", "0"), 8)
-                            status = f"\n[process exited with exit code {exitcode}]"
+                            status = f"[process exited with exit code {exitcode}]"
                         await self.send_output(status)
                         await self.terminate_program()
-                    elif event.status == "stopped" and event.values["reason"] in ["breakpoint-hit", "end-stepping-range", "function-finished", "location-reached", "signal-received"]:
+                    if event.status == "stopped" and event.values["reason"] in ["breakpoint-hit", "end-stepping-range", "function-finished", "location-reached", "signal-received"]:
                         if "line" in event.values["frame"]:
                             line = int(event.values["frame"]["line"])
                         else:

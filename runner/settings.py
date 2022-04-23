@@ -31,6 +31,7 @@ class Config:
     default_memory_limit: int = 32 * 1024 * 1024 # 32 MiB
     default_online_real_time_limit: int = 3600
     default_real_time_limit: int = 10
+    default_uninterrupted_real_time_limit: float = 10.0
 
     executor_docker_image: str = "asm_web_debug_executor"
     runner_data_volume: str = "asm_web_debug_runner_data"
