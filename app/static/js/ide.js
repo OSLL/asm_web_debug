@@ -196,7 +196,7 @@
             setState(State.paused);
             sendMessage({
                 "type": "get_registers"
-            });        
+            });
         } else if (msg.type === "compilation_result") {
             if (!msg.successful) {
                 $output.val(msg.stderr);
