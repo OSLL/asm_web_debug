@@ -24,9 +24,13 @@
         	<hr />
             <br>
             <div id='ajax-alert'></div>
-            <select id='arch_select' name='arch'>
+            <select id='arch_select' name='arch' autocomplete="off">
                 {% for arch in config['ARCHS'] %}
+                    {% if arch != code.arch %}
                     <option value={{arch}}>{{arch}}</option>
+                    {% else %}
+                    <option selected value={{code.arch}}>{{code.arch}}</option>
+                    {% endif %}
                 {% endfor %}
             </select>
             <div id="debug-buttons"></div>
@@ -38,6 +42,8 @@
             <div id="lastSave" style="text-align: right; float: right;">
                 {% if 'last_update' in code %}
                     {% set time = code['last_update'] %}
+                    {{code.arch}}
+                    {{code.breakpoints}}
                     Created by
                     <span id="createdByUser">
                         <script>
