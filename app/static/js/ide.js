@@ -197,21 +197,12 @@
             sendMessage({
                 "type": "get_registers"
             });
-            sendMessage({
-                "type": "get_stack" 
-            });
+            
         } else if (msg.type === "compilation_result") {
             if (!msg.successful) {
                 $output.val(msg.stderr);
                 setState(State.stopped);
                 showAlert("Compilation failed", "danger");
-            }
-        } else if(msg.type === "stack"){  
-            $stackTable.html("");
-            const stack = msg.data;
-            for(var i = 0; i < stack.length; i++){
-                const $tr = $(`<tr><td>level = ${stack[i][0]}</td><td> addres = ${stack[i][1]}</td></tr>`);
-                $stackTable.append($tr);
             }
         } else if (msg.type === "registers") {
             $registerTable.html("");
