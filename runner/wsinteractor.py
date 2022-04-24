@@ -359,6 +359,9 @@ class WSInteractor:
         await self.handle_incoming_messages()
 
     def close(self):
+        if self.uninterrupted_timeout_task:
+            self.uninterrupted_timeout_task.cancel()
+            self.uninterrupted_timeout_task = None
         if self.handle_gdb_events_task:
             self.handle_gdb_events_task.cancel()
             self.handle_gdb_events_task = None
