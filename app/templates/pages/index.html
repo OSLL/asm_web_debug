@@ -43,14 +43,9 @@
             <div id="lastSave" style="text-align: right; float: right;">
                 {% if 'last_update' in code %}
                     {% set time = code['last_update'] %}
-                    {{code.arch}}
-                    {{code.breakpoints}}
                     Created by
                     <span id="createdByUser">
-                        <script>
-                            const user_div = document.getElementById("auth_user");
-                            document.write((user_div.textContent).replace("Username:", "").replace("logout", ""));
-                        </script>
+                        {{current_user.username}}
                     </span>
                     (Last edit:
                     <span id='lastSavedTime'>
