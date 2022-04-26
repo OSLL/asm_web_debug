@@ -48,10 +48,11 @@ class Problem(db.Model):
     title = Column(String)
     statement = Column(String)
     checker_name = Column(String, nullable=True)
-    checker_config_json = Column(String, default="{}")
+    checker_config = Column(String, default="{}")
 
     tool_consumer_id = Column(Integer, ForeignKey("tool_consumer.id"), nullable=True)
     resource_link_id = Column(String, nullable=True)
+    course_name = Column(String, nullable=True)
 
     assignments = relationship("Assignment", backref="problem", lazy=True, cascade="all, delete")
 
@@ -133,5 +134,5 @@ class ToolConsumer(db.Model):
 
     in_use = Column(Boolean, nullable=False, default=False)
 
-    users = relationship("User", backref="tool_consumer", lazy=True, cascade="all, delete")
-    problems = relationship("Problem", backref="tool_consumer", lazy=True, cascade="all, delete")
+    users = relationship("User", backref="tool_consumer", lazy=False, cascade="all, delete")
+    problems = relationship("Problem", backref="tool_consumer", lazy=False, cascade="all, delete")

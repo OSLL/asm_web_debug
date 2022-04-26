@@ -1,10 +1,17 @@
-import secrets
 from app import app, db
-from app.models import ToolConsumer, User
+from app.models import Problem, ToolConsumer, User
 
+import secrets
+import json
 import functools
-from flask import abort, render_template, request
+from flask import abort, redirect, render_template, request, url_for
 from flask_login import current_user
+from flask_wtf import FlaskForm
+from wtforms import StringField, TextAreaField, SelectField
+from wtforms.validators import InputRequired
+from markdown import markdown
+
+from runner.checkerlib import Checker
 
 
 def admin_required(func):
@@ -47,3 +54,39 @@ def admin_lms():
         consumer_secret=tool_consumer.consumer_secret,
         tool_consumers=tool_consumers
     )
+
+
+@app.route("/admin/problems")
+@admin_required
+def admin_problems():
+    problems = Problem.query.all()
+    return render_template("pages/admin/problems.html", problems=problems)
+
+
+class ProblemForm(FlaskForm):
+    title = StringField(validators=[InputRequired()])
+    course_name = StringField()
+    statement = TextAreaField()
+    checker_name = SelectField(choices=list(Checker._all_checkers))
+    checker_config = TextAreaField()
+
+
+@app.route("/admin/problem/<int:problem_id>", methods=["GET", "POST"])
+@admin_required
+def admin_problem_edit(problem_id):
+    problem = Problem.query.get_or_404(problem_id)
+    form = ProblemForm(obj=problem)
+
+    if form.validate_on_submit():
+        form.populate_obj(problem)
+        db.session.commit()
+        return redirect(url_for("admin_problems"))
+
+    checker_docs = {}
+    for name, checker in Checker._all_checkers.items():
+        html = ""
+        if checker.__doc__:
+            html = markdown(checker.__doc__)
+        checker_docs[name] = html
+
+    return render_template("pages/admin/problem_edit.html", form=form, checker_docs_json=json.dumps(checker_docs))

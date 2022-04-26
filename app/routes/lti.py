@@ -30,6 +30,7 @@ def lti_route():
     resource_link_id = request.form.get("resource_link_id")
     resource_link_title = request.form.get("resource_link_title")
     resource_link_description = request.form.get("resource_link_description")
+    context_title = request.form.get("context_title")
 
     tool_consumer.instance_id = lti_tool_consumer_guid
     tool_consumer.instance_name = lti_tool_consumer_name
@@ -54,7 +55,8 @@ def lti_route():
     problem = Problem.query.filter_by(tool_consumer_id=tool_consumer.id, resource_link_id=resource_link_id).first()
     if not problem:
         problem = Problem(
-            title=resource_link_title or "Unnamed problem",
+            title=resource_link_title,
+            course_name=context_title,
             statement=resource_link_description or "",
             checker_name=None,
             tool_consumer_id=tool_consumer.id,

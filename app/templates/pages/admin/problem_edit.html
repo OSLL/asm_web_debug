@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <link href="/static/css/libs/codemirror.min.css" rel="stylesheet" type="text/css" />
+    <link href="/static/css/libs/eclipse.css" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block content %}
+{% set active_page = "admin_problems" %}
+{% include "pages/admin/nav.html" %}
+
+<form method="POST">
+{{ form.csrf_token }}
+
+    <div class="mb-3 container">
+        <div class="row">
+            <div class="col">
+                <label for="title" class="form-label">Problem title</label>
+                {{ form.title(class="form-control") }}
+            </div>
+            <div class="col">
+                <label for="course_name" class="form-label">Course name</label>
+                {{ form.course_name(class="form-control") }}
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-3 container">
+        <label for="statement" class="form-label">Problem statement (Markdown supported)</label>
+        {{ form.statement(class="form-control") }}
+    </div>
+
+    <div class="mb-3 container">
+        <label for="checker_name" class="form-label">Checker to use</label>
+        {{ form.checker_name(class="form-control monospace") }}
+    </div>
+
+    <div class="mb-3 container" id="checker_doc"></div>
+
+    <div class="mb-3 container">
+        <label for="checker_config" class="form-label">Checker config</label>
+        {{ form.checker_config(class="form-control") }}
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+</form>
+
+{% endblock %}
+
+{% block script %}
+    <script src="/static/js/libs/codemirror.min.js"></script>
+    <script src="/static/js/libs/markdown.js"></script>
+    <script src="/static/js/libs/yaml.js"></script>
+
+    <script>
+        CodeMirror.fromTextArea(document.getElementById("statement"), {
+            lineNumbers: true,
+            mode: "markdown",
+            viewportMargin: Infinity,
+            gutters: ["CodeMirror-linenumbers"],
+            theme: "eclipse",
+            lineWrapping: true,
+        });
+
+        CodeMirror.fromTextArea(document.getElementById("checker_config"), {
+            lineNumbers: true,
+            mode: "yaml",
+            viewportMargin: Infinity,
+            gutters: ["CodeMirror-linenumbers"],
+            theme: "eclipse",
+            lineWrapping: true,
+        });
+
+        const checkerDocs = {{ checker_docs_json|safe }};
+
+        function updateCheckerDoc() {
+            const html = checkerDocs[$("#checker_name").val()];
+            $("#checker_doc").html(html);
+        }
+
+        $("#checker_name").on("change", () => updateCheckerDoc());
+        updateCheckerDoc();
+    </script>
+{% endblock %}

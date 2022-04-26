@@ -1,15 +1,15 @@
-from app import app, db
-
-import json
 import logging
-from flask import make_response, render_template, request, abort
-from flask_login import current_user
-import requests
 from urllib.parse import urlencode
-from sqlalchemy import desc
 
+import requests
+import yaml
+from app import app, db
 from app.ltiutils import report_outcome_score
 from app.models import Assignment, Submission
+from flask import abort, make_response, render_template, request
+from flask_login import current_user
+from markdown import markdown
+from sqlalchemy import desc
 
 
 def check_assignment_access(assignment: Assignment) -> None:
@@ -37,7 +37,8 @@ def view_assignment(assignment_id):
         'pages/ide.html',
         assignment=assignment,
         problem=assignment.problem,
-        sample_test=sample_test
+        sample_test=sample_test,
+        markdown_statement=markdown(assignment.problem.statement or "")
     )
 
 
@@ -51,7 +52,7 @@ def submit_code(assignment_id):
         "arch": assignment.arch,
         "source_code": assignment.source_code,
         "checker_name": assignment.problem.checker_name,
-        "config": json.loads(assignment.problem.checker_config_json)
+        "config": yaml.safe_load(assignment.problem.checker_config)
     })
 
     if result.status_code != 200:

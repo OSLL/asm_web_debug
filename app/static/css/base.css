@@ -73,7 +73,7 @@
     font-family: monospace;
 }
 
-#register_body, #watch_body {
+#register_body, #watch_body, .monospace {
     font-family: monospace;
 }
 

@@ -38,7 +38,7 @@
     const $submitButton = $("#submit_button");
     const $sampleTest = $("#sample_test");
 
-    const ws = new WebSocket(`${(window.location.protocol === "https") ? "wss" : "ws"}://${window.location.host}/assignment/${assignmentId}/websocket`);
+    const ws = new WebSocket(`${(window.location.protocol === "https:") ? "wss" : "ws"}://${window.location.host}/assignment/${assignmentId}/websocket`);
 
     let state = State.stopped;
     let activeLine = 0;

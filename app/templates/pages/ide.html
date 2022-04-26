@@ -10,11 +10,28 @@
 {% block content %}
 {% if problem %}
     <div id='task_info_div' style="float: left; width: 50%;">
-        <h4>{{ problem.title }}</h4>
-        <p>{{ problem.statement }}</p>
-        <div style="display: block; float: right;">
-        	<input type="button" class="btn btn-primary" name="Check" value="Check" id="submit_button" />
-        	<a href="{{ url_for('view_submissions', assignment_id=assignment.id) }}" target="_blank" class="btn btn-secondary">My submissions</a>
+        <h4>
+        {% if problem.course_name %}
+            <small class="text-muted">{{ problem.course_name }} /</small>
+        {% endif %}
+        {{ problem.title }}
+        </h4>
+        {% if problem.statement %}
+            <p>{{ markdown_statement|safe }}</p>
+        {% else %}
+        <p>
+            <em>No problem description yet...</em>
+        </p>
+        {% endif %}
+        <div>
+        {% if problem.checker_name %}
+        	<button type="button" class="btn btn-primary" id="submit_button">Check</button>
+        	<a href="{{ url_for('view_submissions', assignment_id=assignment.id) }}" class="btn btn-secondary">My submissions</a>
+        {% endif %}
+        {% if current_user.is_admin %}
+            <a href="{{ url_for('admin_problem_edit', problem_id=problem.id) }}" class="btn btn-secondary">Edit</a>
+            <a href="#" class="btn btn-secondary">All submissions</a>
+        {% endif %}
         </div>
     </div>
 {% endif %}

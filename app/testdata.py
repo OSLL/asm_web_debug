@@ -22,7 +22,7 @@ def populate():
     problem.title = "strlen"
     problem.statement = "find the length of the string!"
     problem.checker_name = "StringLengthChecker"
-    problem.checker_config_json = "{}"
+    problem.checker_config = "{}"
 
     db.session.add(problem)
     db.session.commit()

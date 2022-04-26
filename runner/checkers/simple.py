@@ -1,11 +1,37 @@
-from typing import Dict
+from dataclasses import dataclass
+from typing import Any, Dict, List
 
 from runner.checkerlib import Checker, WrongAnswerError
 
 
+@dataclass
+class Test:
+    input: Dict[str, Any]
+    output: Dict[str, Any]
+
+
 class SimpleChecker(Checker):
-    initial_register_values: Dict[str, str]
-    expected_register_values: Dict[str, str]
+    """
+This checker is used to run a program multiple times.
+Each time new values are set to specified registers,
+and then compared with expected values.
+
+Example config:
+
+    tests:
+      - input:
+          rax: 2
+          rbx: 3
+        output:
+          rax: 5
+      - input:
+          rax: 42
+          rbx: -42
+        output:
+          rax: 0
+"""
+
+    tests: List[dict]
 
     source_prefix = """
 .global _start
@@ -22,12 +48,16 @@ _end_of_program:
 """
 
     async def check(self) -> None:
-        for register, value in self.initial_register_values.items():
-            await self.program.set_register_value(register, value)
+        for test in self.tests:
+            test = Test(**test)
+            await self.program.restart()
 
-        await self.program.continue_until("_end_of_program")
+            for register, value in test.input.items():
+                await self.program.set_register_value(register, str(value))
 
-        for register, expected_value in self.expected_register_values.items():
-            value = await self.program.get_register_value(register)
-            if value != expected_value:
-                raise WrongAnswerError(f"{register} has value {value}, expected {expected_value}")
+            await self.program.continue_until("_end_of_program")
+
+            for register, expected_value in test.output.items():
+                value = await self.program.get_register_value(register)
+                if value != str(expected_value):
+                    raise WrongAnswerError(f"{register} has value {value}, expected {expected_value}")

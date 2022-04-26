@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <link href="/static/css/libs/dataTables.bootstrap5.min.css" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block content %}
+{% set active_page = "admin_problems" %}
+{% include "pages/admin/nav.html" %}
+
+<table class="table" id="problems-table">
+    <thead>
+        <tr>
+            <td scope="col">#</td>
+            <td scope="col">LMS</td>
+            <td scope="col">Course</td>
+            <td scope="col">Title</td>
+            <td scope="col">Checker</td>
+            <td scope="col"></td>
+        </tr>
+    </thead>
+    <tbody>
+        {% for problem in problems %}
+        <tr>
+            <td scope="row">{{ problem.id }}</td>
+            <td>{{ problem.tool_consumer.instance_name }}</td>
+            <td>{{ problem.course_name }}</td>
+            <td>{{ problem.title }}</td>
+            <td><code>{{ problem.checker_name }}</code></td>
+            <td>
+                <a class="btn btn-secondary" href="{{ url_for('admin_problem_edit', problem_id=problem.id) }}">Edit</a>
+                <button class="btn btn-danger">Delete</button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}
+
+{% block script %}
+    <script src="/static/js/libs/jquery.dataTables.min.js"></script>
+    <script src="/static/js/libs/dataTables.bootstrap5.min.js"></script>
+    <script>
+        $("#problems-table").DataTable();
+    </script>
+{% endblock %}
