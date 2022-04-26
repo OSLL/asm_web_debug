@@ -3,17 +3,16 @@
     <head>
         <meta charset="UTF-8">
         <title>{% block title %}Web ASM{% endblock %}</title>
-        <base href="/">
 
-        <link href="static/img/favicon.png" rel="icon" type="image/png">
+        <link href="/static/img/favicon.png" rel="icon" type="image/png">
 
 
-        <link href="static/css/base.css" rel="stylesheet" type="text/css" />
-        <link href="static/css/libs/bootstrap.min.css" rel="stylesheet" type="text/css"/>
-    
+        <link href="/static/css/base.css" rel="stylesheet" type="text/css" />
+        <link href="/static/css/libs/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+
         {% block head %}
         {% endblock %}
-  
+
     </head>
     <body>
         {% include 'header.html' %}
@@ -24,8 +23,8 @@
             {% endblock %}
         </div>
 
-        <script src="static/js/libs/jquery.min.js"></script>
-        <script src="static/js/libs/bootstrap.min.js"></script>
+        <script src="/static/js/libs/jquery.min.js"></script>
+        <script src="/static/js/libs/bootstrap.min.js"></script>
         {% block script %}
         {% endblock %}
     </body>

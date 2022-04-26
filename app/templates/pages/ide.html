@@ -3,8 +3,8 @@
 {% block title %}Web ASM{% endblock %}
 
 {% block head %}
-    <link href="static/css/libs/codemirror.min.css" rel="stylesheet" type="text/css" />
-    <link href="static/css/libs/eclipse.css" rel="stylesheet" type="text/css" />
+    <link href="/static/css/libs/codemirror.min.css" rel="stylesheet" type="text/css" />
+    <link href="/static/css/libs/eclipse.css" rel="stylesheet" type="text/css" />
 {% endblock %}
 
 {% block content %}
@@ -13,8 +13,8 @@
         <h4>{{ problem.title }}</h4>
         <p>{{ problem.statement }}</p>
         <div style="display: block; float: right;">
-        	<input type="button" class="btn btn-info" name="Check" value="Check" id="submit_button" />
-        	<a href="{{ url_for('view_submissions', assignment_id=assignment.id) }}" target="_blank" class="btn btn-success">My submissions</a>
+        	<input type="button" class="btn btn-primary" name="Check" value="Check" id="submit_button" />
+        	<a href="{{ url_for('view_submissions', assignment_id=assignment.id) }}" target="_blank" class="btn btn-secondary">My submissions</a>
         </div>
     </div>
 {% endif %}
@@ -84,11 +84,11 @@
 
 
 {% block script %}
-    <script src="static/js/libs/codemirror.min.js"></script>
-    <script src="static/js/libs/gas.min.js"></script>
+    <script src="/static/js/libs/codemirror.min.js"></script>
+    <script src="/static/js/libs/gas.min.js"></script>
 
     <script>
         const assignmentId = {{ assignment.id }};
     </script>
-    <script src="static/js/ide.js"></script>
+    <script src="/static/js/ide.js"></script>
 {% endblock %}

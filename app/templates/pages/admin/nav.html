@@ -1,0 +1,14 @@
+{% set active_page = active_page|default("none") %}
+
+{% set navbar = [
+    ("admin_users", "Users"),
+    ("admin_lms", "LMS Integration")
+] %}
+
+<ul class="nav nav-pills mb-3">
+{% for endpoint, name in navbar %}
+    <li class="nav-item">
+        <a class="nav-link {% if endpoint == active_page %}active{% endif %}" href="{{ url_for(endpoint) }}">{{ name }}</a>
+    </li>
+{% endfor %}
+</ul>

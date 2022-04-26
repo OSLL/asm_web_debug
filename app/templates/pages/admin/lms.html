@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+{% set active_page = "admin_lms" %}
+{% include "pages/admin/nav.html" %}
+
+<p>To connect to a learning management system you'll need the following information:</p>
+
+<ul>
+    <li>
+        LTI version: <code>LTI 1.0/1.1</code>
+    </li>
+    <li>
+        Tool URL: <code>{{ tool_url }}</code>
+    </li>
+    <li>
+        Consumer key: <code>{{ consumer_key }}</code>
+    </li>
+    <li>
+        Shared secret: <code>{{ consumer_secret }}</code>
+    </li>
+</ul>
+
+{% endblock %}

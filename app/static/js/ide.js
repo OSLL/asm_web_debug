@@ -3,14 +3,14 @@
         stopped: {
             id: "stopped",
             buttons: [
-                { name: "Run", id: "run", style: "success" },
+                { name: "Run", id: "run", style: "primary" },
             ]
         },
         paused: {
             id: "paused",
             buttons: [
                 { name: "Stop", id: "kill", style: "danger" },
-                { name: "Continue", id: "continue", style: "success" },
+                { name: "Continue", id: "continue", style: "primary" },
                 { name: "Step into", id: "step_into" },
                 { name: "Step over", id: "step_over" },
                 { name: "Step out", id: "step_out" },
@@ -147,7 +147,7 @@
 
         $debugButtons.html("");
         for (const button of state.buttons) {
-            const $button = $(`<button class="btn btn-outline-${button.style || 'info'}">${button.name}</button>`);
+            const $button = $(`<button class="btn btn-outline-${button.style || 'secondary'}">${button.name}</button>`);
             $button.on("click", () => {
                 onDebugButtonClick(button.id);
             });
