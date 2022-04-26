@@ -67,6 +67,11 @@
 
         doc = codeMirror.getDoc();
 
+        let bpoints = $(".container").contents().filter(function(){
+            return this.nodeType == 8;
+        })[0].nodeValue;
+        addBreakpoints(JSON.parse(bpoints));
+
         codeMirror.on("gutterClick", (_, line) => {
             const info = codeMirror.lineInfo(line);
             const breakpoint = info.gutterMarkers ? null : (() => {
@@ -112,6 +117,38 @@
         });
 
         return breakpoints;
+    }
+
+    function addBreakpoints(breakpoints){
+        breakpoints.forEach(codeline => {
+            addBreakpoint(codeline - 1);
+        });
+        codeMirror.getGutterElement().style['width'] = '45px';
+        codeMirror.getGutterElement().style['text-align'] = 'right';
+        codeMirror.getScrollerElement().style.minHeight = '400px';
+        codeMirror.setSize("100%", "100%");
+        codeMirror.refresh();
+    }
+
+    function addBreakpoint(codeline){
+        const info = codeMirror.lineInfo(codeline);
+        const breakpoint = info.gutterMarkers ? null : (() => {
+            const marker = document.createElement("div");
+            marker.style.color = "#a44";
+            marker.style.position = "absolute";
+            marker.style.left = "-40px";
+            marker.style.top = "-7px";
+            marker.style.fontSize = "24px";
+            marker.innerHTML = "●";
+            return marker;
+        })();
+        codeMirror.setGutterMarker(codeline, "breakpoints", breakpoint);
+        if (state !== State.stopped) {
+            sendMessage({
+                "type": breakpoint ? "add_breakpoint" : "remove_breakpoint",
+                "line": codeline + 1
+            });
+        }
     }
 
     function onDebugButtonClick(id) {
