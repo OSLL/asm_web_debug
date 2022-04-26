@@ -279,21 +279,6 @@
         }
     });
 
-    $("#hex-view").on("click", () => {
-        const $form = $("#hidden_form");
-        $form.trigger("reset");
-        $form.attr("method", "POST");
-        $form.attr("action", `/hexview/${assignmentId}`);
-        $form.attr("target", "_blank");
-
-        const $input = $("#hidden_textarea");
-        $input.attr("type", "text");
-        $input.attr("name", "hexview");
-        $input.val(doc.getValue());
-
-        $form.submit();
-    });
-
     initEditor();
     setState(State.stopped);
 })();

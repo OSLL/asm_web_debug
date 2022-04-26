@@ -17,7 +17,7 @@ class User(db.Model, UserMixin):
     password_hash = Column(String, nullable=True)
 
     # LTI auth
-    lti_tool_consumer_guid = Column(String, nullable=True)
+    tool_consumer_id = Column(Integer, ForeignKey("tool_consumer.id"), nullable=True)
     lti_user_id = Column(String, nullable=True)
 
     # User info
@@ -27,10 +27,10 @@ class User(db.Model, UserMixin):
     # User permissions
     is_admin = Column(Boolean, default=False)
 
-    assignments = relationship("Assignment", backref="user", lazy=True)
+    assignments = relationship("Assignment", backref="user", lazy=True, cascade="all, delete")
 
     __table_args__ = (
-        UniqueConstraint("lti_tool_consumer_guid", "lti_user_id"),
+        UniqueConstraint("tool_consumer_id", "lti_user_id"),
     )
 
     def set_password(self, password: str) -> None:
@@ -50,7 +50,14 @@ class Problem(db.Model):
     checker_name = Column(String, nullable=True)
     checker_config_json = Column(String, default="{}")
 
-    assignments = relationship("Assignment", backref="problem", lazy=True)
+    tool_consumer_id = Column(Integer, ForeignKey("tool_consumer.id"), nullable=True)
+    resource_link_id = Column(String, nullable=True)
+
+    assignments = relationship("Assignment", backref="problem", lazy=True, cascade="all, delete")
+
+    __table_args__ = (
+        UniqueConstraint("tool_consumer_id", "resource_link_id"),
+    )
 
     def get_checker(self) -> Optional[Type[Checker]]:
         return Checker._all_checkers.get(self.checker_name)
@@ -78,7 +85,7 @@ class Assignment(db.Model):
         UniqueConstraint("user_id", "problem_id"),
     )
 
-    submissions = relationship("Submission", backref="assignment", lazy=True)
+    submissions = relationship("Submission", backref="assignment", lazy=True, cascade="all, delete")
 
     def __str__(self) -> str:
         return f"{self.user.full_name} - {self.problem.title}"
@@ -86,7 +93,7 @@ class Assignment(db.Model):
 
 class Submission(db.Model):
     id = Column(Integer, primary_key=True)
-    assignment_id = Column(Integer, ForeignKey("assignment.id"), nullable=False)
+    assignment_id = Column(Integer, ForeignKey("assignment.id"), nullable=True)
 
     source_code = Column(String)
     arch = Column(String)
@@ -98,9 +105,9 @@ class Submission(db.Model):
 
 class DebugSession(db.Model):
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("user.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("user.id"), nullable=True)
     user = relationship("User")
-    assignment_id = Column(Integer, ForeignKey("assignment.id"), nullable=False)
+    assignment_id = Column(Integer, ForeignKey("assignment.id"), nullable=True)
     assignment = relationship("Assignment")
 
     source_code = Column(String, nullable=False)
@@ -113,3 +120,18 @@ class DebugSession(db.Model):
     cpu_time_used = Column(Float, nullable=True)
     real_time_used = Column(Float, nullable=True)
     memory_used = Column(Integer, nullable=True)
+
+
+class ToolConsumer(db.Model):
+    id = Column(Integer, primary_key=True)
+
+    consumer_key = Column(String, nullable=False, unique=True)
+    consumer_secret = Column(String, nullable=False)
+
+    instance_id = Column(String, nullable=True)
+    instance_name = Column(String, nullable=True)
+
+    in_use = Column(Boolean, nullable=False, default=False)
+
+    users = relationship("User", backref="tool_consumer", lazy=True, cascade="all, delete")
+    problems = relationship("Problem", backref="tool_consumer", lazy=True, cascade="all, delete")

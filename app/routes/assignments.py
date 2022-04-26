@@ -8,8 +8,7 @@ import requests
 from urllib.parse import urlencode
 from sqlalchemy import desc
 
-from app.core.lti_core.lti_utils import report_outcome_score
-from app.core.utils.hex import hexdump
+from app.ltiutils import report_outcome_score
 from app.models import Assignment, Submission
 
 
@@ -126,12 +125,6 @@ def save_code(assignment_id):
     db.session.commit()
 
     return {"success_save": True}
-
-
-@app.route('/assignment/<int:assignment_id>/hexview', methods=["GET", "POST"])
-def hexview(assignment_id):
-    assignment = get_assignment(assignment_id)
-    return render_template('pages/hexview.html', result=hexdump(assignment.source_code))
 
 
 @app.route("/assignment/<int:assignment_id>/submissions")

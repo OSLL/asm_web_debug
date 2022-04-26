@@ -1,5 +1,6 @@
+import secrets
 from app import app, db
-from app.models import User
+from app.models import ToolConsumer, User
 
 import functools
 from flask import abort, render_template, request
@@ -25,9 +26,24 @@ def admin_users():
 @app.route("/admin/lms")
 @admin_required
 def admin_lms():
-    consumer_key, consumer_secret = list(app.config["LTI_CONSUMERS"].items())[0]
+    tool_consumer = ToolConsumer.query.filter_by(in_use=False).first()
+    if not tool_consumer:
+        tool_consumer = ToolConsumer(
+            consumer_key=secrets.token_hex(8),
+            consumer_secret=secrets.token_urlsafe(),
+            in_use=False
+        )
+        db.session.add(tool_consumer)
+        db.session.commit()
+
+    proto = request.headers.get("X-Forwarded-Proto", "http")
+    tool_url = f"{proto}://{request.host}/lti"
+
+    tool_consumers = ToolConsumer.query.filter_by(in_use=True).all()
+
     return render_template("pages/admin/lms.html",
-        tool_url=f"{request.url_root}lti",
-        consumer_key=consumer_key,
-        consumer_secret=consumer_secret
+        tool_url=tool_url,
+        consumer_key=tool_consumer.consumer_key,
+        consumer_secret=tool_consumer.consumer_secret,
+        tool_consumers=tool_consumers
     )

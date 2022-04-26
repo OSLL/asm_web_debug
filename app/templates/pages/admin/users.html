@@ -24,7 +24,7 @@
             <td scope="row">{{ user.id }}</td>
             <td>{{ user.full_name }} {% if user.id == current_user.id %}<strong>(you)</strong>{% endif %}</td>
             <td>{{ user.email }}</td>
-            <td>{{ user.lti_tool_consumer_guid }}</td>
+            <td>{{ user.tool_consumer.instance_name }}</td>
             <td>
                 {% if user.id != current_user.id %}
                     <a href="#" class="btn btn-danger">Delete</a>

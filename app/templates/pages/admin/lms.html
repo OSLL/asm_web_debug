@@ -22,4 +22,37 @@
     </li>
 </ul>
 
+<p>The LMS will appear in the table below after the first launch of the tool.</p>
+
+{% if tool_consumers %}
+
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Instance id</th>
+            <th scope="col">Instance name</th>
+            <th scope="col"></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for tool_consumer in tool_consumers %}
+        <tr>
+            <td scope="row">{{ tool_consumer.id }}</td>
+            <td>{{ tool_consumer.instance_id }}</td>
+            <td>{{ tool_consumer.instance_name }}</td>
+            <td>
+                <button class="btn btn-danger">Delete</button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% else %}
+
+<p>No tool consumers configured.</p>
+
+{% endif %}
+
 {% endblock %}

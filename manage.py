@@ -38,8 +38,6 @@ def parse_args():
 def create_env_file():
     with open(workdir / ".env", "w") as f:
         print(f"AWI_SECRET_KEY={secrets.token_urlsafe()}", file=f)
-        print(f"AWI_CONSUMER_KEYS={secrets.token_hex(8)}", file=f)
-        print(f"AWI_CONSUMER_SECRETS={secrets.token_urlsafe()}", file=f)
         print(f"POSTGRES_PASSWORD={secrets.token_urlsafe()}", file=f)
 
 

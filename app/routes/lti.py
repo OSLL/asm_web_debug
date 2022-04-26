@@ -1,37 +1,44 @@
 from app import app, db
 
 from flask import abort, request, url_for, redirect
-from itsdangerous import json
-from app.models import Assignment, User
+from app.models import Assignment, Problem, ToolConsumer, User
 
-from app.core.lti_core.check_request import check_request
+from app.ltiutils import check_lti_request
 
 import flask_login
 
 
 @app.route('/lti', methods=['POST'])
 def lti_route():
-    if not check_request(request):
+    consumer_key = request.form.get("oauth_consumer_key", "")
+
+    tool_consumer = ToolConsumer.query.filter_by(consumer_key=consumer_key).first()
+    if not tool_consumer:
+        return "Invalid consumer_key", 400
+
+    if not check_lti_request(tool_consumer):
         abort(403)
 
-    consumer_key = request.form.get("oauth_consumer_key")
     lti_assignment_id = request.form.get("lis_result_sourcedid")
     lti_tool_consumer_guid = request.form.get("tool_consumer_instance_guid")
+    lti_tool_consumer_name = request.form.get("tool_consumer_instance_name")
     lti_callback_url = request.form.get("lis_outcome_service_url")
     lti_user_id = request.form.get("user_id")
     roles = request.form.get("roles", "").split(",")
     email = request.form.get("lis_person_contact_email_primary")
     full_name = request.form.get("lis_person_name_full")
+    resource_link_id = request.form.get("resource_link_id")
+    resource_link_title = request.form.get("resource_link_title")
+    resource_link_description = request.form.get("resource_link_description")
 
-    try:
-        problem_id = int(request.form.get("custom_problem_id", "").strip())
-    except ValueError:
-        return "Invalid custom_problem_id param, should be an integer", 400
+    tool_consumer.instance_id = lti_tool_consumer_guid
+    tool_consumer.instance_name = lti_tool_consumer_name
+    tool_consumer.in_use = True
 
-    user = User.query.filter_by(lti_tool_consumer_guid=lti_tool_consumer_guid, lti_user_id=lti_user_id).first()
+    user = User.query.filter_by(tool_consumer_id=tool_consumer.id, lti_user_id=lti_user_id).first()
     if not user:
         user = User(
-            lti_tool_consumer_guid=lti_tool_consumer_guid,
+            tool_consumer_id=tool_consumer.id,
             lti_user_id=lti_user_id
         )
         db.session.add(user)
@@ -44,11 +51,23 @@ def lti_route():
 
     flask_login.login_user(user, remember=True)
 
-    assignment = Assignment.query.filter_by(user_id=user.id, problem_id=problem_id).first()
+    problem = Problem.query.filter_by(tool_consumer_id=tool_consumer.id, resource_link_id=resource_link_id).first()
+    if not problem:
+        problem = Problem(
+            title=resource_link_title or "Unnamed problem",
+            statement=resource_link_description or "",
+            checker_name=None,
+            tool_consumer_id=tool_consumer.id,
+            resource_link_id=resource_link_id
+        )
+        db.session.add(problem)
+        db.session.commit()
+
+    assignment = Assignment.query.filter_by(user_id=user.id, problem_id=problem.id).first()
     if not assignment:
         assignment = Assignment(
             user_id=user.id,
-            problem_id=problem_id
+            problem_id=problem.id
         )
         db.session.add(assignment)
 
