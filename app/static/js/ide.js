@@ -55,6 +55,14 @@
         $alert.delay(3000).fadeOut();
     }
 
+    function extractText(strToParse, strStart, strFinish){
+        return strToParse.match(strStart + "(.*?)" + strFinish)[1];
+    }
+
+    const codeInComment = $(".container").contents().filter(function(){
+        return this.nodeType == 8;
+    })[0].nodeValue;
+
     function initEditor() {
         codeMirror = CodeMirror.fromTextArea($("#code")[0], {
             lineNumbers: true,
@@ -67,14 +75,8 @@
 
         doc = codeMirror.getDoc();
 
-        function extractText(strToParse, strStart, strFinish){
-            return strToParse.match(strStart + "(.*?)" + strFinish)[1];
-        }
-        const code = $(".container").contents().filter(function(){
-            return this.nodeType == 8;
-        })[0].nodeValue;
-        if(code !== "  "){
-            const bpoints = extractText(code, `breakpoints': `, `, 'arch'`);
+        if(codeInComment !== "  "){
+            const bpoints = extractText(codeInComment, `breakpoints': `, `, 'arch'`);
             addBreakpoints(JSON.parse(bpoints));
         }
 
@@ -207,6 +209,11 @@
         }
     }
 
+    function updateLastSaveInfo(){
+        const lastDate = new Date();
+        $("#lastSavedTime").text((lastDate.getDate() > 9 ? lastDate.getDate() : '0' + lastDate.getDate()) + '.' + ((lastDate.getMonth() + 1) > 9 ? (lastDate.getMonth() + 1) : '0' + (lastDate.getMonth() + 1)) + '.' + lastDate.getFullYear() + ' ' + (lastDate.getHours() > 9 ? lastDate.getHours() : '0' + lastDate.getHours()) + ':' + (lastDate.getMinutes() > 9 ? lastDate.getMinutes() : '0' + lastDate.getMinutes()) + ':' + (lastDate.getSeconds() > 9 ? lastDate.getSeconds() : '0' + lastDate.getSeconds()) + ')');
+    }
+
     function saveCode() {
         $.ajax({
             url: "/save/" + codeId,
@@ -219,6 +226,9 @@
             },
             success: () => {
                 showAlert("Source code was saved", "success");
+                if(codeInComment !== "  "){
+                    updateLastSaveInfo();
+                }
             }
         })
     }
