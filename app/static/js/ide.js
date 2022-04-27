@@ -67,10 +67,16 @@
 
         doc = codeMirror.getDoc();
 
-        let bpoints = $(".container").contents().filter(function(){
+        function extractText(strToParse, strStart, strFinish){
+            return strToParse.match(strStart + "(.*?)" + strFinish)[1];
+        }
+        const code = $(".container").contents().filter(function(){
             return this.nodeType == 8;
         })[0].nodeValue;
-        addBreakpoints(JSON.parse(bpoints));
+        if(code !== "  "){
+            const bpoints = extractText(code, `breakpoints': `, `, 'arch'`);
+            addBreakpoints(JSON.parse(bpoints));
+        }
 
         codeMirror.on("gutterClick", (_, line) => {
             const info = codeMirror.lineInfo(line);
