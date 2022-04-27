@@ -228,22 +228,6 @@ async = ["asgiref (>=3.2)"]
 dotenv = ["python-dotenv"]
 
 [[package]]
-name = "flask-admin"
-version = "1.6.0"
-description = "Simple and extensible admin interface framework for Flask"
-category = "main"
-optional = false
-python-versions = ">=3.6"
-
-[package.dependencies]
-Flask = ">=0.7"
-wtforms = "*"
-
-[package.extras]
-aws = ["boto"]
-azure = ["azure-storage-blob"]
-
-[[package]]
 name = "flask-login"
 version = "0.5.0"
 description = "User session management for Flask"
@@ -814,7 +798,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "e92910aa8873ed701573fec93739aaa058082b7e7f61221bbd784063310ef921"
+content-hash = "c7a759d5c2b83f98cf4e5c4a5fdc63aefeb62280724f25d39f919de4568a665d"
 
 [metadata.files]
 aiodns = [
@@ -1100,9 +1084,6 @@ deprecated = [
 flask = [
     {file = "Flask-2.0.2-py3-none-any.whl", hash = "sha256:cb90f62f1d8e4dc4621f52106613488b5ba826b2e1e10a33eac92f723093ab6a"},
     {file = "Flask-2.0.2.tar.gz", hash = "sha256:7b2fb8e934ddd50731893bdcdb00fc8c0315916f9fcd50d22c7cc1a95ab634e2"},
-]
-flask-admin = [
-    {file = "Flask-Admin-1.6.0.tar.gz", hash = "sha256:424ffc79b7b0dfff051555686ea12e86e48dffacac14beaa319fb4502ac40988"},
 ]
 flask-login = [
     {file = "Flask-Login-0.5.0.tar.gz", hash = "sha256:6d33aef15b5bcead780acc339464aae8a6e28f13c90d8b1cf9de8b549d1c0b4b"},

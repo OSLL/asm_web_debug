@@ -13,7 +13,6 @@ aiohttp = {extras = ["speedups"], version = "^3.8.1"}
 waitress = "^2.0.0"
 Flask-WTF = "^1.0.0"
 passlib = "^1.7.4"
-Flask-Admin = "^1.6.0"
 requests = "^2.27.1"
 Flask-SQLAlchemy = "^2.5.1"
 psycopg2-binary = "^2.9.3"
