@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <link href="/static/css/libs/dataTables.bootstrap5.min.css" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block content %}
+{% set active_page = "admin_debug_sessions" %}
+{% include "pages/admin/nav.html" %}
+
+<table class="table" id="debug-sessions-table">
+    <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">User</th>
+            <th scope="col">Started</th>
+            <th scope="col">Finished</th>
+            <th scope="col">CPU Time (seconds)</th>
+            <th scope="col">Real Time (seconds)</th>
+            <th scope="col">Memory (bytes)</th>
+            <th scope="col"></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for debug_session in debug_sessions %}
+        <tr>
+            <td scope="row">{{ debug_session.id }}</td>
+            <td>
+                {% if debug_session.user %}
+                {{ debug_session.user.full_name }} <small class="text-muted">#{{ debug_session.user_id }}</small>
+                {% else %}
+                <em>Deleted</em>
+                {% endif %}
+            </td>
+            <td>{{ debug_session.started_at }}</td>
+            <td>
+                {% if debug_session.finished_at %}
+                {{ debug_session.finished_at }}
+                {% else %}
+                <em>Ongoing</em>
+                {% endif %}
+            </td>
+            <td>
+                {% if debug_session.cpu_time_used %}
+                    {{ debug_session.cpu_time_used }}
+                {% else %}
+                    &mdash;
+                {% endif %}
+            </td>
+            <td>
+                {% if debug_session.real_time_used %}
+                    {{ debug_session.real_time_used }}
+                {% else %}
+                    &mdash;
+                {% endif %}
+            </td>
+            <td>
+                {% if debug_session.memory_used %}
+                    {{ debug_session.memory_used }}
+                {% else %}
+                    &mdash;
+                {% endif %}
+            </td>
+            <td>
+                <button class="btn btn-secondary">View source</button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}
+
+
+{% block script %}
+    <script src="/static/js/libs/jquery.dataTables.min.js"></script>
+    <script src="/static/js/libs/dataTables.bootstrap5.min.js"></script>
+    <script>
+        $("#debug-sessions-table").DataTable({
+            "order": [[ 0, "desc" ]]
+        });
+    </script>
+{% endblock %}

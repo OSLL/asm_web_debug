@@ -1,5 +1,5 @@
 from datetime import datetime
-from app import app, db
+from app import app, db, csrf
 
 from flask import request
 
@@ -7,6 +7,7 @@ from app.models import DebugSession
 
 
 @app.route("/internal/debug_session_info", methods=["POST"])
+@csrf.exempt
 def debug_session_info():
     data = request.json
     obj = DebugSession.query.get(data["id"]) if "id" in data else None

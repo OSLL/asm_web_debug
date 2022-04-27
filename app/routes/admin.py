@@ -1,5 +1,5 @@
 from app import app, db
-from app.models import Assignment, Problem, ToolConsumer, User
+from app.models import Assignment, Problem, ToolConsumer, User, DebugSession
 
 import secrets
 import json
@@ -7,7 +7,7 @@ import functools
 from flask import abort, redirect, render_template, request, url_for
 from flask_login import current_user
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, SelectField, HiddenField
+from wtforms import StringField, TextAreaField, SelectField
 from wtforms.validators import InputRequired
 from markdown import markdown
 from sqlalchemy.orm import joinedload
@@ -122,3 +122,12 @@ def admin_problem_delete(problem_id):
     db.session.delete(problem)
     db.session.commit()
     return redirect(url_for("admin_problems"))
+
+
+@app.route("/admin/debug_sessions")
+@admin_required
+def admin_debug_sessions():
+    debug_sessions = DebugSession.query \
+        .options(joinedload(DebugSession.user)) \
+        .all()
+    return render_template("pages/admin/debug_sessions.html", debug_sessions=debug_sessions)
