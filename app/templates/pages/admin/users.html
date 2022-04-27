@@ -27,7 +27,14 @@
             <td>{{ user.tool_consumer.instance_name }}</td>
             <td>
                 {% if user.id != current_user.id %}
-                    <button class="btn btn-danger">Delete</button>
+                    <form method="POST"
+                        action="{{ url_for('admin_user_delete', user_id=user.id) }}"
+                        onsubmit="return confirm('Are you sure you want to delete the user? This action cannot be undone.');"
+                        style="display: inline"
+                    >
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
                 {% endif %}
             </td>
         </tr>

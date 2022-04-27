@@ -106,6 +106,7 @@
 
     <script>
         const assignmentId = {{ assignment.id }};
+        const csrfToken = "{{ csrf_token() }}";
     </script>
     <script src="/static/js/ide.js"></script>
 {% endblock %}

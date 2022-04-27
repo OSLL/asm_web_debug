@@ -7,7 +7,7 @@ import functools
 from flask import abort, redirect, render_template, request, url_for
 from flask_login import current_user
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, SelectField
+from wtforms import StringField, TextAreaField, SelectField, HiddenField
 from wtforms.validators import InputRequired
 from markdown import markdown
 from sqlalchemy.orm import joinedload
@@ -29,6 +29,17 @@ def admin_required(func):
 def admin_users():
     users = User.query.all()
     return render_template("pages/admin/users.html", users=users)
+
+
+@app.route("/admin/user/<int:user_id>/delete", methods=["POST"])
+@admin_required
+def admin_user_delete(user_id):
+    user = User.query.get_or_404(user_id)
+    if user.id == current_user.id:
+        abort(403)
+    db.session.delete(user)
+    db.session.commit()
+    return redirect(url_for("admin_users"))
 
 
 @app.route("/admin/lms")
@@ -102,3 +113,12 @@ def admin_problem_submissions(problem_id):
         .options(joinedload(Assignment.user)) \
         .all()
     return render_template("pages/admin/problem_submissions.html", assignments=assignments, problem=problem)
+
+
+@app.route("/admin/problem/<int:problem_id>/delete", methods=["POST"])
+@admin_required
+def admin_problem_delete(problem_id):
+    problem = Problem.query.get_or_404(problem_id)
+    db.session.delete(problem)
+    db.session.commit()
+    return redirect(url_for("admin_problems"))

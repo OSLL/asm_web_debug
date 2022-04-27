@@ -30,7 +30,14 @@
             <td>
                 <a class="btn btn-secondary" href="{{ url_for('admin_problem_edit', problem_id=problem.id) }}">Edit</a>
                 <a class="btn btn-secondary" href="{{ url_for('admin_problem_submissions', problem_id=problem.id) }}">Grades</a>
-                <button class="btn btn-danger">Delete</button>
+                <form method="POST"
+                      action="{{ url_for('admin_problem_delete', problem_id=problem.id) }}"
+                      onsubmit="return confirm('Are you sure you want to delete the problem? This action cannot be undone.');"
+                      style="display: inline"
+                >
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
             </td>
         </tr>
         {% endfor %}

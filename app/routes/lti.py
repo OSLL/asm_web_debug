@@ -1,4 +1,4 @@
-from app import app, db
+from app import app, db, csrf
 
 from flask import abort, request, url_for, redirect
 from app.models import Assignment, Problem, ToolConsumer, User
@@ -9,6 +9,7 @@ import flask_login
 
 
 @app.route('/lti', methods=['POST'])
+@csrf.exempt # oauth messages are signed and nonced, no need for CSRF
 def lti_route():
     consumer_key = request.form.get("oauth_consumer_key", "")
 

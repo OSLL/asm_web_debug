@@ -170,6 +170,7 @@
         const data = new FormData();
         data.append("code", doc.getValue());
         data.append("arch", $("#arch_select").val());
+        data.append("csrf_token", csrfToken);
 
         await fetch(`/assignment/${assignmentId}/save`, {
             method: "POST",
@@ -181,8 +182,12 @@
         $submitButton.prop("disabled", true);
         await saveCode();
 
+        const body = new FormData();
+        body.append("csrf_token", csrfToken);
+
         const result = await fetch(`/assignment/${assignmentId}/submit`, {
-            method: "POST"
+            method: "POST",
+            body: body
         });
         const data = await result.json();
 
