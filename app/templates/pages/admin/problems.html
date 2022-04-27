@@ -29,6 +29,7 @@
             <td><code>{{ problem.checker_name }}</code></td>
             <td>
                 <a class="btn btn-secondary" href="{{ url_for('admin_problem_edit', problem_id=problem.id) }}">Edit</a>
+                <a class="btn btn-secondary" href="{{ url_for('admin_problem_submissions', problem_id=problem.id) }}">Grades</a>
                 <button class="btn btn-danger">Delete</button>
             </td>
         </tr>

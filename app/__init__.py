@@ -16,10 +16,15 @@ migrate = Migrate(app, db)
 login_manager = LoginManager(app)
 redis_client = FlaskRedis(app)
 
+loglevel = os.environ.get('LOGLEVEL', 'INFO').upper()
+
 logging.basicConfig(
-    level=logging.os.environ.get('LOGLEVEL', 'INFO').upper(),
+    level=loglevel,
     format="%(asctime)s [%(levelname)s] %(message)s"
 )
+
+if loglevel == "DEBUG":
+    logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 def _register():
     import runner.checkers # register all checkers

@@ -1,5 +1,5 @@
 from app import app, db
-from app.models import Problem, ToolConsumer, User
+from app.models import Assignment, Problem, ToolConsumer, User
 
 import secrets
 import json
@@ -10,6 +10,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, SelectField
 from wtforms.validators import InputRequired
 from markdown import markdown
+from sqlalchemy.orm import joinedload
 
 from runner.checkerlib import Checker
 
@@ -89,4 +90,15 @@ def admin_problem_edit(problem_id):
             html = markdown(checker.__doc__)
         checker_docs[name] = html
 
-    return render_template("pages/admin/problem_edit.html", form=form, checker_docs_json=json.dumps(checker_docs))
+    return render_template("pages/admin/problem_edit.html", form=form, checker_docs_json=json.dumps(checker_docs), problem=problem)
+
+
+@app.route("/admin/problem/<int:problem_id>/submissions")
+@admin_required
+def admin_problem_submissions(problem_id):
+    problem = Problem.query.get_or_404(problem_id)
+    assignments = Assignment.query \
+        .filter_by(problem_id=problem.id) \
+        .options(joinedload(Assignment.user)) \
+        .all()
+    return render_template("pages/admin/problem_submissions.html", assignments=assignments, problem=problem)

@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <link href="/static/css/libs/dataTables.bootstrap5.min.css" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block content %}
+{% set active_page = "admin_problems" %}
+{% include "pages/admin/nav.html" %}
+
+<h5 class="mb-3">
+    {{ problem.title }}
+    <small class="text-muted">Grades</small>
+</h5>
+
+<table class="table" id="assignments-table">
+    <thead>
+        <tr>
+            <td scope="col">Name</td>
+            <td scope="col">Email</td>
+            <td scope="col">Grade</td>
+            <td scope="col"></td>
+        </tr>
+    </thead>
+    <tbody>
+        {% for assignment in assignments %}
+        <tr {% if assignment.grade > 0 %}
+            class="table-success"
+            {% endif %}>
+            <td>{{ assignment.user.full_name }}</td>
+            <td>{{ assignment.user.email }}</td>
+            <td>{{ assignment.grade }} <small class="text-muted">/ 100</small></td>
+            <td>
+                <a class="btn btn-secondary" href="{{ url_for('view_submissions', assignment_id=assignment.id) }}">Attempts</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}
+
+{% block script %}
+    <script src="/static/js/libs/jquery.dataTables.min.js"></script>
+    <script src="/static/js/libs/dataTables.bootstrap5.min.js"></script>
+    <script>
+        $("#assignments-table").DataTable();
+    </script>
+{% endblock %}

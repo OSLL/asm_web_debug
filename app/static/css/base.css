@@ -82,3 +82,9 @@
     font-weight: bold;
     cursor: pointer;
 }
+
+#checker_doc {
+    padding-left: 12pt;
+    margin-left: 12pt;
+    border-left: 2px solid #ddd;
+}
