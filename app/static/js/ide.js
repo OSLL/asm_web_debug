@@ -137,7 +137,7 @@
         $debugButtons.html("");
         const  $rightDebugButtons = $(`<div style="float: right;"></div>`);
         for (const button of state.buttons) {
-            const $button = $(`<button class="btn btn-outline-${button.style || 'info'}" style="margin: 1em 1em auto auto; width: 5.3em; white-space: pre-line;">` + 
+            const $button = $(`<button `+(button.id==="run"?` id="Compile" `:``)+ ` class="btn btn-outline-${button.style || 'info'}" style="margin: 1em 1em auto auto; width: 5.3em; white-space: pre-line;">` + 
                 (button.id === "run" ? `<i class="fa fa-play" aria-hidden="true"></i></br>` : ``) + 
                 (button.id === "kill" ? `<i class="fa fa-stop" aria-hidden="true"></i></br>` : ``) + 
                 (button.id === "continue" ? `<i class="fa fa-step-forward" aria-hidden="true"></i></br>` : ``) + 
@@ -210,7 +210,7 @@
                 const $tr = $(`<tr>
 <td>${reg}</td>
 <td>
-    <span class="${editable ? 'edit-register' : ''}">${val}</span>
+    <span id="${reg}-value" class="${editable ? 'edit-register' : ''}">${val}</span>
 </td>
 </tr>`);
                 $tr.find(".edit-register").on("click", () => {
