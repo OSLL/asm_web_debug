@@ -82,6 +82,8 @@ class Assignment(db.Model):
     lti_assignment_id = Column(String)
     lti_callback_url = Column(String)
 
+    is_instructor = Column(Boolean, default=False)
+
     __table_args__ = (
         UniqueConstraint("user_id", "problem_id"),
     )

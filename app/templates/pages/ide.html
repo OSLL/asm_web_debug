@@ -28,8 +28,8 @@
         	<button type="button" class="btn btn-primary" id="submit_button">Check</button>
         	<a href="{{ url_for('view_submissions', assignment_id=assignment.id) }}" class="btn btn-secondary">My submissions</a>
         {% endif %}
-        {% if current_user.is_admin %}
-            <a href="{{ url_for('admin_problem_edit', problem_id=problem.id) }}" class="btn btn-secondary">Edit</a>
+        {% if current_user.is_admin or assignment.is_instructor %}
+            <a href="{{ url_for('admin_problem_edit', problem_id=problem.id, next=url_for('view_assignment', assignment_id=assignment.id)) }}" class="btn btn-secondary">Edit</a>
             <a href="{{ url_for('admin_problem_submissions', problem_id=problem.id) }}" class="btn btn-secondary">Grades</a>
         {% endif %}
         </div>

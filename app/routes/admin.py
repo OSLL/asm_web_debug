@@ -24,6 +24,16 @@ def admin_required(func):
     return wrapped
 
 
+def check_problem_access(problem: Problem) -> None:
+    if not current_user.is_authenticated:
+        abort(403)
+    if current_user.is_admin:
+        return
+    assignment = Assignment.query.filter_by(problem_id=problem.id, user_id=current_user.id).first()
+    if not assignment or not assignment.is_instructor:
+        abort(403)
+
+
 @app.route("/admin/users")
 @admin_required
 def admin_users():
@@ -84,15 +94,15 @@ class ProblemForm(FlaskForm):
 
 
 @app.route("/admin/problem/<int:problem_id>", methods=["GET", "POST"])
-@admin_required
 def admin_problem_edit(problem_id):
     problem = Problem.query.get_or_404(problem_id)
+    check_problem_access(problem)
     form = ProblemForm(obj=problem)
 
     if form.validate_on_submit():
         form.populate_obj(problem)
         db.session.commit()
-        return redirect(url_for("admin_problems"))
+        return redirect(request.args.get("next", url_for("admin_problems")))
 
     checker_docs = {}
     for name, checker in Checker._all_checkers.items():
@@ -105,9 +115,9 @@ def admin_problem_edit(problem_id):
 
 
 @app.route("/admin/problem/<int:problem_id>/submissions")
-@admin_required
 def admin_problem_submissions(problem_id):
     problem = Problem.query.get_or_404(problem_id)
+    check_problem_access(problem)
     assignments = Assignment.query \
         .filter_by(problem_id=problem.id) \
         .options(joinedload(Assignment.user)) \

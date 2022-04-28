@@ -1,3 +1,5 @@
+{% if current_user.is_admin %}
+
 {% set active_page = active_page|default("none") %}
 
 {% set navbar = [
@@ -14,3 +16,5 @@
     </li>
 {% endfor %}
 </ul>
+
+{% endif %}

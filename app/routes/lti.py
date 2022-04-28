@@ -1,11 +1,10 @@
 from app import app, db, csrf
 
 from flask import abort, request, url_for, redirect
+from flask_login import current_user, login_user
 from app.models import Assignment, Problem, ToolConsumer, User
 
 from app.ltiutils import check_lti_request
-
-import flask_login
 
 
 @app.route('/lti', methods=['POST'])
@@ -45,13 +44,15 @@ def lti_route():
         )
         db.session.add(user)
 
-    user.is_admin = "Instructor" in roles
+    if current_user.is_admin:
+        user.is_admin = True
+
     user.email = email
     user.full_name = full_name
 
     db.session.commit()
 
-    flask_login.login_user(user, remember=True)
+    login_user(user, remember=True)
 
     problem = Problem.query.filter_by(tool_consumer_id=tool_consumer.id, resource_link_id=resource_link_id).first()
     if not problem:
@@ -73,6 +74,8 @@ def lti_route():
             problem_id=problem.id
         )
         db.session.add(assignment)
+
+    assignment.is_instructor = "Instructor" in roles
 
     assignment.lti_consumer_key = consumer_key
     assignment.lti_assignment_id = lti_assignment_id
