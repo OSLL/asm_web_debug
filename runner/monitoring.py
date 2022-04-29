@@ -2,7 +2,7 @@ import asyncio
 import logging
 import time
 from runner import metrics
-from runner.docker import DockerError
+from runner.debugger import DebuggerError
 from runner.runner import active_debug_sessions
 
 async def update_resource_usage_gauges(prev: float, old_cpu_usage: float):
@@ -15,7 +15,7 @@ async def update_resource_usage_gauges(prev: float, old_cpu_usage: float):
         try:
             session_cpu_usage = await debug_session.get_total_cpu_time_used()
             session_memory_usage = await debug_session.get_memory_used()
-        except DockerError:
+        except DebuggerError:
             continue
 
         cpu_usage += session_cpu_usage

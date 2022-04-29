@@ -11,7 +11,6 @@ from multidict import MultiDict
 from runner import gdbmi
 from runner.checkerlib import BaseChecker, Checker, CheckerException
 from runner.debugger import DebuggerError
-from runner.docker import DockerError
 from runner.runner import BreakpointId, DebugSession
 from runner.settings import config
 
@@ -129,7 +128,7 @@ class WSInteractor:
                 "cpu_time_used": await self.debug_session.get_total_cpu_time_used(),
                 "memory_used": await self.debug_session.get_max_memory_used()
             }
-        except DockerError:
+        except DebuggerError:
             data = {
                 "cpu_time_used": None,
                 "memory_used": None

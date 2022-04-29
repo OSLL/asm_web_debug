@@ -5,6 +5,7 @@ import shutil
 import tempfile
 from collections import namedtuple
 from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, Type, TypeAlias
+from uuid import uuid4
 
 from runner import docker, gdbmi
 from runner.debugger import Debugger, DebuggerError
@@ -249,12 +250,23 @@ class DebugSession:
     async def restart(self) -> None:
         await self.continue_until("_start", restart_program=True)
 
+    async def read_file_from_remote(self, path: pathlib.Path | str) -> bytes:
+        host_path = self.workdir / str(uuid4())
+        await self.debugger.gdb_command(f"-target-file-get {path} {host_path}")
+        try:
+            with open(host_path, "rb") as f:
+                contents = f.read()
+        except (IOError, OSError):
+            raise DebuggerError(f"can't read file {path}")
+        host_path.unlink(missing_ok=True)
+        return contents
+
     async def get_inferior_proc_stat(self, pid: Optional[int] = None) -> List[str]:
         if pid is None:
             pid = self.debugger.inferior_pid
         if not self.debugger.inferior_pid:
             raise DebuggerError("get_inferior_proc_stat: unknown pid")
-        data = await docker.run_command_in_container(self.gdbserver_container_id, ["cat", f"/proc/{pid}/stat"])
+        data = await self.read_file_from_remote(f"/proc/{pid}/stat")
         return [i.decode() for i in data.strip().split()]
 
     async def get_cpu_time_used(self) -> float:
@@ -262,26 +274,26 @@ class DebugSession:
         try:
             utime_clk = int(stat[13]) # man proc(5)
         except (ValueError, IndexError):
-            raise docker.DockerError("docker container went away")
+            raise DebuggerError(f"invalid file format")
         return utime_clk / config.system_clock_resolution
 
     async def get_total_cpu_time_used(self) -> float:
-        data = await docker.run_command_in_container(self.gdbserver_container_id, ["cat", "/sys/fs/cgroup/cpuacct/cpuacct.usage"])
+        data = await self.read_file_from_remote("/sys/fs/cgroup/cpuacct/cpuacct.usage")
         try:
             return int(data) / 10**9
         except ValueError:
-            raise docker.DockerError("docker container went away")
+            raise DebuggerError(f"invalid file format")
 
     async def get_memory_used(self) -> int:
-        data = await docker.run_command_in_container(self.gdbserver_container_id, ["cat", "/sys/fs/cgroup/memory/memory.usage_in_bytes"])
+        data = await self.read_file_from_remote("/sys/fs/cgroup/memory/memory.usage_in_bytes")
         try:
             return int(data)
         except ValueError:
-            raise docker.DockerError("docker container went away")
+            raise DebuggerError(f"invalid file format")
 
     async def get_max_memory_used(self) -> int:
-        data = await docker.run_command_in_container(self.gdbserver_container_id, ["cat", "/sys/fs/cgroup/memory/memory.max_usage_in_bytes"])
+        data = await self.read_file_from_remote("/sys/fs/cgroup/memory/memory.max_usage_in_bytes")
         try:
             return int(data)
         except ValueError:
-            raise docker.DockerError("docker container went away")
+            raise DebuggerError(f"invalid file format")
