@@ -66,6 +66,7 @@ class DebugSession:
             "-no-pie",
             "-nodefaultlibs",
             "-nostartfiles",
+            "-static",
             "-g",
             "-Wl,--entry=_start_seccomp",
             root / "environment" / "seccomp" / self.arch / "entry.S",
