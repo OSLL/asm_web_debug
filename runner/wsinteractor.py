@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 import time
+import traceback
 from typing import Dict, Optional, List, Type
 
 from aiohttp import web, WSMsgType
@@ -73,7 +74,7 @@ class WSInteractor:
                     "message": str(e)
                 })
 
-    async def start_program(self, source: str, stdin: str, breakpoints: List[int], sample_test: Optional[str], watch: List[str]):
+    async def start_program(self, source: str, breakpoints: List[int], sample_test: Optional[str], watch: List[str]):
         if self.debug_session:
             await self.terminate_program()
 
@@ -99,7 +100,6 @@ class WSInteractor:
         if not result.successful:
             return
 
-        self.debug_session.set_stdin(stdin)
         await self.debug_session.start_debugger(real_time_limit=config.default_online_real_time_limit)
 
         await self.post_stats()
@@ -111,15 +111,14 @@ class WSInteractor:
             checker = self.checker_class(arch=self.debug_session.arch, source_code=source)
             checker.sample_test = sample_test
             checker.program = self.debug_session
-            await self.debug_session.restart()
+            await self.debug_session.continue_until("_start")
             await checker.prepare_sample_test()
-            await self.debug_session.continue_execution()
-        else:
-            await self.debug_session.start_program()
+        await self.debug_session.continue_execution()
 
         self.handle_gdb_events_task = asyncio.create_task(self.handle_gdb_events())
 
     async def post_stats(self):
+        return
         if not self.debug_session:
             return
 
@@ -201,9 +200,6 @@ class WSInteractor:
             source = msg.get("source")
             if type(source) is not str:
                 raise ValueError("Expected 'source' field to be a string")
-            stdin = msg.get("input")
-            if type(stdin) is not str:
-                raise ValueError("Expected 'input' field to be a string")
             breakpoints = msg.get("breakpoints")
             if type(breakpoints) is not list:
                 raise ValueError("Expected 'breakpoints' field to be a list")
@@ -222,7 +218,7 @@ class WSInteractor:
 
             if self.checker_class is not None:
                 source = self.checker_class(arch="x86_64", source_code=source).get_source_for_interactive_debugger()
-            await self.start_program(source, stdin, breakpoints, sample_test, watch)
+            await self.start_program(source, breakpoints, sample_test, watch)
 
         if not self.debug_session:
             return
@@ -352,6 +348,7 @@ class WSInteractor:
                     await self.send_output(event.line)
         except Exception as e:
             logging.error(e)
+            logging.error(traceback.format_exc())
             await self.terminate_program()
 
     async def run(self):

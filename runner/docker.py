@@ -34,7 +34,7 @@ async def create_and_start_container(config: dict) -> str:
                 raise DockerError(data["message"])
 
         async with get_docker_session().post(f"/containers/{container_id}/start") as resp:
-            if resp.status != 204:
+            if not (200 <= resp.status <= 299):
                 raise DockerError("Failed to start container")
     except asyncio.CancelledError:
         if container_id:
@@ -47,3 +47,17 @@ async def create_and_start_container(config: dict) -> str:
 async def stop_and_delete_container(container_id: str) -> None:
     async with get_docker_session().delete(f"/containers/{container_id}?force=true"):
         pass
+
+
+async def start_command_in_container(container_id: str, command: List[str]):
+    async with get_docker_session().post(f"/containers/{container_id}/exec", json={"Cmd": command}) as resp:
+        data = await resp.json()
+        if "Id" in data:
+            exec_id = data["Id"]
+        else:
+            raise DockerError(data["message"])
+
+    async with get_docker_session().post(f"/exec/{exec_id}/start", json={"Detach": True}) as resp:
+        if not (200 <= resp.status <= 299):
+            data = await resp.json()
+            raise DockerError(data["message"])

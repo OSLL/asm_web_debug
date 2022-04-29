@@ -8,7 +8,7 @@ from typing import Dict, List
 class Arch:
     gcc: str
     gdb: str
-    gdbserver: str
+    qemu: str
     display_registers: List[str]
 
 
@@ -21,7 +21,7 @@ class Config:
         "x86_64": Arch(
             gcc="gcc",
             gdb="gdb",
-            gdbserver="gdbserver",
+            qemu="qemu-x86_64",
             display_registers=["rax", "rbx", "rcx", "rdx", "rsi", "rdi", "rbp", "rsp", "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15", "eflags"]
         )
     })

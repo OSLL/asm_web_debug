@@ -27,7 +27,8 @@ class DebugSession:
     debugger: Debugger
     reg_name_to_id: Optional[Dict[RegisterName, int]]
     event_subscribers: List[Callable[[gdbmi.AnyNotification], None]]
-    gdbserver_container_id: str
+    gdbstub_container_id: str
+    real_time_limit: Optional[int]
 
     closed: bool
 
@@ -36,10 +37,10 @@ class DebugSession:
         self.arch = arch
         self.debugger = Debugger()
         self.reg_name_to_id = None
-        self.set_stdin("")
         self.event_subscribers = []
-        self.gdbserver_container_id = ""
+        self.gdbstub_container_id = ""
         self.closed = False
+        self.real_time_limit = None
 
     @property
     def session_id(self) -> str:
@@ -52,10 +53,6 @@ class DebugSession:
     @property
     def executable_path(self) -> pathlib.Path:
         return self.workdir / "a.out"
-
-    @property
-    def stdin_path(self) -> pathlib.Path:
-        return self.workdir / "input"
 
     async def compile(self, source_code) -> CompilationResult:
         with open(self.source_path, "w") as f:
@@ -88,10 +85,6 @@ class DebugSession:
             stderr=stderr.decode()
         )
 
-    def set_stdin(self, data: str) -> None:
-        with open(self.stdin_path, "w") as f:
-            f.write(data)
-
     async def start_debugger(
         self,
         cpu_usage_limit: Optional[float] = None,
@@ -104,21 +97,15 @@ class DebugSession:
         cpu_usage_limit = cpu_usage_limit or config.default_cpu_usage_limit
         cpu_time_limit = cpu_time_limit or config.default_cpu_time_limit
         memory_limit = memory_limit or config.default_memory_limit
-        real_time_limit = real_time_limit or config.default_real_time_limit
+        self.real_time_limit = real_time_limit or config.default_real_time_limit
 
         await self.debugger.start(config.archs[self.arch].gdb)
         await self.debugger.gdb_command(f"-gdb-set mi-async on")
+        await self.debugger.gdb_command(f"-file-exec-and-symbols {self.executable_path}")
 
-        gdbserver_command = []
-
-        if real_time_limit:
-            gdbserver_command += ["timeout", f"{real_time_limit}s"]
-
-        gdbserver_command += [config.archs[self.arch].gdbserver, "--multi", ":1234"]
-
-        gdbserver_docker_params = {
+        gdbstub_docker_params = {
             "Hostname": self.session_id,
-            "Cmd": gdbserver_command,
+            "Cmd": ["sleep", "infinity"],
             "Image": config.executor_docker_image,
             "HostConfig": {
                 "CpuQuota": round(cpu_usage_limit * 100000),
@@ -135,19 +122,32 @@ class DebugSession:
             }
         }
 
-        self.gdbserver_container_id = await docker.create_and_start_container(gdbserver_docker_params)
+        self.gdbstub_container_id = await docker.create_and_start_container(gdbstub_docker_params)
+        await self.start_gdbstub()
 
-        await self.debugger.gdb_command(f"-target-select extended-remote {self.session_id}:1234")
+    async def start_gdbstub(self) -> None:
+        await docker.start_command_in_container(self.gdbstub_container_id, ["killall", "-9", config.archs[self.arch].qemu])
 
-        await self.debugger.gdb_command(f"-gdb-set remote exec-file {self.executable_path}")
-        await self.debugger.gdb_command(f"-file-exec-and-symbols {self.executable_path}")
-        await self.debugger.gdb_command(f"-exec-arguments >&2 <{self.stdin_path}")
+        try:
+            await self.debugger.gdb_command("-target-disconnect")
+        except DebuggerError:
+            pass
+
+        gdbstub_command = []
+
+        if self.real_time_limit:
+            gdbstub_command += ["timeout", "-s", "KILL", f"{self.real_time_limit}s"]
+
+        gdbstub_command += [config.archs[self.arch].qemu, "-g", "1234", str(self.executable_path)]
+
+        await docker.start_command_in_container(self.gdbstub_container_id, gdbstub_command)
+        await self.debugger.gdb_command(f"-target-select remote {self.session_id}:1234")
 
     async def close_impl(self) -> None:
         if self.debugger is not None:
             await asyncio.shield(self.debugger.terminate())
-        if self.gdbserver_container_id:
-            await asyncio.shield(docker.stop_and_delete_container(self.gdbserver_container_id))
+        if self.gdbstub_container_id:
+            await asyncio.shield(docker.stop_and_delete_container(self.gdbstub_container_id))
         shutil.rmtree(self.workdir)
         active_debug_sessions.discard(self)
 
@@ -156,9 +156,6 @@ class DebugSession:
             return
         self.closed = True
         asyncio.create_task(self.close_impl())
-
-    async def start_program(self) -> None:
-        await self.debugger.gdb_command(f"-exec-run")
 
     async def add_breakpoint(self, line_or_function: int | str) -> BreakpointId:
         if type(line_or_function) is int:
@@ -234,14 +231,10 @@ class DebugSession:
             if type(event) is gdbmi.ExecAsync and event.status == "stopped":
                 return event
 
-    async def continue_until(self, line_or_function: int | str, restart_program: bool = False) -> None:
+    async def continue_until(self, line_or_function: int | str) -> None:
         breakpoint_id = await self.add_breakpoint(line_or_function)
         while True:
-            if restart_program:
-                await self.start_program()
-                restart_program = False
-            else:
-                await self.continue_execution()
+            await self.continue_execution()
             event = await self.wait_until_stopped()
 
             if event.values["reason"] == "breakpoint-hit" and event.values["bkptno"] == str(breakpoint_id):
@@ -249,7 +242,8 @@ class DebugSession:
         await self.remove_breakpoint(breakpoint_id)
 
     async def restart(self) -> None:
-        await self.continue_until("_start", restart_program=True)
+        await self.start_gdbstub()
+        await self.continue_until("_start")
 
     async def read_file_from_remote(self, path: pathlib.Path | str) -> bytes:
         host_path = self.workdir / str(uuid4())
@@ -261,22 +255,6 @@ class DebugSession:
             raise DebuggerError(f"can't read file {path}")
         host_path.unlink(missing_ok=True)
         return contents
-
-    async def get_inferior_proc_stat(self, pid: Optional[int] = None) -> List[str]:
-        if pid is None:
-            pid = self.debugger.inferior_pid
-        if not self.debugger.inferior_pid:
-            raise DebuggerError("get_inferior_proc_stat: unknown pid")
-        data = await self.read_file_from_remote(f"/proc/{pid}/stat")
-        return [i.decode() for i in data.strip().split()]
-
-    async def get_cpu_time_used(self) -> float:
-        stat = await self.get_inferior_proc_stat()
-        try:
-            utime_clk = int(stat[13]) # man proc(5)
-        except (ValueError, IndexError):
-            raise DebuggerError(f"invalid file format")
-        return utime_clk / config.system_clock_resolution
 
     async def get_total_cpu_time_used(self) -> float:
         data = await self.read_file_from_remote("/sys/fs/cgroup/cpuacct/cpuacct.usage")
