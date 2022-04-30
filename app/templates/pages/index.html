@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block content %}
-<!-- {{ code|safe }} -->
+<!-- {{code|safe}} -->
     {% set code = code or dict(code='', arch='x86_64', breakpoints=[]) %}
     <div id='task_info_div' style="float: left; width: 60%;">
         <p>TODO: problem statement</p>
@@ -22,21 +22,15 @@
     <div id='main_div'>
         <div id='left_main_div' style="float: left; width: 78%;">
         	<hr />
-            <div id="lastSave">
-                {% if 'last_update' in code %}
-                    {% set time = code['last_update'] %}
-                    Последнее сохранение:
-                    <span id='lastSavedTime'>
-                        <script language="javascript" type="text/javascript">
-                            document.write(new Date({{time}}*1000))
-                        </script>
-                    </span>
-                {% endif %}
-                </div><br>
+            <br>
             <div id='ajax-alert'></div>
-            <select id='arch_select' name='arch'>
+            <select id='arch_select' name='arch' autocomplete="off">
                 {% for arch in config['ARCHS'] %}
+                    {% if arch != code.arch %}
                     <option value={{arch}}>{{arch}}</option>
+                    {% else %}
+                    <option selected value={{code.arch}}>{{code.arch}}</option>
+                    {% endif %}
                 {% endfor %}
             </select>
             <div id="debug-buttons"></div>
@@ -45,6 +39,22 @@
             <form><textarea id='code' class='code' >{{ code['code'] }}</textarea></form>
 
             <br>
+            <div id="lastSave" style="text-align: right; float: right;">
+                {% if 'last_update' in code %}
+                    {% set time = code['last_update'] %}
+                    Created by
+                    <span id="createdByUser">
+                        {{current_user.username}}
+                    </span>
+                    (Last edit:
+                    <span id='lastSavedTime'>
+                        <script language="javascript" type="text/javascript">
+                            const lastDate = new Date({{time}}*1000);
+                            document.write((lastDate.getDate() > 9 ? lastDate.getDate() : '0' + lastDate.getDate()) + '.' + ((lastDate.getMonth() + 1) > 9 ? (lastDate.getMonth() + 1) : '0' + (lastDate.getMonth() + 1)) + '.' + lastDate.getFullYear() + ' ' + (lastDate.getHours() > 9 ? lastDate.getHours() : '0' + lastDate.getHours()) + ':' + (lastDate.getMinutes() > 9 ? lastDate.getMinutes() : '0' + lastDate.getMinutes()) + ':' + (lastDate.getSeconds() > 9 ? lastDate.getSeconds() : '0' + lastDate.getSeconds()) + ')');
+                        </script>
+                    </span>
+                {% endif %}
+                </div>
             <button id="hex-view" class="btn btn-outline-secondary">Open binary in HEX view</button>
             <br><br>
             
@@ -82,6 +92,7 @@
     </div>
 
     <form id="hidden_form" hidden><textarea id="hidden_textarea"></textarea></form>
+
 {% endblock %}
 
 
