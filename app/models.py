@@ -47,6 +47,7 @@ class Problem(db.Model):
     id = Column(Integer, primary_key=True)
     title = Column(String)
     statement = Column(String)
+    arch = Column(String, default="x86_64")
     checker_name = Column(String, nullable=True)
     checker_config = Column(String, default="{}")
 

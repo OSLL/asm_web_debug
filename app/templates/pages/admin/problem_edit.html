@@ -31,6 +31,11 @@
     </div>
 
     <div class="mb-3 container">
+        <label for="arch" class="form-label">CPU Architecture</label>
+        {{ form.arch(class="form-control monospace") }}
+    </div>
+
+    <div class="mb-3 container">
         <label for="checker_name" class="form-label">Checker to use</label>
         {{ form.checker_name(class="form-control monospace") }}
     </div>

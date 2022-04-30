@@ -10,8 +10,10 @@ class Test:
     output: Dict[str, Any]
 
 
-class SimpleChecker(Checker):
+class RegisterTestsChecker(Checker):
     """
+**This checker supports x86_64 and avr5**.
+
 This checker is used to run a program multiple times.
 Each time new values are set to specified registers,
 and then compared with expected values.
@@ -33,12 +35,19 @@ Example config:
 
     tests: List[dict]
 
-    source_prefix = """
+    source_prefix = {
+        "x86_64": """
 .global _start
 .text
 
 _start:
+""",
+        "avr5": """
+.global main
+
+main:
 """
+    }
 
     source_suffix = """
 nop

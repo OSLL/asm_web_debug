@@ -9,7 +9,7 @@ from uuid import uuid4
 
 from runner import docker, gdbmi
 from runner.debugger import Debugger, DebuggerError
-from runner.settings import root, config
+from runner.settings import config
 
 CompilationResult = namedtuple("CompilationResult", ["successful", "stdout", "stderr"])
 
@@ -36,7 +36,6 @@ class DebugSession:
         self.arch = arch
         self.debugger = Debugger()
         self.reg_name_to_id = None
-        self.set_stdin("")
         self.event_subscribers = []
         self.gdbserver_container_id = ""
         self.closed = False
@@ -53,23 +52,11 @@ class DebugSession:
     def executable_path(self) -> pathlib.Path:
         return self.workdir / "a.out"
 
-    @property
-    def stdin_path(self) -> pathlib.Path:
-        return self.workdir / "input"
-
     async def compile(self, source_code) -> CompilationResult:
         with open(self.source_path, "w") as f:
             f.write(source_code)
 
-        command = [
-            config.archs[self.arch].gcc,
-            "-no-pie",
-            "-nodefaultlibs",
-            "-nostartfiles",
-            "-static",
-            "-g",
-            "-Wl,--entry=_start_seccomp",
-            root / "environment" / "seccomp" / self.arch / "entry.S",
+        command = config.archs[self.arch].gcc + [
             self.source_path,
             "-o", self.executable_path
         ]
@@ -87,10 +74,6 @@ class DebugSession:
             stdout=stdout.decode(),
             stderr=stderr.decode()
         )
-
-    def set_stdin(self, data: str) -> None:
-        with open(self.stdin_path, "w") as f:
-            f.write(data)
 
     async def start_debugger(
         self,
@@ -112,9 +95,13 @@ class DebugSession:
         gdbserver_command = []
 
         if real_time_limit:
-            gdbserver_command += ["timeout", f"{real_time_limit}s"]
+            gdbserver_command += ["timeout", "-s", "KILL", f"{real_time_limit}s"]
 
-        gdbserver_command += [config.archs[self.arch].gdbserver, "--multi", ":1234"]
+        if config.archs[self.arch].gdbserver:
+            gdbserver_command += [config.archs[self.arch].gdbserver, "--multi", ":1234"]
+        else:
+            gdbserver_command += config.archs[self.arch].qemu
+            gdbserver_command += ["-bios", str(self.executable_path), "-s", "-S"]
 
         gdbserver_docker_params = {
             "Hostname": self.session_id,
@@ -137,11 +124,13 @@ class DebugSession:
 
         self.gdbserver_container_id = await docker.create_and_start_container(gdbserver_docker_params)
 
-        await self.debugger.gdb_command(f"-target-select extended-remote {self.session_id}:1234")
+        if config.archs[self.arch].gdbserver:
+            await self.debugger.gdb_command(f"-target-select extended-remote {self.session_id}:1234")
+            await self.debugger.gdb_command(f"-gdb-set remote exec-file {self.executable_path}")
+        else:
+            await self.debugger.gdb_command(f"-target-select remote {self.session_id}:1234")
 
-        await self.debugger.gdb_command(f"-gdb-set remote exec-file {self.executable_path}")
         await self.debugger.gdb_command(f"-file-exec-and-symbols {self.executable_path}")
-        await self.debugger.gdb_command(f"-exec-arguments >&2 <{self.stdin_path}")
 
     async def close_impl(self) -> None:
         if self.debugger is not None:
@@ -158,7 +147,8 @@ class DebugSession:
         asyncio.create_task(self.close_impl())
 
     async def start_program(self) -> None:
-        await self.debugger.gdb_command(f"-exec-run")
+        for cmd in config.archs[self.arch].restart:
+            await self.debugger.gdb_command(cmd)
 
     async def add_breakpoint(self, line_or_function: int | str) -> BreakpointId:
         if type(line_or_function) is int:
@@ -231,7 +221,7 @@ class DebugSession:
         async for event in self.debugger.gdb_notifications_iterator():
             for fn in self.event_subscribers:
                 fn(event)
-            if type(event) is gdbmi.ExecAsync and event.status == "stopped":
+            if type(event) is gdbmi.ExecAsync and event.status == "stopped" and "reason" in event.values:
                 return event
 
     async def continue_until(self, line_or_function: int | str, restart_program: bool = False) -> None:
@@ -249,9 +239,12 @@ class DebugSession:
         await self.remove_breakpoint(breakpoint_id)
 
     async def restart(self) -> None:
-        await self.continue_until("_start", restart_program=True)
+        await self.continue_until(config.archs[self.arch].entrypoint, restart_program=True)
 
     async def read_file_from_remote(self, path: pathlib.Path | str) -> bytes:
+        if self.arch != "x86_64":
+            # QEMU doesn't support transferring files via GDBstub, so we'll use docker
+            return await docker.run_command_in_container(self.gdbserver_container_id, ["cat", str(path)])
         host_path = self.workdir / str(uuid4())
         await self.debugger.gdb_command(f"-target-file-get {path} {host_path}")
         try:

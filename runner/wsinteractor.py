@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 import time
+import traceback
 from typing import Dict, Optional, List, Type
 
 from aiohttp import web, WSMsgType
@@ -45,6 +46,7 @@ class WSInteractor:
     handle_gdb_events_task: Optional[asyncio.Task]
     uninterrupted_timeout_task: Optional[asyncio.Task]
     closed: bool
+    arch: str
 
     def __init__(self, ws: web.WebSocketResponse, query: MultiDict[str]):
         self.ws = ws
@@ -59,6 +61,7 @@ class WSInteractor:
         self.handle_gdb_events_task = None
         self.uninterrupted_timeout_task = None
         self.closed = True
+        self.arch = query.get("arch")
 
     async def handle_incoming_messages(self):
         async for msg in self.ws:
@@ -73,13 +76,13 @@ class WSInteractor:
                     "message": str(e)
                 })
 
-    async def start_program(self, source: str, stdin: str, breakpoints: List[int], sample_test: Optional[str], watch: List[str]):
+    async def start_program(self, source: str, breakpoints: List[int], sample_test: Optional[str], watch: List[str]):
         if self.debug_session:
             await self.terminate_program()
 
         self.breakpoints = {}
         self.watch = watch
-        self.debug_session = DebugSession("x86_64")
+        self.debug_session = DebugSession(self.arch)
         self.metadata = {
             "source_code": source,
             "arch": self.debug_session.arch,
@@ -99,7 +102,6 @@ class WSInteractor:
         if not result.successful:
             return
 
-        self.debug_session.set_stdin(stdin)
         await self.debug_session.start_debugger(real_time_limit=config.default_online_real_time_limit)
 
         await self.post_stats()
@@ -201,9 +203,6 @@ class WSInteractor:
             source = msg.get("source")
             if type(source) is not str:
                 raise ValueError("Expected 'source' field to be a string")
-            stdin = msg.get("input")
-            if type(stdin) is not str:
-                raise ValueError("Expected 'input' field to be a string")
             breakpoints = msg.get("breakpoints")
             if type(breakpoints) is not list:
                 raise ValueError("Expected 'breakpoints' field to be a list")
@@ -221,8 +220,8 @@ class WSInteractor:
                     raise ValueError("Expected 'watch' contents to be strings")
 
             if self.checker_class is not None:
-                source = self.checker_class(arch="x86_64", source_code=source).get_source_for_interactive_debugger()
-            await self.start_program(source, stdin, breakpoints, sample_test, watch)
+                source = self.checker_class(arch=self.arch, source_code=source).get_source_for_interactive_debugger()
+            await self.start_program(source, breakpoints, sample_test, watch)
 
         if not self.debug_session:
             return
@@ -329,29 +328,33 @@ class WSInteractor:
                         self.uninterrupted_timeout_task.cancel()
                         self.uninterrupted_timeout_task = None
 
-                    if event.status == "stopped" and event.values["reason"].startswith("exited"):
-                        if event.values["reason"] == "exited-signalled":
-                            signal_name = event.values["signal-name"]
-                            status = f"[process received signal {signal_name}]"
-                        else:
-                            exitcode = int(event.values.get("exit-code", "0"), 8)
-                            status = f"[process exited with exit code {exitcode}]"
-                        await self.send_output(status)
-                        await self.terminate_program()
-                    if event.status == "stopped" and event.values["reason"] in ["breakpoint-hit", "end-stepping-range", "function-finished", "location-reached", "signal-received"]:
-                        if "line" in event.values["frame"]:
-                            line = int(event.values["frame"]["line"])
-                        else:
-                            line = -1
-                        await self.ws.send_json({
-                            "type": "paused",
-                            "line": line
-                        })
+                    if event.status == "stopped":
+                        reason = event.values.get("reason")
+                        if not reason:
+                            continue
+                        if reason.startswith("exited"):
+                            if reason == "exited-signalled":
+                                signal_name = event.values["signal-name"]
+                                status = f"[process received signal {signal_name}]"
+                            else:
+                                exitcode = int(event.values.get("exit-code", "0"), 8)
+                                status = f"[process exited with exit code {exitcode}]"
+                            await self.send_output(status)
+                            await self.terminate_program()
+                        if reason in ["breakpoint-hit", "end-stepping-range", "function-finished", "location-reached", "signal-received"]:
+                            if "line" in event.values["frame"]:
+                                line = int(event.values["frame"]["line"])
+                            else:
+                                line = -1
+                            await self.ws.send_json({
+                                "type": "paused",
+                                "line": line
+                            })
 
                 if type(event) is gdbmi.TargetOutput:
                     await self.send_output(event.line)
-        except Exception as e:
-            logging.error(e)
+        except Exception:
+            logging.error(traceback.format_exc())
             await self.terminate_program()
 
     async def run(self):

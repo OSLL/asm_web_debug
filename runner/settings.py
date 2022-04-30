@@ -1,15 +1,21 @@
 from dataclasses import dataclass, field
 import pathlib
 import os
-from typing import Dict, List
+from typing import Dict, List, Optional
+
+
+root: pathlib.Path = pathlib.Path(__file__).parent.parent
 
 
 @dataclass
 class Arch:
-    gcc: str
+    gcc: List[str]
     gdb: str
-    gdbserver: str
+    gdbserver: Optional[str]
+    qemu: Optional[List[str]]
+    restart: List[str]
     display_registers: List[str]
+    entrypoint: str
 
 
 @dataclass
@@ -19,10 +25,43 @@ class Config:
     prometheus_port: int = 9090
     archs: Dict[str, Arch] = field(default_factory=lambda: {
         "x86_64": Arch(
-            gcc="gcc",
+            gcc=[
+                "gcc",
+                "-no-pie",
+                "-nodefaultlibs",
+                "-nostartfiles",
+                "-static",
+                "-g",
+                "-Wl,--entry=_start_seccomp",
+                root / "environment" / "seccomp" / "x86_64" / "entry.S",
+            ],
             gdb="gdb",
             gdbserver="gdbserver",
-            display_registers=["rax", "rbx", "rcx", "rdx", "rsi", "rdi", "rbp", "rsp", "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15", "eflags"]
+            qemu=None,
+            restart=["-exec-run"],
+            display_registers=[
+                "rax", "rbx", "rcx", "rdx", "rsi", "rdi", "rbp", "rsp", "r8",
+                "r9", "r10", "r11", "r12", "r13", "r14", "r15", "eflags"
+            ],
+            entrypoint="_start"
+        ),
+        "avr5": Arch(
+            gcc=[
+                "avr-gcc",
+                "-mmcu=atmega328p",
+                "-g"
+            ],
+            gdb="avr-gdb",
+            gdbserver=None,
+            qemu=["qemu-system-avr", "-machine", "uno", "-nographic"],
+            restart=["-gdb-set $pc=0", "-exec-continue"],
+            display_registers=[
+                "r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r10",
+                "r11", "r12", "r13", "r14", "r15", "r16", "r17", "r18", "r19", "r20",
+                "r21", "r22", "r23", "r24", "r25", "r26", "r27", "r28", "r29", "r30",
+                "r31", "SREG", "SP"
+            ],
+            entrypoint="main"
         )
     })
 
@@ -40,5 +79,4 @@ class Config:
     docker_socket: str = "/var/run/docker.sock"
     system_clock_resolution: int = os.sysconf("SC_CLK_TCK")
 
-root: pathlib.Path = pathlib.Path(__file__).parent.parent
 config: Config = Config()

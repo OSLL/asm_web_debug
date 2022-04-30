@@ -114,13 +114,9 @@ def save_code(assignment_id):
     assignment = get_assignment(assignment_id)
 
     source_code = request.form.get("code", "")
-    arch = request.form.get("arch", "x86_64")
-
-    if arch not in app.config["ARCHS"]:
-        abort(403)
 
     assignment.source_code = source_code
-    assignment.arch = arch
+    assignment.arch = assignment.problem.arch
     db.session.commit()
 
     return {"success_save": True}
@@ -150,7 +146,8 @@ def websocket(assignment_id):
     params = {
         "user_id": str(current_user.id),
         "assignment_id": str(assignment.id),
-        "checker_name": assignment.problem.checker_name
+        "checker_name": assignment.problem.checker_name,
+        "arch": assignment.problem.arch
     }
 
     response = make_response()

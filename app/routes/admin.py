@@ -89,6 +89,7 @@ class ProblemForm(FlaskForm):
     title = StringField(validators=[InputRequired()])
     course_name = StringField()
     statement = TextAreaField()
+    arch = SelectField(choices=app.config["ARCHS"])
     checker_name = SelectField(choices=list(Checker._all_checkers))
     checker_config = TextAreaField()
 

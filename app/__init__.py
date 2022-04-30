@@ -25,9 +25,6 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(message)s"
 )
 
-if loglevel == "DEBUG":
-    logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
-
 def _register():
     import runner.checkers # register all checkers
     import app.models # register models

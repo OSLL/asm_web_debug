@@ -6,8 +6,7 @@ RUN pip install poetry
 COPY pyproject.toml poetry.lock /code/
 RUN poetry install --no-interaction --no-ansi --no-dev
 
-RUN apt-get update
-RUN apt-get install -y gcc gdb
+RUN apt-get update && apt-get install -y gcc gdb gcc-avr gdb-avr avr-libc
 
 COPY . /code
 

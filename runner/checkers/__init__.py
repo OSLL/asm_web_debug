@@ -1,1 +1,1 @@
-from . import simple, string_length
+from . import register_tests, string_length

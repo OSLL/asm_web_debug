@@ -47,3 +47,33 @@ async def create_and_start_container(config: dict) -> str:
 async def stop_and_delete_container(container_id: str) -> None:
     async with get_docker_session().delete(f"/containers/{container_id}?force=true"):
         pass
+
+
+async def run_command_in_container(container_id: str, command: List[str]) -> bytes:
+    config = {
+        "AttachStdout": True,
+        "AttachStderr": False,
+        "AttachStdin": False,
+        "Cmd": command
+    }
+
+    async with get_docker_session().post(f"/containers/{container_id}/exec", json=config) as resp:
+        data = await resp.json()
+        if "Id" in data:
+            exec_id = data["Id"]
+        else:
+            raise DockerError(data["message"])
+
+    async with get_docker_session().post(f"/exec/{exec_id}/start", json={}) as resp:
+        body = await resp.read()
+
+    # parse docker stream format, https://docs.docker.com/engine/api/v1.41/#operation/ContainerAttach
+
+    result = b""
+    while body:
+        size, = struct.unpack(">xxxxI", body[:8])
+        body = body[8:]
+        result += body[:size]
+        body = body[size:]
+
+    return result

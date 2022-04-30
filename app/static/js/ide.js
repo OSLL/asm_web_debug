@@ -130,7 +130,6 @@
             sendMessage({
                 "type": "run",
                 "source": doc.getValue(),
-                "input": "",
                 "breakpoints": getBreakpoints(),
                 "watch": watchedExprs,
                 "sample_test": $sampleTest ? $sampleTest.val() : null

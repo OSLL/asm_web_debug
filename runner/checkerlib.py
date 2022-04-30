@@ -1,6 +1,6 @@
 import abc
 import pathlib
-from typing import Dict, Optional, Type
+from typing import Dict, List, Optional, Type
 from runner import gdbmi
 from runner.settings import config
 from runner.debugger import DebuggerError
@@ -52,7 +52,7 @@ class BaseChecker(abc.ABC):
 
         def on_event(event: gdbmi.AnyNotification) -> None:
             if type(event) is gdbmi.ExecAsync and event.status == "stopped":
-                reason = event.values["reason"]
+                reason = event.values.get("reason")
                 if reason in ("signal-received", "exited-signalled") and event.values["signal-name"] != "SIGINT":
                     raise SignalledError(event.values["signal-name"])
 
@@ -88,8 +88,8 @@ class BaseChecker(abc.ABC):
 
 
 class Checker(BaseChecker):
-    source_prefix: str = ""
-    source_suffix: str = ""
+    source_prefix: str | Dict[str, str] = ""
+    source_suffix: str | Dict[str, str] = ""
     sample_test: Optional[str] = None
 
     cpu_usage_limit: Optional[float] = None # in cores
@@ -104,10 +104,20 @@ class Checker(BaseChecker):
     async def prepare_sample_test(self) -> None: pass
 
     def get_source_for_interactive_debugger(self) -> str:
-        return f"""{self.source_prefix}
+        if type(self.source_prefix) is dict:
+            prefix = self.source_prefix[self.arch]
+        else:
+            prefix = self.source_prefix
+
+        if type(self.source_suffix) is dict:
+            suffix = self.source_suffix[self.arch]
+        else:
+            suffix = self.source_suffix
+
+        return f"""{prefix}
 #line 1
 {self.source_code}
-{self.source_suffix}
+{suffix}
 """
 
     async def run(self) -> None:

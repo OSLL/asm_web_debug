@@ -5,7 +5,7 @@ class Config:
     STATIC_FOLDER = 'static'
     CODES_FOLDER = '../codes/'
     ENVIRONMENT_FOLDER = '../environment'
-    ARCHS = ('x86_64',)
+    ARCHS = ("x86_64", "avr5")
     REDIS_URL = "redis://redis:6379/0"
     SECRET_KEY = ''
     RUNNER_API = "http://runner/runner_api"

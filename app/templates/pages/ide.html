@@ -40,25 +40,17 @@
         {% if problem %}
         	<hr />
         {% endif %}
-            <br />
             <div id='ajax-alert'></div>
-            <select id='arch_select' name='arch'>
-                {% for arch in config['ARCHS'] %}
-                    <option value={{arch}}>{{arch}}</option>
-                {% endfor %}
-            </select>
-            <br />
 
 {% if sample_test %}
             Input:
             <textarea id="sample_test" class="sample_test" rows="1">{{ sample_test }}</textarea>
 {% endif %}
             <div id="debug-buttons"></div>
-            <br><br>
-
+            <br />
 
             <form><textarea id="code" class="code" >{{ assignment.source_code }}</textarea></form>
-            <br>
+            <br />
 
             <textarea id='build_log' class='build_log' readonly></textarea>
         </div>
