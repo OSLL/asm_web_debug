@@ -60,6 +60,7 @@ def lti_route():
             title=resource_link_title,
             course_name=context_title,
             statement=resource_link_description or "",
+            arch="x86_64",
             checker_name=None,
             tool_consumer_id=tool_consumer.id,
             resource_link_id=resource_link_id

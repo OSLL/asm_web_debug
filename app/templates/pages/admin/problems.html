@@ -16,6 +16,7 @@
             <td scope="col">Course</td>
             <td scope="col">Title</td>
             <td scope="col">Checker</td>
+            <td scope="col">Arch</td>
             <td scope="col"></td>
         </tr>
     </thead>
@@ -27,6 +28,7 @@
             <td>{{ problem.course_name }}</td>
             <td>{{ problem.title }}</td>
             <td><code>{{ problem.checker_name }}</code></td>
+            <td>{{ problem.arch }}</td>
             <td>
                 <a class="btn btn-secondary" href="{{ url_for('admin_problem_edit', problem_id=problem.id) }}">Edit</a>
                 <a class="btn btn-secondary" href="{{ url_for('admin_problem_submissions', problem_id=problem.id) }}">Grades</a>
