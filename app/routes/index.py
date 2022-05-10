@@ -56,11 +56,13 @@ def save_code(code_id):
 def save_solution(code_id):
     _datetime = datetime.datetime.now()
     feedback = request.form.get('feedback', '')
-    task_id = request.form.get('task', '')
     LTI_session = request.form.get('LTI_session:', '')
-    if task_id == 'test':
-        DBManager.create_task('1', 'First', 'test', {'A': 'B'})
-        task_id = '1'
+    try:
+        solution_id, task_id = re.split(r'-', code_id)
+    except ValueError:
+        solution_id = int(code_id)
+        task_id = 0
+        DBManager.create_task(task_id, 'Default test task', 'Default description', {'Param1': 'Value1'})
     task = DBManager.get_task(task_id)
     code = DBManager.get_code(code_id)
 
