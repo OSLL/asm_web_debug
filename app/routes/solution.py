@@ -25,7 +25,7 @@ class Solution:
 solution_bp = Blueprint('solution', __name__)
 bp = solution_bp
 
-@bp.route('/solutions/<id>', methods=['GET', 'POST'])
+@bp.route('/solutions/<int:id>', methods=['GET', 'POST'])
 def index(id):
     solution = dbmanager.get_solution(id)
     if(solution == None):
