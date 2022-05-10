@@ -298,16 +298,13 @@
     
     $("#check-button").on("click", ()=> {
         saveCode();
-        solutionId = codeId;
         $.ajax({
-            url: "/savesolution/" + solutionId,
+            url: "/savesolution/" + codeId,
             type: "POST",
             dataType: "json",
             data: {
                 feedback: document.getElementById("build_log").value,
-                task: "test",
                 LTI_session: "test",
-                code: codeId
             },
             success: () => {
                 showAlert("Solution was saved", "success");
