@@ -295,6 +295,25 @@
 
         $form.submit();
     });
+    
+    $("#check-button").on("click", ()=> {
+        saveCode();
+        $.ajax({
+            url: "/savesolution/" + codeId,
+            type: "POST",
+            dataType: "json",
+            data: {
+                feedback: document.getElementById("build_log").value,
+                LTI_session: "test",
+            },
+            success: () => {
+                showAlert("Solution was saved", "success");
+                if(codeInComment !== "  "){
+                    updateLastSaveInfo();
+                }
+            }
+        })
+    })
 
     initEditor();
     setState(State.stopped);

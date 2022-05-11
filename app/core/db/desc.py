@@ -47,7 +47,7 @@ class Consumers(me.Document):
     timestamps = me.ListField(blank=True)
     
 class Solutions(me.Document):
-    _id = me.StringField(primary_key=True)
+    _id = me.IntField(primary_key=True)
     datetime = me.DateTimeField()
     feedback = me.StringField()
     task = me.ReferenceField('Tasks', dbref=True)
@@ -55,7 +55,7 @@ class Solutions(me.Document):
     codes = me.ReferenceField('Codes', dbref=True)
     
 class Tasks(me.Document):
-    _id = me.StringField(primary_key=True)
+    _id = me.IntField(primary_key=True)
     name = me.StringField(unique=True)
     description = me.StringField()
     tests = me.DictField()

@@ -70,6 +70,29 @@ class DBManager:
             return None
     
     ### solutions ###
+    
+    @staticmethod
+    def delete_solution(solution_id):
+        try:
+            return Solutions.objects(_id=solution_id).delete()
+        except Solution.DoesNotExist:
+            current_app.logger.debug(f'Solution not found: {solution_id}')
+            return None
+
+
+    @staticmethod
+    def create_solution(solution_id, datetime, feedback, task, LTI_session, codes):
+        solution_obj = Solutions.objects(_id=solution_id).first()
+        if solution_obj:
+            solution_obj.datetime = datetime
+            solution_obj.feedback = feedback
+            solution_obj.task = task
+            #solution_obj.LTI_session = LTI_session
+            solution_obj.codes = codes
+            solution_obj.save()
+        else:
+            solution_obj = Solutions(_id=solution_id, datetime=datetime, feedback=feedback, codes=codes)
+            solution_obj.save() 
 
     @staticmethod
     def get_solution(solution_id):
