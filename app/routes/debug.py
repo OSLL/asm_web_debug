@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, current_app
+from flask_security import roles_accepted
 from os.path import isfile
 from json import dumps as json_dumps
 
@@ -7,6 +8,7 @@ bp = debug_bp
 
 
 @bp.route('/build', methods=['GET'])
+@roles_accepted('teacher', 'admin')
 def debug_page():
     return render_template('pages/build_info.html', build_info=load_debug_file(current_app.config['BUILD_FILE']))
 
