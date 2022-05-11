@@ -97,6 +97,9 @@ class Debugger:
         metrics.running_gdb_processes.dec()
 
     async def gdb_command(self, cmd: str) -> dict:
+        if not self.gdb:
+            raise DebuggerError("Broken GDB session")
+
         logging.debug(cmd)
         cmd_name = cmd.split(maxsplit=1)[0]
         with metrics.gdb_command_latency.labels(cmd_name).time():

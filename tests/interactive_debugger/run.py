@@ -8,13 +8,25 @@ import aiohttp
 import click
 
 
-EXAMPLE_SOURCE = r"""
-mov $10, %rax
+EXAMPLE_SOURCE_X86_64 = r"""
+mov $30, %rax
 
 again:
 dec %rax
 test %rax, %rax
 jz end
+jmp again
+
+end: nop
+"""
+
+EXAMPLE_SOURCE_AVR = r"""
+ldi r16, 30
+
+again:
+cpi r16, 0
+breq end
+subi r16, 1
 jmp again
 
 end: nop
@@ -44,6 +56,8 @@ class DebugClient:
         while True:
             data = await self.ws.receive_json()
             if data["type"] == "paused":
+                if data["line"] >= 9:
+                    return False
                 return True
             if data["type"] == "finished":
                 return False
@@ -64,26 +78,29 @@ async def report_time(name: str) -> None:
 @click.command()
 @click.option("--endpoint", default="http://localhost:8080", help="Endpoint for ASM WEB IDE launched in test mode")
 @click.option("-n", default=1, help="Number of parallel connections to make")
-def main(endpoint: str, n: int) -> None:
-    asyncio.run(run_async_tests_parallel(endpoint, n))
+@click.option("--arch", default="x86_64")
+def main(endpoint: str, n: int, arch: str) -> None:
+    asyncio.run(run_async_tests_parallel(endpoint, n, arch))
 
 
-async def run_async_tests_parallel(endpoint: str, n: int) -> None:
+async def run_async_tests_parallel(endpoint: str, n: int, arch: str) -> None:
     async with aiohttp.ClientSession(endpoint, cookie_jar=aiohttp.CookieJar()) as session:
         async with session.post("/login", data={"username": "admin", "password": "admin"}): pass
         tasks = []
         for i in range(n):
-            tasks.append(run_async_tests(session, i))
+            tasks.append(run_async_tests(session, i, arch))
         await asyncio.gather(*tasks)
 
 
-async def run_async_tests(session: aiohttp.ClientSession, idx: int) -> None:
+async def run_async_tests(session: aiohttp.ClientSession, idx: int, arch: str) -> None:
     try:
         await asyncio.sleep(1.0 * idx)
-        async with session.ws_connect("/assignment/1/websocket") as ws:
+        assignment = 1 if arch == "x86_64" else 2
+        source = EXAMPLE_SOURCE_X86_64 if arch == "x86_64" else EXAMPLE_SOURCE_AVR
+        async with session.ws_connect(f"/assignment/{assignment}/websocket") as ws:
             client = DebugClient(ws)
             async with report_time(f"{idx} start"):
-                assert (await client.start(EXAMPLE_SOURCE, [1]))
+                assert (await client.start(source, [1]))
                 await client.wait_until_stopped()
 
             while True:
