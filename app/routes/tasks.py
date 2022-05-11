@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, redirect, request
+from flask_security import roles_accepted
 
 tasks_bp = Blueprint('tasks', __name__)
 bp = tasks_bp
@@ -13,11 +14,13 @@ tasks_data = [
 
 
 @bp.route('/tasks', methods=['GET', 'POST'])
+@roles_accepted('teacher', 'admin')
 def index():
     return render_template('pages/tasks.html', data=tasks_data)
 
 
 @bp.route('/tasks/remove/<id>', methods=['GET', 'POST'])
+@roles_accepted('teacher', 'admin')
 def remove(id):
     x=0
     for i in tasks_data:
@@ -30,6 +33,7 @@ def remove(id):
 
 
 @bp.route('/tasks/edit/', methods=['GET', 'POST'])
+@roles_accepted('teacher', 'admin')
 def edit():
     task_id=request.args.get("id")
     registers_bef=request.args.get("registers").split(",")
@@ -57,7 +61,7 @@ def edit():
 
 
 @bp.route('/tasks/add/', methods=['GET', 'POST'])
-
+@roles_accepted('teacher', 'admin')
 def add():
     max = 0
     for i in tasks_data:
