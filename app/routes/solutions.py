@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, redirect, request
+from flask_security import roles_accepted
 
 solutions_bp = Blueprint('solutions', __name__)
 bp = solutions_bp
@@ -13,6 +14,7 @@ solutions_data = [
 
 
 @bp.route('/solutions', methods=['GET', 'POST'])
+@roles_accepted('teacher', 'admin')
 def index():
     task_id=-1
     if request.args.get('task_id'):
