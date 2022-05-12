@@ -7,7 +7,7 @@ from collections import namedtuple
 from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, Type, TypeAlias
 from uuid import uuid4
 
-from runner import docker, gdbmi
+from runner import docker, gdbmi, metrics
 from runner.debugger import Debugger, DebuggerError
 from runner.settings import config
 
@@ -61,13 +61,14 @@ class DebugSession:
             "-o", self.executable_path
         ]
 
-        process = await asyncio.subprocess.create_subprocess_exec(
-            *command,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
-        )
+        with metrics.debug_session_compilation_time.labels(self.arch).time():
+            process = await asyncio.subprocess.create_subprocess_exec(
+                *command,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
 
-        stdout, stderr = await process.communicate()
+            stdout, stderr = await process.communicate()
 
         return CompilationResult(
             successful=process.returncode == 0,
@@ -122,7 +123,8 @@ class DebugSession:
             }
         }
 
-        self.gdbserver_container_id = await docker.create_and_start_container(gdbserver_docker_params)
+        with metrics.debug_session_container_init_time.labels(self.arch).time():
+            self.gdbserver_container_id = await docker.create_and_start_container(gdbserver_docker_params)
 
         if config.archs[self.arch].gdbserver:
             await self.debugger.gdb_command(f"-target-select extended-remote {self.session_id}:1234")

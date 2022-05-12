@@ -9,7 +9,7 @@ import click
 
 
 EXAMPLE_SOURCE_X86_64 = r"""
-mov $30, %rax
+mov $250, %rax
 
 again:
 dec %rax
@@ -21,7 +21,7 @@ end: nop
 """
 
 EXAMPLE_SOURCE_AVR = r"""
-ldi r16, 30
+ldi r16, 250
 
 again:
 cpi r16, 0
