@@ -126,11 +126,12 @@ class DebugSession:
         with metrics.debug_session_container_init_time.labels(self.arch).time():
             self.gdbserver_container_id = await docker.create_and_start_container(gdbserver_docker_params)
 
-        if config.archs[self.arch].gdbserver:
-            await self.debugger.gdb_command(f"-target-select extended-remote {self.session_id}:1234")
-            await self.debugger.gdb_command(f"-gdb-set remote exec-file {self.executable_path}")
-        else:
-            await self.debugger.gdb_command(f"-target-select remote {self.session_id}:1234")
+        with metrics.debug_session_connect_time.labels(self.arch).time():
+            if config.archs[self.arch].gdbserver:
+                await self.debugger.gdb_command(f"-target-select extended-remote {self.session_id}:1234")
+                await self.debugger.gdb_command(f"-gdb-set remote exec-file {self.executable_path}")
+            else:
+                await self.debugger.gdb_command(f"-target-select remote {self.session_id}:1234")
 
         await self.debugger.gdb_command(f"-file-exec-and-symbols {self.executable_path}")
 
