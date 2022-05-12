@@ -66,7 +66,7 @@ def save_solution(code_id):
     task = DBManager.get_task(task_id)
     code = DBManager.get_code(code_id)
 
-    DBManager.create_solution(solution_id=code_id, datetime=_datetime, feedback=feedback, task=task, LTI_session=LTI_session, codes=code)
+    DBManager.create_solution(solution_id=solution_id, datetime=_datetime, feedback=feedback, task=task, LTI_session=LTI_session, codes=code)
 
     return Response(success_save=True)
 
