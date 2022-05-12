@@ -1,5 +1,6 @@
 import datetime
 from flask import Blueprint, render_template
+from flask_security import roles_accepted
 from app.core.db.manager import DBManager
 
 dbmanager = DBManager()
@@ -26,6 +27,7 @@ solution_bp = Blueprint('solution', __name__)
 bp = solution_bp
 
 @bp.route('/solutions/<int:id>', methods=['GET', 'POST'])
+@roles_accepted('teacher', 'admin')
 def index(id):
     solution = dbmanager.get_solution(id)
     if(solution == None):
