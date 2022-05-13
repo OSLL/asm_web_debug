@@ -32,7 +32,7 @@ class DebugSession:
     closed: bool
 
     def __init__(self, arch: str) -> None:
-        self.workdir = pathlib.Path(tempfile.mkdtemp(prefix="asmwebide_runner_", dir=config.runner_data_path))
+        self.workdir = pathlib.Path(tempfile.mkdtemp(prefix="asm_web_debug-executor-", dir=config.runner_data_path))
         self.arch = arch
         self.debugger = Debugger()
         self.reg_name_to_id = None
@@ -124,7 +124,7 @@ class DebugSession:
         }
 
         with metrics.debug_session_container_init_time.labels(self.arch).time():
-            self.gdbserver_container_id = await docker.create_and_start_container(gdbserver_docker_params)
+            self.gdbserver_container_id = await docker.create_and_start_container(self.session_id, gdbserver_docker_params)
 
         with metrics.debug_session_connect_time.labels(self.arch).time():
             if config.archs[self.arch].gdbserver:

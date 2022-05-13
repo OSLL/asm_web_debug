@@ -22,11 +22,11 @@ def get_docker_session() -> aiohttp.ClientSession:
 class DockerError(Exception): pass
 
 
-async def create_and_start_container(config: dict) -> str:
+async def create_and_start_container(name: str, config: dict) -> str:
     container_id = None
 
     try:
-        async with get_docker_session().post("/containers/create", json=config) as resp:
+        async with get_docker_session().post(f"/containers/create?name={name}", json=config) as resp:
             data = await resp.json()
             if "Id" in data:
                 container_id = data["Id"]
