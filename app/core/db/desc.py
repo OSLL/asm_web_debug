@@ -59,7 +59,7 @@ class Tasks(me.Document):
     name = me.StringField(unique=True)
     description = me.StringField()
     tests = me.DictField()
-    parameters = me.ReferenceField('Parameters',dbref=true)
+    parameters = me.ReferenceField('Parameters',dbref=True)
 
 class Parameters(me.Document):
     _id = me.IntField(primary_key=True)
