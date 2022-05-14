@@ -34,7 +34,7 @@ class DebugSession:
     def __init__(self, arch: str) -> None:
         self.workdir = pathlib.Path(tempfile.mkdtemp(prefix="asm_web_debug-executor-", dir=config.runner_data_path))
         self.arch = arch
-        self.debugger = Debugger()
+        self.debugger = Debugger(arch)
         self.reg_name_to_id = None
         self.event_subscribers = []
         self.gdbserver_container_id = ""
@@ -90,7 +90,7 @@ class DebugSession:
         memory_limit = memory_limit or config.default_memory_limit
         real_time_limit = real_time_limit or config.default_real_time_limit
 
-        await self.debugger.start(config.archs[self.arch].gdb)
+        await self.debugger.start()
         await self.debugger.gdb_command(f"-gdb-set mi-async on")
 
         gdbserver_command = []

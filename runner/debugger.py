@@ -11,6 +11,7 @@ class DebuggerError(Exception):
 
 
 class Debugger:
+    arch: str
     gdb: Optional[asyncio.subprocess.Process]
     inferior_running: bool
     gdb_results: asyncio.Queue[gdbmi.Result]
@@ -19,7 +20,8 @@ class Debugger:
     inferior_output_task: Optional[asyncio.Task]
     inferior_pid: Optional[int]
 
-    def __init__(self) -> None:
+    def __init__(self, arch: str) -> None:
+        self.arch = arch
         self.gdb = None
         self.inferior_running = False
         self.gdb_results = asyncio.Queue()
@@ -28,9 +30,9 @@ class Debugger:
         self.inferior_output_task = None
         self.inferior_pid = None
 
-    async def start(self, path_to_gdb: str) -> None:
+    async def start(self) -> None:
         command = [
-            path_to_gdb,
+            config.archs[self.arch].gdb,
             "-q", "-nx",
             "--interpreter=mi2"
         ]
@@ -45,7 +47,7 @@ class Debugger:
         self.interactor_task = asyncio.create_task(self._gdb_interactor())
         self.inferior_output_task = asyncio.create_task(self._inferior_output_reader())
 
-        metrics.running_gdb_processes.inc()
+        metrics.running_gdb_processes.labels(self.arch).inc()
 
     async def _gdb_interactor(self) -> None:
         while self.gdb is not None:
@@ -94,7 +96,7 @@ class Debugger:
         await self.gdb.wait()
         self.gdb = None
         self.interactor_task = None
-        metrics.running_gdb_processes.dec()
+        metrics.running_gdb_processes.labels(self.arch).dec()
 
     async def gdb_command(self, cmd: str) -> dict:
         if not self.gdb:
