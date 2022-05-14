@@ -18,12 +18,14 @@ def parse_args():
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     parser_run = subparsers.add_parser("run", help="Run server")
-    parser_run.add_argument("-p", "--port", type=int, default=8080, help="Port for development server")
+    parser_run.add_argument("-p", "--port", type=int, default=8080, help="Port for server")
+    parser_run.add_argument("--prometheus-port", type=int, default=8081, help="Port for Prometheus")
+    parser_run.add_argument("--cadvisor-port", type=int, default=8082, help="Port for cAdvisor")
     parser_run.add_argument("-d", "--detach", action="store_true", help="Run in the background")
     parser_run.add_argument("--prod", action="store_true", help="Run in production mode")
     parser_run.add_argument("-t", "--test", action="store_true", help="Run in test mode")
 
-    subparsers.add_parser("stop", help="Stop development server started in detach mode")
+    subparsers.add_parser("stop", help="Stop server started in detach mode")
     subparsers.add_parser("shell", help="Run shell")
 
     parser_flask = subparsers.add_parser("flask", help="Run a flask command")
@@ -75,7 +77,12 @@ def main():
         if not (workdir / ".env").exists():
             create_env_file()
         profile = "production" if args.prod else "develop"
-        env = { "APP_PORT": str(args.port) }
+        env = {
+            "APP_PORT": str(args.port),
+            "PROMETHEUS_PORT": str(args.prometheus_port),
+            "CADVISOR_PORT": str(args.cadvisor_port),
+            "AWI_TEST_MODE": ""
+        }
         if args.test:
             env["POSTGRES_VOLUME_BIND"] = "/dev/null:/.devnull"
             env["AWI_TEST_MODE"] = "1"

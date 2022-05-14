@@ -40,10 +40,3 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for("index"))
-
-
-@app.route("/require_admin")
-def require_admin():
-    if not current_user.is_authenticated or not current_user.is_admin:
-        abort(403)
-    return "ok"

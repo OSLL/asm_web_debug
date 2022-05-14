@@ -3,7 +3,6 @@
         <a id="index_link" href="{{ url_for('index') }}">Index</a>&nbsp;
         {% if current_user.is_admin %}
             <a href="{{ url_for('admin_users') }}">Admin</a>&nbsp;
-            <a href="/monitoring/graph">Monitoring</a>
         {% endif %}
         <div id="auth_user" style="text-align:right; float:right">
             {% if current_user.is_authenticated %}
