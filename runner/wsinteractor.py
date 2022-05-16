@@ -104,20 +104,28 @@ class WSInteractor:
 
         await self.debug_session.start_debugger(real_time_limit=config.default_online_real_time_limit)
 
-        await self.post_stats()
+        with self.debug_session.measure_time("post_stats_time"):
+            await self.post_stats()
 
-        for line in breakpoints:
-            self.breakpoints[line] = await self.debug_session.add_breakpoint(line)
+        with self.debug_session.measure_time("init_breakpoints_time"):
+            for line in breakpoints:
+                self.breakpoints[line] = await self.debug_session.add_breakpoint(line)
 
-        if self.checker_class and sample_test:
-            checker = self.checker_class(arch=self.debug_session.arch, source_code=source)
-            checker.sample_test = sample_test
-            checker.program = self.debug_session
-            await self.debug_session.restart()
-            await checker.prepare_sample_test()
-            await self.debug_session.continue_execution()
-        else:
-            await self.debug_session.start_program()
+        with self.debug_session.measure_time("start_program_time"):
+            if self.checker_class and sample_test:
+                checker = self.checker_class(arch=self.debug_session.arch, source_code=source)
+                checker.sample_test = sample_test
+                checker.program = self.debug_session
+                await self.debug_session.restart()
+                await checker.prepare_sample_test()
+                await self.debug_session.continue_execution()
+            else:
+                await self.debug_session.start_program()
+
+        await self.ws.send_json({
+            "type": "metadata",
+            "data": self.debug_session.metadata
+        })
 
         self.handle_gdb_events_task = asyncio.create_task(self.handle_gdb_events())
 

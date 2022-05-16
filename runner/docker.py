@@ -22,7 +22,7 @@ def get_docker_session() -> aiohttp.ClientSession:
 class DockerError(Exception): pass
 
 
-async def create_and_start_container(name: str, config: dict) -> str:
+async def create_container(name: str, config: dict) -> str:
     container_id = None
 
     try:
@@ -32,16 +32,18 @@ async def create_and_start_container(name: str, config: dict) -> str:
                 container_id = data["Id"]
             else:
                 raise DockerError(data["message"])
-
-        async with get_docker_session().post(f"/containers/{container_id}/start") as resp:
-            if resp.status != 204:
-                raise DockerError("Failed to start container")
     except asyncio.CancelledError:
         if container_id:
             await asyncio.shield(stop_and_delete_container(container_id))
         raise
 
     return container_id
+
+
+async def start_container(container_id: str) -> None:
+    async with get_docker_session().post(f"/containers/{container_id}/start") as resp:
+        if resp.status != 204:
+            raise DockerError("Failed to start container")
 
 
 async def stop_and_delete_container(container_id: str) -> None:

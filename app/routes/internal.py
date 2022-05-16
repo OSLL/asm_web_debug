@@ -20,8 +20,8 @@ def debug_session_info():
     obj.arch = data["arch"]
     obj.started_at = datetime.fromtimestamp(data["started_at"])
     obj.finished_at = datetime.fromtimestamp(data["finished_at"]) if "finished_at" in data else None
-    obj.cpu_time_used = data["cpu_time_used"]
-    obj.memory_used = data["memory_used"]
+    obj.cpu_time_used = data.get("cpu_time_used")
+    obj.memory_used = data.get("memory_used")
     obj.is_interactive = True
 
     if obj.finished_at:

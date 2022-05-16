@@ -1,45 +1,41 @@
 #!/usr/bin/env python3
 
 import asyncio
-from contextlib import asynccontextmanager
+import random
 import time
+import traceback
 from typing import List
 import aiohttp
 import click
 
 
-EXAMPLE_SOURCE_X86_64 = r"""
-mov $250, %rax
-
-again:
-dec %rax
-test %rax, %rax
-jz end
-jmp again
-
-end: nop
+EXAMPLE_SOURCE = r"""
+nop
+again: jmp again
 """
 
-EXAMPLE_SOURCE_AVR = r"""
-ldi r16, 250
+ASSIGNMENTS = {
+    "x86_64": 1,
+    "avr5": 2
+}
 
-again:
-cpi r16, 0
-breq end
-subi r16, 1
-jmp again
-
-end: nop
-"""
+REGISTERS = {
+    "x86_64": [ ("rax", 64), ("rbx", 64), ("rdi", 64), ("rsi", 64) ],
+    "avr5": [ ("r16", 8), ("r17", 8), ("r18", 8), ("r19", 8) ]
+}
 
 
 class DebugClient:
     ws: aiohttp.ClientWebSocketResponse
+    arch: str
+    idx: int
 
-    def __init__(self, ws: aiohttp.ClientWebSocketResponse) -> None:
+    def __init__(self, ws: aiohttp.ClientWebSocketResponse, arch: str, idx: int) -> None:
         self.ws = ws
+        self.arch = arch
+        self.idx = idx
 
-    async def start(self, source_code: str, breakpoints: List[int]) -> bool:
+    async def start(self, source_code: str, breakpoints: List[int]) -> None:
         await self.ws.send_json({
             "type": "run",
             "source": source_code,
@@ -50,68 +46,102 @@ class DebugClient:
         })
         data = await self.ws.receive_json()
         assert data["type"] == "compilation_result"
-        return data["successful"]
+        assert data["successful"]
+        metadata = await self.ws.receive_json()
+        assert metadata["type"] == "metadata"
+        for k, v in sorted(metadata["data"].items()):
+            print(f"{self.idx}\t{k}\t{v}")
 
-    async def wait_until_stopped(self) -> bool:
+
+    async def wait_until_stopped(self) -> None:
         while True:
             data = await self.ws.receive_json()
-            if data["type"] == "paused":
-                if data["line"] >= 9:
-                    return False
-                return True
-            if data["type"] == "finished":
-                return False
+            if data["type"] in ["paused", "finished"]:
+                return
 
-    async def step(self):
+    async def wait_for_registers(self) -> None:
+        while True:
+            data = await self.ws.receive_json()
+            if data["type"] in ["registers"]:
+                return
+
+    async def request_registers(self) -> None:
+        await self.ws.send_json({"type": "get_registers"})
+
+    async def action_next_step(self):
         await self.ws.send_json({"type": "step_over"})
+        await self.wait_until_stopped()
 
+    async def action_set_register_value(self):
+        reg, bits = random.choice(REGISTERS[self.arch])
+        value = random.randrange(2**(bits - 1))
+        await self.ws.send_json({
+            "type": "update_register",
+            "reg": reg,
+            "value": str(value)
+        })
+        await self.wait_for_registers()
 
-@asynccontextmanager
-async def report_time(name: str) -> None:
-    now = time.monotonic()
-    try:
-        yield
-    finally:
-        print(f"{name} {time.monotonic() - now}")
+    async def profile_stop_immediately(self):
+        pass
+
+    async def profile_single_step(self):
+        while True:
+            await asyncio.sleep(random.random())
+            await random.choice([
+                self.action_next_step,
+                self.action_set_register_value
+            ])()
+
+    async def profile_busy_loop(self):
+        while True:
+            await asyncio.sleep(random.random())
+            await self.ws.send_json({"type": "continue"})
+            await asyncio.sleep(random.random())
+            await self.ws.send_json({"type": "pause"})
+            await self.wait_until_stopped()
 
 
 @click.command()
 @click.option("--endpoint", default="http://localhost:8080", help="Endpoint for ASM WEB IDE launched in test mode")
 @click.option("-n", default=1, help="Number of parallel connections to make")
+@click.option("--delay", default=1.0)
 @click.option("--arch", default="x86_64")
-def main(endpoint: str, n: int, arch: str) -> None:
-    asyncio.run(run_async_tests_parallel(endpoint, n, arch))
+@click.option("--profile", default="SingleStep")
+def main(**kwargs) -> None:
+    asyncio.run(run_async_tests_parallel(**kwargs))
 
 
-async def run_async_tests_parallel(endpoint: str, n: int, arch: str) -> None:
+async def run_async_tests_parallel(endpoint: str, n: int, arch: str, profile: str, delay: float) -> None:
+    print("idx\tmeasurement\tvalue")
     async with aiohttp.ClientSession(endpoint, cookie_jar=aiohttp.CookieJar()) as session:
         async with session.post("/login", data={"username": "admin", "password": "admin"}): pass
         tasks = []
         for i in range(n):
-            tasks.append(run_async_tests(session, i, arch))
+            tasks.append(run_async_tests(session, i, arch, profile, delay))
         await asyncio.gather(*tasks)
 
 
-async def run_async_tests(session: aiohttp.ClientSession, idx: int, arch: str) -> None:
+async def run_async_tests(session: aiohttp.ClientSession, idx: int, arch: str, profile: str, delay: float) -> None:
     try:
-        await asyncio.sleep(1.0 * idx)
-        assignment = 1 if arch == "x86_64" else 2
-        source = EXAMPLE_SOURCE_X86_64 if arch == "x86_64" else EXAMPLE_SOURCE_AVR
+        await asyncio.sleep(delay * idx)
+        assignment = ASSIGNMENTS[arch]
+        source = EXAMPLE_SOURCE
         async with session.ws_connect(f"/assignment/{assignment}/websocket") as ws:
-            client = DebugClient(ws)
-            async with report_time(f"{idx} start"):
-                assert (await client.start(source, [1]))
-                await client.wait_until_stopped()
+            client = DebugClient(ws, arch, idx)
+            now = time.monotonic()
+            await client.start(source, [1])
+            await client.wait_until_stopped()
+            print(f"{idx}\ttotal_time\t{time.monotonic() - now}")
 
-            while True:
-                await asyncio.sleep(1.0)
-                async with report_time(f"{idx} step"):
-                    await client.step()
-                is_paused = await client.wait_until_stopped()
-                if not is_paused:
-                    break
-    except Exception as e:
-        print(e)
+            if profile == "StopImmediately":
+                await client.profile_stop_immediately()
+            if profile == "SingleStep":
+                await client.profile_single_step()
+            if profile == "BusyLoop":
+                await client.profile_busy_loop()
+    except Exception:
+        traceback.print_exc()
 
 
 if __name__ == "__main__":

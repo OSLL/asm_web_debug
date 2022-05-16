@@ -1,9 +1,11 @@
 import asyncio
 import binascii
+from contextlib import contextmanager
 import pathlib
 import shutil
 import tempfile
 from collections import namedtuple
+import time
 from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, Type, TypeAlias
 from uuid import uuid4
 
@@ -30,6 +32,7 @@ class DebugSession:
     gdbserver_container_id: str
 
     closed: bool
+    metadata: dict
 
     def __init__(self, arch: str) -> None:
         self.workdir = pathlib.Path(tempfile.mkdtemp(prefix="asm_web_debug-executor-", dir=config.runner_data_path))
@@ -39,6 +42,7 @@ class DebugSession:
         self.event_subscribers = []
         self.gdbserver_container_id = ""
         self.closed = False
+        self.metadata = {}
 
     @property
     def session_id(self) -> str:
@@ -52,6 +56,14 @@ class DebugSession:
     def executable_path(self) -> pathlib.Path:
         return self.workdir / "a.out"
 
+    @contextmanager
+    def measure_time(self, label: str) -> None:
+        now = time.monotonic()
+        try:
+            yield
+        finally:
+            self.metadata[label] = time.monotonic() - now
+
     async def compile(self, source_code) -> CompilationResult:
         with open(self.source_path, "w") as f:
             f.write(source_code)
@@ -61,7 +73,7 @@ class DebugSession:
             "-o", self.executable_path
         ]
 
-        with metrics.debug_session_compilation_time.labels(self.arch).time():
+        with metrics.debug_session_compilation_time.labels(self.arch).time(), self.measure_time("compilation_time"):
             process = await asyncio.subprocess.create_subprocess_exec(
                 *command,
                 stdout=asyncio.subprocess.PIPE,
@@ -123,10 +135,12 @@ class DebugSession:
             }
         }
 
-        with metrics.debug_session_container_init_time.labels(self.arch).time():
-            self.gdbserver_container_id = await docker.create_and_start_container(self.session_id, gdbserver_docker_params)
+        with metrics.debug_session_container_create_time.labels(self.arch).time(), self.measure_time("container_create_time"):
+            self.gdbserver_container_id = await docker.create_container(self.session_id, gdbserver_docker_params)
+        with metrics.debug_session_container_start_time.labels(self.arch).time(), self.measure_time("container_start_time"):
+            await docker.start_container(self.gdbserver_container_id)
 
-        with metrics.debug_session_connect_time.labels(self.arch).time():
+        with metrics.debug_session_connect_time.labels(self.arch).time(), self.measure_time("connect_time"):
             if config.archs[self.arch].gdbserver:
                 await self.debugger.gdb_command(f"-target-select extended-remote {self.session_id}:1234")
                 await self.debugger.gdb_command(f"-gdb-set remote exec-file {self.executable_path}")
