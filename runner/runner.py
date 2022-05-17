@@ -102,8 +102,9 @@ class DebugSession:
         memory_limit = memory_limit or config.default_memory_limit
         real_time_limit = real_time_limit or config.default_real_time_limit
 
-        await self.debugger.start()
-        await self.debugger.gdb_command(f"-gdb-set mi-async on")
+        with self.measure_time("gdb_start_time"):
+            await self.debugger.start()
+            await self.debugger.gdb_command(f"-gdb-set mi-async on")
 
         gdbserver_command = []
 

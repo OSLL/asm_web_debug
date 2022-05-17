@@ -52,10 +52,12 @@ class DebugClient:
         for k, v in sorted(metadata["data"].items()):
             print(f"{self.idx}\t{k}\t{v}")
 
-
     async def wait_until_stopped(self) -> None:
         while True:
             data = await self.ws.receive_json()
+            if data["type"] == "error":
+                print(data)
+                raise RuntimeError()
             if data["type"] in ["paused", "finished"]:
                 return
 
@@ -69,18 +71,38 @@ class DebugClient:
         await self.ws.send_json({"type": "get_registers"})
 
     async def action_next_step(self):
+        now = time.monotonic()
         await self.ws.send_json({"type": "step_over"})
         await self.wait_until_stopped()
+        print(f"{self.idx}\tnext_step\t{time.monotonic() - now}")
+
+    async def action_continue(self):
+        await self.ws.send_json({
+            "type": "add_breakpoint",
+            "line": 3
+        })
+
+        now = time.monotonic()
+        await self.ws.send_json({"type": "continue"})
+        await self.wait_until_stopped()
+        print(f"{self.idx}\tcontinue\t{time.monotonic() - now}")
+
+        await self.ws.send_json({
+            "type": "remove_breakpoint",
+            "line": 3
+        })
 
     async def action_set_register_value(self):
         reg, bits = random.choice(REGISTERS[self.arch])
         value = random.randrange(2**(bits - 1))
+        now = time.monotonic()
         await self.ws.send_json({
             "type": "update_register",
             "reg": reg,
             "value": str(value)
         })
         await self.wait_for_registers()
+        print(f"{self.idx}\tset_register_value\t{time.monotonic() - now}")
 
     async def profile_stop_immediately(self):
         pass
@@ -90,7 +112,8 @@ class DebugClient:
             await asyncio.sleep(random.random())
             await random.choice([
                 self.action_next_step,
-                self.action_set_register_value
+                self.action_set_register_value,
+                self.action_continue
             ])()
 
     async def profile_busy_loop(self):

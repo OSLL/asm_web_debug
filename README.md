@@ -15,7 +15,7 @@ Initialize the database:
 ```
 
 # Run
-- Bash
+
 ```
 ./manage.py run --port 8080
 ```
@@ -26,23 +26,17 @@ To create an administrator user run:
 ./manage.py flask create-admin
 ```
 
-# Tests
-- For headless run:
+# Stress tests
+
+First start the system in test mode so that it creates a new database and populates it with
+the necessary data:
+
 ```
-./scripts/run_selenium.sh
-```
-- For run in Docker
-```
-docker exec -t asm_web_debug_web_1 ./scripts/run_selenium.sh
-```
-- For direct run:
-```
-cd src/tests/selenium
-./scripts/run_tests.sh http://127.0.0.1:5100
+./manage.py run -t
 ```
 
-# Deployment
-Domain: asm.moevm.info
-```bash
-./scripts/start_deploy.sh ${branch}
+To run the stress tests use something like this:
+
+```
+poetry run ./tests/interactive_debugger/run.py -n 100 --arch avr5 --profile SingleStep
 ```

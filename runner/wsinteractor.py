@@ -256,7 +256,8 @@ class WSInteractor:
             line = msg.get("line")
             if type(line) is not int:
                 raise ValueError("Expected 'line' to be int")
-            await self.debug_session.add_breakpoint(line)
+            if line not in self.breakpoints:
+                self.breakpoints[line] = await self.debug_session.add_breakpoint(line)
 
         if msg["type"] == "remove_breakpoint":
             line = msg.get("line")
