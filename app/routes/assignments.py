@@ -15,10 +15,12 @@ from sqlalchemy import desc
 def check_assignment_access(assignment: Assignment) -> None:
     if not current_user.is_authenticated:
         abort(403, description="Not authenticated")
-    if current_user.is_admin:
+    if current_user.is_admin or assignment.user_id == current_user.id:
         return
-    if assignment.user_id != current_user.id:
-        abort(403)
+    current_user_assignment = Assignment.query.filter_by(user_id=current_user.id, problem_id=assignment.problem_id).first()
+    if current_user_assignment and current_user_assignment.is_instructor:
+        return
+    abort(403)
 
 
 def get_assignment(assignment_id) -> Assignment:
