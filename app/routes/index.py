@@ -67,6 +67,12 @@ def save_solution(code_id):
     code = DBManager.get_code(code_id)
 
     DBManager.create_solution(solution_id=solution_id, datetime=_datetime, feedback=feedback, task=task, LTI_session=LTI_session, codes=code)
+    
+    user = current_user.username
+    passback = current_user.tasks[code_id]
+    params = passback['passback']
+    response=FlaskToolProvider.from_unpacked_request(secret=user, params=params, headers=None, url=None).post_replace_result(score=0)
+    
 
     return Response(success_save=True)
 
