@@ -59,3 +59,28 @@ class Tasks(me.Document):
     name = me.StringField(unique=True)
     description = me.StringField()
     tests = me.DictField()
+    parameters = me.ReferenceField('Parameters',dbref=True)
+
+class Parameters(me.Document):
+    _id = me.IntField(primary_key=True)
+    output= me.StringField()
+    registry = me.ReferenceField('Registry', dbref=True)
+	 
+class Registry(me.Document):
+    _id = me.IntField(primary_key=True)
+    eax = me.StringField()
+    ebx = me.StringField()
+    ecx = me.StringField() 
+    edx = me.StringField()
+    ebp = me.StringField()
+    esp = me.StringField()
+    esp = me.StringField()
+    edi = me.StringField()
+    eip = me.StringField()
+    cs = me.StringField()
+    ds = me.StringField()
+    es = me.StringField()
+    fs = me.StringField()
+    gs = me.StringField()
+    ss = me.StringField()
+    eflags = me.StringField()
