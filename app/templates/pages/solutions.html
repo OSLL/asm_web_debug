@@ -2,42 +2,47 @@
 
 {% block head %}
     <link href="static/css/solutions.css" rel="stylesheet" type="text/css" />
+    <script src="static/js/solutions.js"></script>
 {% endblock %}
 
 {% block content %}
 
+<div class="py-5 text-center" >
 
-<div class="py-5 text-center" onload="console.log('{{ id }}')">
-    <table class="solutions_table sortable" >
-            <thead>
-                <tr>
-                    <th scope="col">id</th>
-                    <th scope="col">Date & Time</th>
-                    <th scope="col"></th>
-                    <th scope="col">Session</th>
-                </tr>
-            </thead>
-            {% for line in solutions %}
-                {% if line[1]==id or id==-1%}
+    <table class="solutions_table" >
+        <thead>
             <tr>
-                <th>{{ line[0] }}</th>
-                <td>{{ line[2] }}</td>
+                <th scope="col">id</th>
+                <th scope="col">Date & Time</th>
+                <th scope="col"></th>
+                <th scope="col">Session</th>
+            </tr>
+        </thead>
+        {% for line in solutions %}
+            <tr>
+                <th>{{ line.id }}</th>
+                <td>{{ line.datetime }}</td>
                 <td>
                     <button type="button" class="btn btn-primary" style="border-radius: 20px"
-                            onclick="location.href='{{ "/"+line[3] }}'">
+                            onclick="location.href='{{ "/solutions/"+line.id }}'">
                         View solution
                     </button>
                 </td>
                 <td>
                     <a href="">
-                        {{ line[4] }}
+                        {{ line.LTI_session }}
                     </a>
                 </td>
             </tr>
-                {% endif %}
-            {% endfor %}
-        </table>
+        {% endfor %}
+    </table>
+    {% for i in range(0,pages) %}
+        {% if i!=cur_page %}
+            <a onclick="reload_with_parameters(this,page={{ i }},task_id={{ task_id }})" href="">{{ i+1 }}</a>
+        {% else %}
+            <a>{{ i+1 }}</a>
+        {% endif %}
+    {% endfor %}
 </div>
-
-<script src="https://www.kryogenix.org/code/browser/sorttable/sorttable.js"></script>
 {% endblock %}
+
