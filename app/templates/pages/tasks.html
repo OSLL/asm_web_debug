@@ -84,15 +84,22 @@
     <div class="view_content">
         <form id="form_edit" class="view_scroll" method="post">
             <h1 id="edit_id" ></h1>
-            <input type="text" id="edit_name" name="edit_name" style="word-break: break-all; text-align: center" required>
+            <div style="align-self: end; display: flex;">
+                <h4>Title:</h4>
+                <input type="text" id="edit_name" name="edit_name" style="word-break: break-all; text-align: center" required>
+            </div>
             <div style="align-self: end; display: flex;">
                 <h4>Difficulty:</h4>
                 <input id="edit_difficulty" name="edit_difficulty" type="number" min="1" max="5" required>
             </div>
             <h4 id="edit_success" style="align-self: end">Success amount: 0</h4>
             <hr></hr>
-            <h3 style="align-self: start">Description</h3>
+            <h3 style="align-self: start">Description:</h3>
             <textarea id="edit_description" name="edit_description" required></textarea>
+            <div style="display: flex;">
+                <h4 style="flex: 50%;padding: 10px;">Registers:</h4>
+                <h4 style="flex: 50%;padding: 10px;">Stack:</h4>
+            </div>
             <div style="display: flex; flex-direction: row; justify-content: center; gap: 2%">
                 <div id="edit_registers" class="registers_stack_scroll">
 
