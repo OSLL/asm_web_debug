@@ -58,6 +58,10 @@ class Tasks(me.Document):
     _id = me.IntField(primary_key=True)
     name = me.StringField(unique=True)
     description = me.StringField()
+    difficulty = me.IntField()
+    success = me.IntField()
+    registers = me.DictField()
+    stack = me.DictField()
     tests = me.DictField()
     parameters = me.ReferenceField('Parameters',dbref=True)
 
