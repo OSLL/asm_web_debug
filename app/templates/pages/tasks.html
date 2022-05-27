@@ -10,7 +10,7 @@
     <div>
         <div style="padding: 20px">
             <input id="find_id">
-            <button type="button" class="btn btn-primary" style="border-radius: 20px" onclick="find_by_id({{ data }})">Find</button>
+            <button type="button" class="btn btn-primary" style="border-radius: 20px" onclick="find_by_id()">Find</button>
         </div>
         <table class="task_table" >
             <thead>
@@ -22,21 +22,21 @@
                     <th scope="col">Actions</th>
                 </tr>
             </thead>
-            {% for line in data %}
+            {% for task in tasks %}
             <tr>
-                <th>{{ line[0] }}</th>
-                <td>{{ line[1] }}</td>
-                <td>{{ line[2] }}</td>
-                <td>x{{ line[3] }}</td>
+                <th>{{ task._id }}</th>
+                <td>{{ task.name }}</td>
+                <td>{{ task.difficulty }}</td>
+                <td>x{{ task.success }}</td>
                 <td>
                     <div style="display: flex; justify-content: center; gap: 10px">
-                        <button type="button" class="btn btn-primary" style="border-radius: 20px" onclick="show({{ line }})">View</button>
-                        <button type="button" class="btn btn-success" style="border-radius: 20px" onclick="show_edit({{ line }})">Edit</button>
-                        <form method="post" action="/tasks/remove/{{ line[0] }}">
+                        <button type="button" class="btn btn-primary" style="border-radius: 20px" onclick="show( {{ task._id }} )">View</button>
+                        <button type="button" class="btn btn-success" style="border-radius: 20px" onclick="show_edit({{ task._id }})">Edit</button>
+                        <form method="post" action="/tasks/remove/{{ task._id }}">
                             <button type="submit" class="btn btn-danger" style="border-radius: 20px" >Delete</button>
                         </form>
                         <button type="button" class="btn btn-secondary" style="border-radius: 20px"
-                                onclick="location.href='solutions?task_id={{ line[0] }}'">
+                                onclick="location.href='solutions?task_id={{ task._id  }}'">
                             View solutions
                         </button>
                     </div>
@@ -46,7 +46,7 @@
             <tfoot>
                 <tr>
                     <td colspan="5">
-                        <button type="button" class="btn btn-secondary" style="border-radius: 20px" onclick="show_edit()">Add new</button>
+                        <button type="button" class="btn btn-secondary" style="border-radius: 20px" onclick="add_task()">Add new</button>
                     </td>
                 </tr>
             </tfoot>
@@ -63,7 +63,7 @@
             <h4 id="task_difficulty" style="align-self: end">Difficulty:</h4>
             <h4 id="task_success" style="align-self: end">Success amount:</h4>
             <hr></hr>
-            <h3 style="align-self: start">Description</h3>
+            <h3 style="align-self: start">Description:</h3>
             <p id="task_description" style="width: 100%; word-break: break-all"></p>
             <div style="display: flex;">
                 <h4 style="flex: 50%;padding: 10px;">Registers:</h4>
