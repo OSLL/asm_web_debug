@@ -5,6 +5,8 @@ let registers=[];
 let type=0;
 let id;
 
+const url = 'http://127.0.0.1:8080'
+
 function update(){
     if(type===0){
         $("#form_edit").attr("action", "/tasks/edit/?id="+id+"&registers="+registers+"&stack="+stack)
@@ -30,31 +32,31 @@ function hide_edit(){
         }
     })
 }
-function show(line){
+function show(task_id){
     $.ajax({
-        success(){
-            console.log(line);
-            $("#task_id").text("#"+line[0])
-            $("#task_name").text(line[1])
-            $("#task_difficulty").text("Difficulty: "+line[2])
-            $("#task_success").text("Success amount: "+line[3])
-            $("#task_description").text(line[4])
+        url: url + '/tasks/' + task_id,
+        type: 'Get',
+        success: function(result){
+            $("#task_id").text("#"+result._id)
+            $("#task_name").text(result.name)
+            $("#task_difficulty").text("Difficulty: " + result.difficulty)
+            $("#task_success").text("Success amount: " + result.success)
+            $("#task_description").text(result.description)
             $("#registers").empty()
             $("#stack").empty()
-            for(i of line[5]){
-                console.log(i)
+            for(var [name, value] of Object.entries(result.registers)){
                 $("#registers").append(
                     "<div class=\"register_stack\">"+
-                        "<p style=\"width: 40%; text-align: center;\">"+i[0]+"</p>"+
-                        "<p style=\"width: 40%; text-align: center;\">"+i[1]+"</p>"+
+                        "<p style=\"width: 40%; text-align: center;\">"+name+"</p>"+
+                        "<p style=\"width: 40%; text-align: center;\">"+value+"</p>"+
                     "</div>"
                 )
             }
-            for(i of line[6]){
+            for(var [name, value] of Object.entries(result.stack)){
                 $("#stack").append(
                     "<div class=\"register_stack\">"+
-                        "<p style=\"width: 40%; text-align: center;\">"+i[0]+"</p>"+
-                        "<p style=\"width: 40%; text-align: center;\">"+i[1]+"</p>"+
+                        "<p style=\"width: 40%; text-align: center;\">"+name+"</p>"+
+                        "<p style=\"width: 40%; text-align: center;\">"+value+"</p>"+
                     "</div>"
                 )
             }
@@ -62,93 +64,95 @@ function show(line){
         }
     })
 }
-function show_edit(line=null){
+
+function add_task(){
+    type=1;
+    $("#edit_id").text("")
+    $("#edit_name").val("")
+    $("#edit_difficulty").val(0)
+    $("#edit_success").text("Success amount: 0")
+    $("#edit_description").val("")
+    $("#edit_registers").empty()
+    $("#edit_registers").append("<input type='button' class=\"btn-secondary\" " +
+        "style=\"width: 35px; height: 35px; border-radius: 50%\" onclick=\"add_register()\"" +
+        "value='+'>")
+    $("#edit_stack").empty()
+    $("#edit_stack").append("<input type='button' class=\"btn-secondary\" " +
+        "style=\"width: 35px; height: 35px; border-radius: 50%\" onclick=\"add_stack()\"" +
+        "value='+'>")
+    $("#form_edit").attr("action", "/tasks/add/?registers="+registers+"&stack="+stack)
+    $("#edit_info").show()
+
+}
+
+
+function show_edit(task_id){
     $.ajax({
-        success(){
+        url: url + '/tasks/' + task_id,
+        type: 'Get',
+        success: function(result){
             am_reg=0;
             am_st=0;
             stack=[];
             registers=[];
             type=0;
 
-            if(line!=null) {
-                type=0;
-                id=line[0];
-                console.log(line);
-                $("#edit_id").text("#" + line[0])
-                $("#edit_name").val(line[1])
-                $("#edit_difficulty").val(line[2])
-                $("#edit_success").text("Success amount: " + line[3])
-                $("#edit_description").val(line[4])
-                $("#edit_registers").empty()
-                $("#edit_stack").empty()
-                $("#edit_registers").append("<input type='button' class=\"btn-secondary\" " +
-                    "style=\"width: 35px; height: 35px; border-radius: 50%\" onclick=\"add_register()\"" +
-                    "value='+'>")
-                for(let i of line[5]){
-                    $("#edit_registers").append(
-                        "<div id='register_"+am_reg+"' class=\"register_stack\">"+
-                            "<input type=\"text\" style=\"width: 40%\" value='"+i[0]+"' required onchange='register_change("+am_reg+","+"0,"+"this.value"+")'>" +
-                            "<input type=\"text\" style=\"width: 40%\" value='"+i[1]+"' required onchange='register_change("+am_reg+","+"1,"+"this.value"+")'>" +
-                            "<input type='button' class=\"btn-danger\" onclick=\"remove_register("+am_reg+")\" " +
-                        "style=\"width: 35px; height: 35px; border-radius: 50%\" value='-'>"+
-                        "</div>"
-                    )
-                    registers.push([i[0],i[1]])
-                    am_reg++;
-                }
-                $("#edit_stack").append("<input type='button' class=\"btn-secondary\" " +
-                    "style=\"width: 35px; height: 35px; border-radius: 50%\" onclick=\"add_stack()\"" +
-                    "value='+'>")
-                for(let i of line[6]){
-                    $("#edit_stack").append(
-                        "<div id='stack_"+am_st+"' class=\"register_stack\">"+
-                            "<input type=\"text\" style=\"width: 40%\" value='"+i[0]+"' required onchange='stack_change("+am_st+","+"0,"+"this.value"+")'>" +
-                            "<input type=\"text\" style=\"width: 40%\" value='"+i[1]+"' required onchange='stack_change("+am_st+","+"1,"+"this.value"+")'>" +
-                            "<input type='button' class=\"btn-danger\" onclick=\"remove_stack("+am_st+")\" " +
-                        "style=\"width: 35px; height: 35px; border-radius: 50%\" value='-'>"+
-                        "</div>"
-                    )
-                    stack.push([i[0],i[1]])
-                    am_st++;
-                }
-                $("#form_edit").attr("action", "/tasks/edit/?id="+line[0]+"&registers="+registers+"&stack="+stack)
-            }else {
-                type=1;
-                $("#edit_id").text("")
-                $("#edit_name").val("")
-                $("#edit_difficulty").val(0)
-                $("#edit_success").text("Success amount: 0")
-                $("#edit_description").val("")
-                $("#edit_registers").empty()
-                $("#edit_registers").append("<input type='button' class=\"btn-secondary\" " +
-                    "style=\"width: 35px; height: 35px; border-radius: 50%\" onclick=\"add_register()\"" +
-                    "value='+'>")
-                $("#edit_stack").empty()
-                $("#edit_stack").append("<input type='button' class=\"btn-secondary\" " +
-                    "style=\"width: 35px; height: 35px; border-radius: 50%\" onclick=\"add_stack()\"" +
-                    "value='+'>")
-                $("#form_edit").attr("action", "/tasks/add/?registers="+registers+"&stack="+stack)
+            id=result._id;
+            $("#edit_id").text("#" + result._id)
+            $("#edit_name").val(result.name)
+            $("#edit_difficulty").val(result.difficulty)
+            $("#edit_success").text("Success amount: " + result.success)
+            $("#edit_description").val(result.description)
+            $("#edit_registers").empty()
+            $("#edit_stack").empty()
+            $("#edit_registers").append("<input type='button' class=\"btn-secondary\" " +
+                "style=\"width: 35px; height: 35px; border-radius: 50%\" onclick=\"add_register()\"" +
+                "value='+'>")
+            for(var [name, value] of Object.entries(result.registers)){
+                $("#edit_registers").append(
+                    "<div id='register_"+am_reg+"' class=\"register_stack\">"+
+                        "<input type=\"text\" style=\"width: 40%\" value='"+name+"' required onchange='register_change("+am_reg+","+"0,"+"this.value"+")'>" +
+                        "<input type=\"text\" style=\"width: 40%\" value='"+value+"' required onchange='register_change("+am_reg+","+"1,"+"this.value"+")'>" +
+                        "<input type='button' class=\"btn-danger\" onclick=\"remove_register("+am_reg+")\" " +
+                    "style=\"width: 35px; height: 35px; border-radius: 50%\" value='-'>"+
+                    "</div>"
+                )
+                registers.push([name,value])
+                am_reg++;
             }
+            $("#edit_stack").append("<input type='button' class=\"btn-secondary\" " +
+                "style=\"width: 35px; height: 35px; border-radius: 50%\" onclick=\"add_stack()\"" +
+                "value='+'>")
+            for(var [name, value] of Object.entries(result.stack)){
+                $("#edit_stack").append(
+                    "<div id='stack_"+am_st+"' class=\"register_stack\">"+
+                        "<input type=\"text\" style=\"width: 40%\" value='"+name+"' required onchange='stack_change("+am_st+","+"0,"+"this.value"+")'>" +
+                        "<input type=\"text\" style=\"width: 40%\" value='"+value+"' required onchange='stack_change("+am_st+","+"1,"+"this.value"+")'>" +
+                        "<input type='button' class=\"btn-danger\" onclick=\"remove_stack("+am_st+")\" " +
+                    "style=\"width: 35px; height: 35px; border-radius: 50%\" value='-'>"+
+                    "</div>"
+                )
+                stack.push([name,value])
+                am_st++;
+            }
+            $("#form_edit").attr("action", "/tasks/edit/?id="+id+"&registers="+registers+"&stack="+stack)
             $("#edit_info").show()
         }
     })
 }
-function find_by_id(data){
+function find_by_id(){
+    let task_id = $("#find_id").val()
     $.ajax({
-        success(){
-            console.log(data)
+        url: url + '/tasks/' + task_id,
+        type: 'Get',
+        success: function(result){
             if($("#find_id").val()==""){
                 alert("Empty value!")
                 return
             }
-            for(var i=0;i<data.length;i++){
-                if(data[i][0]==$("#find_id").val()){
-                    console.log(data[i])
-                    show(data[i]);
-                    return;
-                }
-            }
+            show(result._id);
+        },
+        error: function(error){
             alert("Task was not found!")
         }
     })

@@ -62,7 +62,7 @@ def save_solution(code_id):
     except ValueError:
         solution_id = int(code_id)
         task_id = 0
-        DBManager.create_task(task_id, 'Default test task', 'Default description', {'Param1': 'Value1'})
+        DBManager.create_task(0, 'Default test task', 'Default description', 1, 0, {'Reg1': 'Value1'}, {'Par1': 'Value2'} )
     task = DBManager.get_task(task_id)
     code = DBManager.get_code(code_id)
 
