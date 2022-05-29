@@ -10,7 +10,12 @@ dbmanager = DBManager()
 @bp.route('/tasks', methods=['GET', 'POST'])
 @roles_accepted('teacher', 'admin')
 def index():
-    return render_template('pages/tasks.html', tasks=dbmanager.get_all_tasks())
+    args = request.args
+    tasks = list(dbmanager.get_all_tasks())
+    amount_per_page = 10
+    page = args.get("page", default = 0, type=int)
+    pages = int(len(tasks) / amount_per_page) + 1
+    return render_template('pages/tasks.html', tasks=tasks[(page-1)*10:page*10:1], pages=pages)
 
 
 @bp.route('/tasks/remove/<id>', methods=['GET', 'POST'])
