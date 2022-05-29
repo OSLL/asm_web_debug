@@ -116,7 +116,11 @@
         </form>
     </div>
 </div>
-
+<div class="btn-group">
+    {% for page in range(pages) %}
+        <button value={{page + 1}} onclick="window.location.replace(`/tasks?page=${this.value}`);" class="btn btn-outline-primary" style="margin: 2px;">{{page + 1}}</button>
+    {% endfor %}
+</div>
 {% endblock %}
 
 {% block script %}
