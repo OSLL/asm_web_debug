@@ -35,7 +35,14 @@ def index_id(code_id):
     if code_id not in current_user.tasks and not app.config['ANON_ACCESS']:
         abort(404, description=f"Don't have access to code {code_id}")
     code = DBManager.get_code(code_id=code_id)
-    if code:
+    parse = re.split(r'-', code_id)
+    if len(parse) > 1:
+        task = DBManager.get_task(task_id=parse[1])
+    else:
+        task = None
+    if code and task:
+        return render_template('pages/index.html', code=code_to_dict(code), task=task_to_dict(task))
+    elif code:
         return render_template('pages/index.html', code=code_to_dict(code))
     else:
         return render_template('pages/index.html')
