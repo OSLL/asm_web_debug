@@ -14,6 +14,8 @@
             <tr>
                 <th scope="col">id</th>
                 <th scope="col">Date & Time</th>
+                <th scope="col">Task ID</th>
+                <th scope="col">Feedback</th>
                 <th scope="col"></th>
                 <th scope="col">Session</th>
             </tr>
@@ -22,6 +24,12 @@
             <tr>
                 <th>{{ line.id }}</th>
                 <td>{{ line.datetime }}</td>
+                <td>{{ line.task.id }}</td>
+                {% if line.feedback != "Passed!" %}
+                    <td style="color:red">{{ line.feedback }}</td>
+                {% else %}
+                    <td style="color:green">{{ line.feedback }}</td>
+                {% endif %}
                 <td>
                     <button type="button" class="btn btn-primary" style="border-radius: 20px"
                             onclick="location.href='{{ "/solutions/"+line.id }}'">

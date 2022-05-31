@@ -22,6 +22,8 @@ def index():
     if request.args.get('page'):
         try:
             page = int(request.args.get('page'))
+            if page < 0:
+                page = 0
         except ValueError:
             page = 0
 

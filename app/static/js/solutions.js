@@ -10,9 +10,8 @@ function reload_with_parameters(element, page=-1, task_id=-1){
             url+='&task_id='+task_id.toString()
         }
         else {
-            url += '?task_id=' + page.toString()
+            url += '?task_id=' + task_id.toString()
         }
-        was = true
     }
     element.href = url;
 }
