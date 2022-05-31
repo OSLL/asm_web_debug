@@ -3,6 +3,9 @@ ENV LANG en_US.UTF-8
 WORKDIR /code
 
 RUN pip install poetry
+RUN pip uninstall dotenv
+RUN pip uninstall python-dotenv
+RUN pip install python-dotenv
 COPY pyproject.toml poetry.lock /code/
 RUN poetry install --no-interaction --no-ansi --no-dev
 
