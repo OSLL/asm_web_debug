@@ -32,15 +32,13 @@ def check_login():
 
 @bp.route('/<code_id>')
 def index_id(code_id):
+    task = None
     if code_id not in current_user.tasks and not app.config['ANON_ACCESS']:
         abort(404, description=f"Don't have access to code {code_id}")
+    elif code_id in current_user.tasks:
+        task_id = eval(current_user.tasks[code_id]['passback']['lis_result_sourcedid'])['data']['instanceid']
+        task = DBManager.get_task(task_id=int(task_id))
     code = DBManager.get_code(code_id=code_id)
-    task = None
-    parse = re.split(r'-', code_id)
-    if len(parse) > 1:
-        task_id = parse[1]
-        if task_id.isdigit():
-            task = DBManager.get_task(task_id=int(task_id))
     if code and task:
         return render_template('pages/index.html', code=code_to_dict(code), task=task_to_dict(task))
     elif code:
