@@ -12,11 +12,7 @@
 <!-- {{code|safe}} -->
     {% set code = code or dict(code='', arch='x86_64', breakpoints=[]) %}
     <div id='task_info_div' style="float: left; width: 60%;">
-        {% if task %}
-        <p>{{task.name}}: {{task.description}}</p>
-        {% else %}
         <p>TODO: problem statement</p>
-        {% endif %}
         <div style="display: block; float: right;">
         	<input type="button" id="check-button" class="btn btn-info" name="Check" value="Check" onclick="buttonClick(this)" />
         	<input type="button" class="btn btn-success" name="My solutions" value="My solutions" onclick="buttonClick(this)" />
