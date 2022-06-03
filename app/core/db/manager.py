@@ -1,5 +1,6 @@
-import datetime 
+import datetime
 from flask import current_app
+from bson.objectid import ObjectId
 from flask_mongoengine import MongoEngine
 from pymongo import DESCENDING, ASCENDING
 import json
@@ -103,6 +104,24 @@ class DBManager:
             return Solutions.objects.get(_id=solution_id)
         except Solutions.DoesNotExist:
             current_app.logger.debug(f'Solution not found: {solution_id}')
+            return None
+
+    @staticmethod
+    def get_all_solutions():
+        return Solutions.objects.all()
+
+    @staticmethod
+    def get_solutions(page=0, amount=0, task_id=-1):
+        solutions = Solutions.objects.all()
+        if task_id != -1:
+            current_app.logger.debug('dummy')
+
+        solutions = solutions[page*amount:(page+1)*amount]
+
+        try:
+            return solutions
+        except Solutions.DoesNotExist:
+            current_app.logger.debug(f'')
             return None
     
     #### log ####
