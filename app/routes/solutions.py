@@ -1,12 +1,13 @@
 from flask import Blueprint, render_template, redirect, request
-from flask import current_app
 from app.core.db.manager import DBManager
+from flask_security import roles_accepted
 
 solutions_bp = Blueprint('solutions', __name__)
 bp = solutions_bp
 amount = 5
 
 @bp.route('/solutions', methods=['GET', 'POST'])
+@roles_accepted('teacher', 'admin')
 def index():
     pages = int(len(DBManager.get_all_solutions())/amount)+1
 

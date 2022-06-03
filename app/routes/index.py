@@ -52,6 +52,25 @@ def save_code(code_id):
     return Response(success_save=True)
 
 
+@bp.route('/savesolution/<code_id>', methods = ["POST"])
+def save_solution(code_id):
+    _datetime = datetime.datetime.now()
+    feedback = request.form.get('feedback', '')
+    LTI_session = request.form.get('LTI_session:', '')
+    try:
+        solution_id, task_id = re.split(r'-', code_id)
+    except ValueError:
+        solution_id = int(code_id)
+        task_id = 0
+        DBManager.create_task(0, 'Default test task', 'Default description', 1, 0, {'Reg1': 'Value1'}, {'Par1': 'Value2'} )
+    task = DBManager.get_task(task_id)
+    code = DBManager.get_code(code_id)
+
+    DBManager.create_solution(solution_id=solution_id, datetime=_datetime, feedback=feedback, task=task, LTI_session=LTI_session, codes=code)
+
+    return Response(success_save=True)
+
+
 @bp.route('/hexview/<code_id>', methods = ["GET", "POST"])
 def hexview(code_id):
     error_msg = '<No code for hexview!>'

@@ -6,6 +6,7 @@ import sys
 from basic_test import BasicTest
 from open_pages_test import OpenPagesTest
 from compile_code_test import CompileCodeTest
+from check_register_test import CheckRegistersTest
 
 DEFAULT_URL = "http://127.0.0.1:5100"
 
@@ -13,6 +14,7 @@ def main(host):
     suite = unittest.TestSuite()
     suite.addTest(BasicTest.parametrize(OpenPagesTest, param=host))
     # suite.addTest(BasicTest.parametrize(CompileCodeTest, param=host))
+    suite.addTest(BasicTest.parametrize(CheckRegistersTest, param=host))
 
     returnCode = not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful()
     sys.exit(returnCode)

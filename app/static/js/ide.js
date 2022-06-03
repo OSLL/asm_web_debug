@@ -55,6 +55,14 @@
         $alert.delay(3000).fadeOut();
     }
 
+    function extractText(strToParse, strStart, strFinish){
+        return strToParse.match(strStart + "(.*?)" + strFinish)[1];
+    }
+
+    const codeInComment = $(".container").contents().filter(function(){
+        return this.nodeType == 8;
+    })[0].nodeValue;
+
     function initEditor() {
         codeMirror = CodeMirror.fromTextArea($("#code")[0], {
             lineNumbers: true,
@@ -66,6 +74,11 @@
         });
 
         doc = codeMirror.getDoc();
+
+        if(codeInComment !== "  "){
+            const bpoints = extractText(codeInComment, `breakpoints': `, `, 'arch'`);
+            addBreakpoints(JSON.parse(bpoints));
+        }
 
         codeMirror.on("gutterClick", (_, line) => {
             const info = codeMirror.lineInfo(line);
@@ -114,6 +127,38 @@
         return breakpoints;
     }
 
+    function addBreakpoints(breakpoints){
+        breakpoints.forEach(codeline => {
+            addBreakpoint(codeline - 1);
+        });
+        codeMirror.getGutterElement().style['width'] = '45px';
+        codeMirror.getGutterElement().style['text-align'] = 'right';
+        codeMirror.getScrollerElement().style.minHeight = '400px';
+        codeMirror.setSize("100%", "100%");
+        codeMirror.refresh();
+    }
+
+    function addBreakpoint(codeline){
+        const info = codeMirror.lineInfo(codeline);
+        const breakpoint = info.gutterMarkers ? null : (() => {
+            const marker = document.createElement("div");
+            marker.style.color = "#a44";
+            marker.style.position = "absolute";
+            marker.style.left = "-40px";
+            marker.style.top = "-7px";
+            marker.style.fontSize = "24px";
+            marker.innerHTML = "●";
+            return marker;
+        })();
+        codeMirror.setGutterMarker(codeline, "breakpoints", breakpoint);
+        if (state !== State.stopped) {
+            sendMessage({
+                "type": breakpoint ? "add_breakpoint" : "remove_breakpoint",
+                "line": codeline + 1
+            });
+        }
+    }
+
     function onDebugButtonClick(id) {
         if (id === "run") {
             setState(State.running);
@@ -137,7 +182,7 @@
         $debugButtons.html("");
         const  $rightDebugButtons = $(`<div style="float: right;"></div>`);
         for (const button of state.buttons) {
-            const $button = $(`<button class="btn btn-outline-${button.style || 'info'}" style="margin: 1em 1em auto auto; width: 5.3em; white-space: pre-line;">` + 
+            const $button = $(`<button `+(button.id==="run"?` id="Compile" `:``)+ ` class="btn btn-outline-${button.style || 'info'}" style="margin: 1em 1em auto auto; width: 5.3em; white-space: pre-line;">` + 
                 (button.id === "run" ? `<i class="fa fa-play" aria-hidden="true"></i></br>` : ``) + 
                 (button.id === "kill" ? `<i class="fa fa-stop" aria-hidden="true"></i></br>` : ``) + 
                 (button.id === "continue" ? `<i class="fa fa-step-forward" aria-hidden="true"></i></br>` : ``) + 
@@ -164,6 +209,11 @@
         }
     }
 
+    function updateLastSaveInfo(){
+        const lastDate = new Date();
+        $("#lastSavedTime").text((lastDate.getDate() > 9 ? lastDate.getDate() : '0' + lastDate.getDate()) + '.' + ((lastDate.getMonth() + 1) > 9 ? (lastDate.getMonth() + 1) : '0' + (lastDate.getMonth() + 1)) + '.' + lastDate.getFullYear() + ' ' + (lastDate.getHours() > 9 ? lastDate.getHours() : '0' + lastDate.getHours()) + ':' + (lastDate.getMinutes() > 9 ? lastDate.getMinutes() : '0' + lastDate.getMinutes()) + ':' + (lastDate.getSeconds() > 9 ? lastDate.getSeconds() : '0' + lastDate.getSeconds()) + ')');
+    }
+
     function saveCode() {
         $.ajax({
             url: "/save/" + codeId,
@@ -176,6 +226,9 @@
             },
             success: () => {
                 showAlert("Source code was saved", "success");
+                if(codeInComment !== "  "){
+                    updateLastSaveInfo();
+                }
             }
         })
     }
@@ -210,7 +263,7 @@
                 const $tr = $(`<tr>
 <td>${reg}</td>
 <td>
-    <span class="${editable ? 'edit-register' : ''}">${val}</span>
+    <span id="${reg}-value" class="${editable ? 'edit-register' : ''}">${val}</span>
 </td>
 </tr>`);
                 $tr.find(".edit-register").on("click", () => {
@@ -242,6 +295,25 @@
 
         $form.submit();
     });
+    
+    $("#check-button").on("click", ()=> {
+        saveCode();
+        $.ajax({
+            url: "/savesolution/" + codeId,
+            type: "POST",
+            dataType: "json",
+            data: {
+                feedback: document.getElementById("build_log").value,
+                LTI_session: "test",
+            },
+            success: () => {
+                showAlert("Solution was saved", "success");
+                if(codeInComment !== "  "){
+                    updateLastSaveInfo();
+                }
+            }
+        })
+    })
 
     initEditor();
     setState(State.stopped);

@@ -63,14 +63,14 @@ tr:nth-child(even) {
     <p>
         <b>Task #{{ data.task.id }} condition:</b>
         <br>
-        {{ data.task.condition }}
+        {{ data.task.description }}
     </p>
     <p>
         <b>Solution:</b>
         <br>
-        <a href={{data.code_id}}>Проверить в редакторе</a>
+        <a href={{data.codes._id}}>Проверить в редакторе</a>
         <br>
-        Добавлено: {{data._datetime}}
+        Добавлено: {{data.datetime}}
         <br>
         Feedback: {{data.feedback}}
     </p>

@@ -39,15 +39,18 @@ class DBManager:
         return Codes.objects(created__lte=(datetime.datetime.now()-datetime.timedelta(days=days))).to_json()
     
     @staticmethod
-    def create_task(task_id, task_name, task_description, task_tests):
+    def create_task(task_id, task_name, task_description, task_difficulty, task_success, task_registers, task_stack):
         task_obj = Tasks.objects(_id=task_id).first()
         if task_obj:
             task_obj.name = task_name
             task_obj.description = task_description
-            task_obj.tests = task_tests
+            task_obj.difficulty= task_difficulty
+            task_obj.success = task_success
+            task_obj.registers= task_registers
+            task_obj.stack = task_stack
             task_obj.save()
         else:
-            task_obj = Tasks(_id=task_id, name=task_name, description=task_description, tests=task_tests)
+            task_obj = Tasks(_id=int(task_id), name=task_name, description=task_description, difficulty=task_difficulty, success=task_success, registers=task_registers, stack=task_stack)
             task_obj.save()
             
     @staticmethod
@@ -71,6 +74,29 @@ class DBManager:
             return None
     
     ### solutions ###
+    
+    @staticmethod
+    def delete_solution(solution_id):
+        try:
+            return Solutions.objects(_id=solution_id).delete()
+        except Solution.DoesNotExist:
+            current_app.logger.debug(f'Solution not found: {solution_id}')
+            return None
+
+
+    @staticmethod
+    def create_solution(solution_id, datetime, feedback, task, LTI_session, codes):
+        solution_obj = Solutions.objects(_id=solution_id).first()
+        if solution_obj:
+            solution_obj.datetime = datetime
+            solution_obj.feedback = feedback
+            solution_obj.task = task
+            #solution_obj.LTI_session = LTI_session
+            solution_obj.codes = codes
+            solution_obj.save()
+        else:
+            solution_obj = Solutions(_id=solution_id, datetime=datetime, feedback=feedback, codes=codes)
+            solution_obj.save() 
 
     @staticmethod
     def get_solution(solution_id):

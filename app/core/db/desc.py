@@ -47,7 +47,7 @@ class Consumers(me.Document):
     timestamps = me.ListField(blank=True)
     
 class Solutions(me.Document):
-    _id = me.StringField(primary_key=True)
+    _id = me.IntField(primary_key=True)
     datetime = me.DateTimeField()
     feedback = me.StringField()
     task = me.ReferenceField('Tasks', dbref=True)
@@ -55,7 +55,36 @@ class Solutions(me.Document):
     codes = me.ReferenceField('Codes', dbref=True)
     
 class Tasks(me.Document):
-    _id = me.StringField(primary_key=True)
+    _id = me.IntField(primary_key=True)
     name = me.StringField(unique=True)
     description = me.StringField()
+    difficulty = me.IntField()
+    success = me.IntField()
+    registers = me.DictField()
+    stack = me.DictField()
     tests = me.DictField()
+    parameters = me.ReferenceField('Parameters',dbref=True)
+
+class Parameters(me.Document):
+    _id = me.IntField(primary_key=True)
+    output= me.StringField()
+    registry = me.ReferenceField('Registry', dbref=True)
+	 
+class Registry(me.Document):
+    _id = me.IntField(primary_key=True)
+    eax = me.StringField()
+    ebx = me.StringField()
+    ecx = me.StringField() 
+    edx = me.StringField()
+    ebp = me.StringField()
+    esp = me.StringField()
+    esp = me.StringField()
+    edi = me.StringField()
+    eip = me.StringField()
+    cs = me.StringField()
+    ds = me.StringField()
+    es = me.StringField()
+    fs = me.StringField()
+    gs = me.StringField()
+    ss = me.StringField()
+    eflags = me.StringField()
