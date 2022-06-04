@@ -37,12 +37,9 @@ services:
   mongo:
     image: "mongo:4.4.4-bionic"
     restart: always
-    ports:   
-        - 27017:27017
     volumes:
       - mongo_data:/data/db
-      - ./mongo-init/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro	
+      - ./mongo-init/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
 
-      
 volumes:
   mongo_data:
