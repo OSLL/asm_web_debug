@@ -6,6 +6,7 @@ let type=0;
 let id;
 
 const url = 'http://127.0.0.1:8080'
+const templ_reg = ["eax","ebx","ecx","edx","ebp","esp","edi","eip","cs","ds","es","fs","gs","ss","eflags"]
 
 function update(){
     if(type===0){
@@ -111,7 +112,7 @@ function show_edit(task_id){
             for(var [name, value] of Object.entries(result.registers)){
                 $("#edit_registers").append(
                     "<div id='register_"+am_reg+"' class=\"register_stack\">"+
-                        "<input type=\"text\" style=\"width: 40%\" value='"+name+"' required onchange='register_change("+am_reg+","+"0,"+"this.value"+")'>" +
+                        make_select_register(name) + 
                         "<input type=\"text\" style=\"width: 40%\" value='"+value+"' required onchange='register_change("+am_reg+","+"1,"+"this.value"+")'>" +
                         "<input type='button' class=\"btn-danger\" onclick=\"remove_register("+am_reg+")\" " +
                     "style=\"width: 35px; height: 35px; border-radius: 50%\" value='-'>"+
@@ -174,13 +175,13 @@ function remove_stack(k){
 function add_register(){
     $("#edit_registers").append(
         "<div id='register_"+am_reg+"' class=\"register_stack\">"+
-            "<input type=\"text\" style=\"width: 40%\" required onchange='register_change("+am_reg+","+"0,"+"this.value"+")'>" +
+            make_select_register("") + 
             "<input type=\"text\" style=\"width: 40%\" required onchange='register_change("+am_reg+","+"1,"+"this.value"+")'>" +
             "<input type='button' class=\"btn-danger\" onclick=\"remove_register("+am_reg+")\" " +
         "style=\"width: 35px; height: 35px; border-radius: 50%\" value='-'>"+
         "</div>"
     )
-    registers.push(["",""])
+    registers.push([templ_reg[0],""]) //we use selecet_html and required onchange function => must have the start value
     am_reg++;
 }
 function add_stack(){
@@ -204,3 +205,19 @@ function stack_change(id,type,value){
     stack[id][type]=value;
     update();
 }
+function make_select_register(selected) {
+  let result = "<select style=\"width:40\" onchange='register_change("+am_reg+","+"0,"+"this.value"+")'>"
+  let option
+  for (var i = 0; i< templ_reg.length; i++ ) {
+    console.log("reg="+ templ_reg[i] + "sel="+selected)
+    if(templ_reg[i]===selected)
+      { option = " selected" }
+    else
+      { option = ""}
+    result += "<option value=\"" + templ_reg[i] + "\"" + option +" >" + templ_reg[i] + "</option>"
+  }
+  result += "</select>"
+  console.log(result)
+  return result
+}
+
