@@ -6,7 +6,7 @@ import os
 import subprocess
 
 from app.core.db.manager import DBManager
-from app.core.db.utils import code_to_dict
+from app.core.db.utils import code_to_dict, task_to_dict
 from app.core.utils.hex import hexdump
 from app.response import Response
 
