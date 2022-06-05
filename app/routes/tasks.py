@@ -13,7 +13,7 @@ def index():
     args = request.args
     tasks = list(dbmanager.get_all_tasks())
     amount_per_page = 10
-    page = args.get("page", default = 0, type=int)
+    page = args.get("page", default = 1, type=int)
     pages = int(len(tasks) / amount_per_page) + 1
     return render_template('pages/tasks.html', tasks=tasks[(page-1)*10:page*10:1], pages=pages)
 
