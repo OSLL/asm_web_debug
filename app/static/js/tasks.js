@@ -98,7 +98,7 @@ function show_edit(task_id){
             type=0;
 
             id=result._id;
-            $("#edit_id").text("#" + result._id)
+            $("#edit_id").val(result._id)
             $("#edit_name").val(result.name)
             $("#edit_difficulty").val(result.difficulty)
             $("#edit_success").text("Success amount: " + result.success)

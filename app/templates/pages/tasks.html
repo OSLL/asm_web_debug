@@ -87,7 +87,10 @@
     <button class="btn btn-secondary close_button" style="font-weight: bold" onclick="hide_edit()">X</button>
     <div class="view_content">
         <form id="form_edit" class="view_scroll" method="post">
-            <h1 id="edit_id" ></h1>
+	    <div style="align-self: end; display: flex;">
+            	<h4>id:</h4>
+	    	<input id="edit_id" name="edit_id" type="number" style="word-break: break-all; text-align: center" required>
+	    </div>
             <div style="align-self: end; display: flex;">
                 <h4>Title:</h4>
                 <input type="text" id="edit_name" name="edit_name" style="word-break: break-all; text-align: center" required>
