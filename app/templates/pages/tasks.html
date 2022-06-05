@@ -83,7 +83,7 @@
     </div>
 </div>
 
-<div id="edit_info" style="display: none">
+<div id="edit_info" style="display: none; z-index: 1">
     <button class="btn btn-secondary close_button" style="font-weight: bold" onclick="hide_edit()">X</button>
     <div class="view_content">
         <form id="form_edit" class="view_scroll" method="post">
@@ -119,7 +119,11 @@
         </form>
     </div>
 </div>
-
+<div class="btn-group">
+    {% for page in range(pages) %}
+        <button value={{page + 1}} onclick="window.location.replace(`/tasks?page=${this.value}`);" class="btn btn-outline-primary" style="margin: 2px;">{{page + 1}}</button>
+    {% endfor %}
+</div>
 {% endblock %}
 
 {% block script %}
