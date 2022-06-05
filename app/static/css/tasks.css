@@ -69,6 +69,7 @@ table,td, tr, th{
 }
 
 .btn-group {
+    z-index: -1;
     width:69em;
     overflow-x: auto;
     white-space: nowrap;
