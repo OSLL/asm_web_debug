@@ -24,9 +24,13 @@ def remove(id):
 @bp.route('/tasks/edit/', methods=['GET', 'POST'])
 @roles_accepted('teacher', 'admin')
 def edit():
-    task_id=request.args.get("id")
+    task_id=int(request.args.get("id"))
     registers_bef=request.args.get("registers").split(",")
     stack_bef = request.args.get("stack").split(",")
+    new_id = request.form.get("edit_id")
+    for task in dbmanager.get_all_tasks():
+        if int(new_id) == task.id:
+            return redirect('/tasks')
     task_name = request.form.get("edit_name")
     task_difficulty = request.form.get("edit_difficulty")
     tasks_description = request.form.get("edit_description")
@@ -39,7 +43,8 @@ def edit():
         if stack_bef[i*2]!="":
             stack[stack_bef[i * 2]] = stack_bef[i * 2 + 1]
     task = dbmanager.get_task(task_id)
-    dbmanager.create_task(task_id, task_name, tasks_description, task_difficulty, task.success, registers, stack)
+    dbmanager.delete_task(task_id)
+    dbmanager.create_task(new_id, task_name, tasks_description, task_difficulty, task.success, registers, stack)
     return redirect('/tasks')
 
 
