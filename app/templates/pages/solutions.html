@@ -2,10 +2,72 @@
 
 {% block head %}
     <link href="static/css/solutions.css" rel="stylesheet" type="text/css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
     <script src="static/js/solutions.js"></script>
 {% endblock %}
 
 {% block content %}
+
+<div class="filter_area">
+    <h4>General:</h4>
+    <div>
+        <div class="filter_row">
+            <p style="margin: 0; font-size: 20px">Amount on page:</p>
+            <input id="amount_apply" type="number" min="5" value="{{ amount }}">
+        </div>
+    </div>
+    <div>
+        <div class="filter_row">
+            <p style="margin: 0; font-size: 20px">Task ID:</p>
+            {% if task_id!=-1 %}
+                <input id="task_id_apply" type="number" min="0" value="{{ task_id }}">
+            {% else %}
+                <input id="task_id_apply" type="number" min="0">
+            {% endif %}
+        </div>
+    </div>
+    <h4>Dates:</h4>
+    <div>
+        <div class="filter_row">
+            <p style="margin: 0; font-size: 20px">From:</p>
+            <input id="from_apply" type="date" value="{{ from_date }}">
+            <p style="margin: 0; font-size: 20px">To:</p>
+            <input id="to_apply" type="date" value="{{ to_date }}">
+        </div>
+        <div class="filter_row">
+
+        </div>
+        <div class="filter_row">
+            {% if date_sort==1 %}
+                <label><input id="date_newest" type="radio" name="sort_by_date" checked>Oldest</label>
+                <label><input id="date_oldest" type="radio" name="sort_by_date">Newest</label>
+            {% elif date_sort==-1 %}
+                <label><input id="date_newest" type="radio" name="sort_by_date">Oldest</label>
+                <label><input id="date_oldest" type="radio" name="sort_by_date" checked>Newest</label>
+            {% else %}
+                <label><input id="date_newest" type="radio" name="sort_by_date">Oldest</label>
+                <label><input id="date_oldest" type="radio" name="sort_by_date">Newest</label>
+            {% endif %}
+        </div>
+    </div>
+    <h4>Feedback:</h4>
+    <div>
+        {% if passed==1 %}
+                <label><input id="passed" type="radio" name="sort_by_pass" checked>Passed</label>
+                <label><input id="failed" type="radio" name="sort_by_pass">Failed</label>
+            {% elif passed==-1 %}
+                <label><input id="passed" type="radio" name="sort_by_pass">Passed</label>
+                <label><input id="failed" type="radio" name="sort_by_pass" checked>Failed</label>
+            {% else %}
+                <label><input id="passed" type="radio" name="sort_by_pass">Passed</label>
+                <label><input id="failed" type="radio" name="sort_by_pass">Failed</label>
+            {% endif %}
+    </div>
+    <div class="filter_row">
+        <button type="button" class="btn btn-primary" style="border-radius: 20px" onclick="apply()">Apply</button>
+        <button type="button" class="btn btn-secondary" style="border-radius: 20px" href="" onclick="discard()">Discard</button>
+    </div>
+</div>
 
 <div class="py-5 text-center" >
 
@@ -46,7 +108,8 @@
     </table>
     {% for i in range(0,pages) %}
         {% if i!=cur_page %}
-            <a onclick="reload_with_parameters(this,page={{ i }},task_id={{ task_id }})" href="">{{ i+1 }}</a>
+            <a onclick="reload_with_parameters(this,page={{ i }},amount={{ amount }},task_id={{ task_id }},
+                    from_date='{{ from_date }}',to_date='{{ to_date }}',date_sort={{ date_sort }},passed={{ passed }})" href="">{{ i+1 }}</a>
         {% else %}
             <a>{{ i+1 }}</a>
         {% endif %}

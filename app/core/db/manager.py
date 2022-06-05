@@ -111,15 +111,28 @@ class DBManager:
         return Solutions.objects.all()
 
     @staticmethod
-    def get_solutions(page=0, amount=0, task_id=-1):
+    def get_solutions(page=0, amount=0, task_id=-1,
+                                from_date="", to_date="", date_sort=0, passed=0):
         solutions = Solutions.objects.all()
         if task_id != -1:
             current_app.logger.debug('dummy')
-
+        if from_date != "":
+            solutions = solutions(datetime__gte=from_date)
+        if to_date != "":
+            solutions = solutions(datetime__lte=to_date)
+        if passed == 1:
+            solutions = solutions(feedback="Passed!")
+        if passed == -1:
+            solutions = solutions(feedback="Failed!")
+        if date_sort == -1:
+            solutions = solutions.order_by('-datetime')
+        if date_sort == 1:
+            solutions = solutions.order_by('datetime')
+        k = len(solutions)
         solutions = solutions[page*amount:(page+1)*amount]
 
         try:
-            return solutions
+            return solutions, k
         except Solutions.DoesNotExist:
             current_app.logger.debug(f'')
             return None
