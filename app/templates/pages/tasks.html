@@ -12,6 +12,11 @@
             <input id="find_id">
             <button type="button" class="btn btn-primary" style="border-radius: 20px" onclick="find_by_id()">Find</button>
         </div>
+	<div>
+		{% if error %}
+		<h1> {{error}} </h1>
+		{% endif%}
+	</div>
         <table class="task_table" >
             <thead>
                 <tr>
