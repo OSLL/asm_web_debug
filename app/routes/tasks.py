@@ -4,13 +4,15 @@ from app.core.db.manager import DBManager
 
 tasks_bp = Blueprint('tasks', __name__)
 bp = tasks_bp
-
 dbmanager = DBManager()
-
+error = ''
 @bp.route('/tasks', methods=['GET', 'POST'])
 @roles_accepted('teacher', 'admin')
 def index():
-    return render_template('pages/tasks.html', tasks=dbmanager.get_all_tasks())
+    global error
+    my_error = error
+    error = ''
+    return render_template('pages/tasks.html', tasks=dbmanager.get_all_tasks(),error = my_error)
 
 
 @bp.route('/tasks/remove/<id>', methods=['GET', 'POST'])
@@ -30,6 +32,8 @@ def edit():
     new_id = request.form.get("edit_id")
     for task in dbmanager.get_all_tasks():
         if int(new_id) == task.id:
+            global error
+            error = 'This id already exists'
             return redirect('/tasks')
     task_name = request.form.get("edit_name")
     task_difficulty = request.form.get("edit_difficulty")
@@ -51,11 +55,12 @@ def edit():
 @bp.route('/tasks/add/', methods=['GET', 'POST'])
 @roles_accepted('teacher', 'admin')
 def add():
-    max_id = 0
+    new_id=int(request.form.get("edit_id"))
     for task in dbmanager.get_all_tasks():
-        if task._id > max_id:
-            max_id = task._id
-
+        if int(new_id) == task.id:
+            global error
+            error = 'This id already exists'
+            return redirect('/tasks')
     registers_bef = request.args.get("registers").split(",")
     stack_bef = request.args.get("stack").split(",")
     registers = {}
@@ -67,7 +72,7 @@ def add():
         if stack_bef[i * 2] != "":
             stack[stack_bef[i * 2]] = stack_bef[i * 2 + 1]
 
-    dbmanager.create_task(max_id + 1, request.form.get("edit_name"), request.form.get("edit_description"), request.form.get("edit_difficulty"), 0, registers, stack)
+    dbmanager.create_task(new_id, request.form.get("edit_name"), request.form.get("edit_description"), request.form.get("edit_difficulty"), 0, registers, stack)
     return redirect('/tasks')
 
 @bp.route('/tasks/<id>', methods=['GET'])
