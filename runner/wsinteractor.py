@@ -7,7 +7,7 @@ from aiohttp import web, WSMsgType
 from runner import gdbmi
 from runner.checkerlib import BaseChecker
 from runner.debugger import DebuggerError
-from runner.runner import BreakpointId, RunningProgram
+from runner.runner import BreakpointId, DebugSession
 from runner.settings import config
 
 
@@ -21,12 +21,12 @@ async def run_interactor(ws: web.WebSocketResponse):
 
 class WSInteractor:
     ws: web.WebSocketResponse
-    running_program: Optional[RunningProgram]
+    debug_session: Optional[DebugSession]
     breakpoints: Dict[int, BreakpointId]
 
     def __init__(self, ws: web.WebSocketResponse):
         self.ws = ws
-        self.running_program = None
+        self.debug_session = None
         self.breakpoints = {}
 
     async def handle_incoming_messages(self):
@@ -43,11 +43,11 @@ class WSInteractor:
                 })
 
     async def start_program(self, source: str, stdin: str, breakpoints: List[int]):
-        if self.running_program:
-            await self.running_program.close()
+        if self.debug_session:
+            await self.debug_session.close()
         self.breakpoints = {}
-        self.running_program = RunningProgram("x86_64")
-        result = await self.running_program.compile(source)
+        self.debug_session = DebugSession("x86_64")
+        result = await self.debug_session.compile(source)
         await self.ws.send_json({
             "type": "compilation_result",
             "successful": result.successful,
@@ -58,23 +58,23 @@ class WSInteractor:
         if not result.successful:
             return
 
-        self.running_program.set_stdin(stdin)
-        await self.running_program.start_debugger()
+        self.debug_session.set_stdin(stdin)
+        await self.debug_session.start_debugger()
         asyncio.create_task(self.handle_gdb_events())
 
         for line in breakpoints:
-            self.breakpoints[line] = await self.running_program.add_breakpoint(line)
+            self.breakpoints[line] = await self.debug_session.add_breakpoint(line)
 
-        await self.running_program.start_program()
+        await self.debug_session.start_program()
 
     async def terminate_program(self):
-        await self.close()
         await self.ws.send_json({
             "type": "finished"
         })
+        await self.close()
 
     async def send_registers_state(self):
-        registers = await self.running_program.get_register_values(config.archs[self.running_program.arch].display_registers)
+        registers = await self.debug_session.get_register_values(config.archs[self.debug_session.arch].display_registers)
         await self.ws.send_json({
             "type": "registers",
             "data": registers
@@ -105,32 +105,32 @@ class WSInteractor:
                 source = checker_class(arch="x86_64", source_code=source).get_source_for_interactive_debugger()
             await self.start_program(source, stdin, breakpoints)
 
-        if not self.running_program:
+        if not self.debug_session:
             return
 
         if msg["type"] == "kill":
             await self.terminate_program()
 
         if msg["type"] == "continue":
-            await self.running_program.continue_execution()
+            await self.debug_session.continue_execution()
 
         if msg["type"] == "pause":
-            await self.running_program.interrupt_execution()
+            await self.debug_session.interrupt_execution()
 
         if msg["type"] == "step_into":
-            await self.running_program.step_into()
+            await self.debug_session.step_into()
 
         if msg["type"] == "step_over":
-            await self.running_program.step_over()
+            await self.debug_session.step_over()
 
         if msg["type"] == "step_out":
-            await self.running_program.step_out()
+            await self.debug_session.step_out()
 
         if msg["type"] == "add_breakpoint":
             line = msg.get("line")
             if type(line) is not int:
                 raise ValueError("Expected 'line' to be int")
-            await self.running_program.add_breakpoint(line)
+            await self.debug_session.add_breakpoint(line)
 
         if msg["type"] == "remove_breakpoint":
             line = msg.get("line")
@@ -140,19 +140,19 @@ class WSInteractor:
                 raise ValueError("Invalid breakpoint")
             breakpoint_id = self.breakpoints[line]
             del self.breakpoints[line]
-            await self.running_program.remove_breakpoint(breakpoint_id)
+            await self.debug_session.remove_breakpoint(breakpoint_id)
 
         if msg["type"] == "get_registers":
             await self.send_registers_state()
 
         if msg["type"] == "update_register":
             reg = msg.get("reg")
-            if reg not in config.archs[self.running_program.arch].display_registers:
+            if reg not in config.archs[self.debug_session.arch].display_registers:
                 raise ValueError("Expected 'reg' to be a valid register")
             value = msg.get("value")
             if type(value) is not str:
                 raise ValueError("Expected 'value' to be a string")
-            await self.running_program.set_register_value(reg, value)
+            await self.debug_session.set_register_value(reg, value)
             await self.send_registers_state()
 
     async def send_output(self, output: str) -> None:
@@ -162,7 +162,7 @@ class WSInteractor:
         })
 
     async def handle_gdb_events(self):
-        async for event in self.running_program.debugger.gdb_notifications_iterator():
+        async for event in self.debug_session.debugger.gdb_notifications_iterator():
             if type(event) is gdbmi.ExecAsync:
                 if event.status == "running":
                     await self.ws.send_json({
@@ -175,8 +175,8 @@ class WSInteractor:
                     else:
                         exitcode = int(event.values.get("exit-code", "0"), 8)
                         status = f"\n[process exited with exit code {exitcode}]"
-                    await self.terminate_program()
                     await self.send_output(status)
+                    await self.terminate_program()
                 elif event.status == "stopped" and event.values["reason"] in ["breakpoint-hit", "end-stepping-range", "function-finished", "location-reached", "signal-received"]:
                     if "line" in event.values["frame"]:
                         line = int(event.values["frame"]["line"])
@@ -194,6 +194,6 @@ class WSInteractor:
         await self.handle_incoming_messages()
 
     async def close(self):
-        if self.running_program:
-            await self.running_program.close()
-            self.running_program = None
+        if self.debug_session:
+            await self.debug_session.close()
+            self.debug_session = None

@@ -1,5 +1,6 @@
 import logging
 from runner import gdbmi
+from runner.settings import config
 
 from typing import Optional, AsyncIterator
 import asyncio
@@ -33,12 +34,16 @@ class Debugger:
             "--interpreter=mi2"
         ]
 
+        logging.debug(command)
+
         self.gdb = await asyncio.subprocess.create_subprocess_exec(
             *command,
             stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE
         )
+
+        logging.debug("task created")
 
         self.interactor_task = asyncio.create_task(self._gdb_interactor())
         self.inferior_output_task = asyncio.create_task(self._inferior_output_reader())

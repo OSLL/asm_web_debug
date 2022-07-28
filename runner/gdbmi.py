@@ -104,8 +104,9 @@ class Parser:
         raise RuntimeError("invalid parse_value")
 
 
-def parse_gdb_response(line):
+def parse_gdb_response(line: str):
     line = line.strip()
+    line = line.removesuffix("\\n") # Fix for GDB bug: https://sourceware.org/pipermail/gdb/2018-October/047540.html
     if line == "(gdb)" or line == "":
         return None
 
