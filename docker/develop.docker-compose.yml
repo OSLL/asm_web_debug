@@ -47,40 +47,17 @@ services:
     image: "postgres:14"
     restart: always
     volumes:
-      - "${POSTGRES_VOLUME_BIND:-postgres_data:/var/lib/postgresql/data}"
+      - "${POSTGRES_VOLUME_BIND:-postgres_data}:/var/lib/postgresql/data"
     env_file:
       - ../.env
+    ports:
+      - "5432:5432"
 
   redis:
     image: "redis:6"
     restart: always
     volumes:
       - redis_data:/data
-
-  prometheus:
-    build:
-      context: ".."
-      dockerfile: docker/prometheus.dockerfile
-    ports:
-      - "${PROMETHEUS_PORT}:9090"
-    volumes:
-      - prometheus_data:/prometheus
-
-  cadvisor:
-    image: gcr.io/cadvisor/cadvisor:latest
-    ports:
-      - "${CADVISOR_PORT}:8080"
-    volumes:
-      - /:/rootfs:ro
-      - /var/run:/var/run:rw
-      - /sys:/sys:ro
-      - /var/lib/docker/:/var/lib/docker:ro
-      - /dev/disk/:/dev/disk:ro
-    devices:
-      - "/dev/kmsg"
-    privileged: true
-    depends_on:
-      - nginx
 
 
 volumes:

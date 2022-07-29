@@ -40,7 +40,7 @@ services:
     image: "postgres:14"
     restart: always
     volumes:
-      - "${POSTGRES_VOLUME_BIND:-postgres_data:/var/lib/postgresql/data}"
+      - "${POSTGRES_VOLUME_BIND:-postgres_data}:/var/lib/postgresql/data"
     env_file:
       - ../.env
 
@@ -60,22 +60,6 @@ services:
     volumes:
       - prometheus_data:/prometheus
 
-  cadvisor:
-    image: gcr.io/cadvisor/cadvisor:latest
-    restart: always
-    ports:
-      - "${CADVISOR_PORT}:8080"
-    volumes:
-      - /:/rootfs:ro
-      - /var/run:/var/run:ro
-      - /sys:/sys:ro
-      - /var/lib/docker/:/var/lib/docker:ro
-      - /dev/disk/:/dev/disk:ro
-    devices:
-      - "/dev/kmsg"
-    privileged: true
-    depends_on:
-      - nginx
 
 volumes:
   postgres_data:
