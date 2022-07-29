@@ -44,8 +44,8 @@ def lti_route():
         )
         db.session.add(user)
 
-    if current_user.is_admin:
-        user.is_admin = True
+    # TODO: do normal check
+    user.is_admin = 'Learner' in roles
 
     user.email = email
     user.full_name = full_name
